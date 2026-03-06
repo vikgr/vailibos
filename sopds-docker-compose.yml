@@ -1,0 +1,107 @@
+name: sopds
+services:
+    sopds:
+        cpu_shares: 90
+        command: []
+        container_name: sopds
+        depends_on:
+            sopds-db:
+                condition: service_started
+                required: true
+        deploy:
+            resources:
+                limits:
+                    memory: "16736321536"
+        environment:
+            DB_HOST: sopds-db
+            DB_NAME: sopds
+            DB_PASS: "151104"
+            DB_PORT: "5432"
+            DB_USER: sopds
+            PGID: "0"
+            PUID: "0"
+            TIME_ZONE: Europe/Madrid
+            SOPDS_TMBOT_ENABLE: "False"
+            SOPDS_TELEBOT_AUTH: "True"
+            SOPDS_TMBOT_TOKEN: "7602944873:AAHJMk3UZvNSQCvID4EvmJsP68e4TYGLOZ8"
+        hostname: sopds
+        image: zveronline/sopds:latest
+        labels:
+            icon: https://opds.workzilla.nl/static/images/Mejnkun.jpeg
+        networks:
+            default: null
+        ports:
+            - mode: ingress
+              target: 8001
+              published: "8081"
+              protocol: tcp
+        restart: unless-stopped
+        volumes:
+            - type: bind
+              source: /DATA/AppData/sopds/db
+              target: /var/lib/sopds
+              bind:
+                create_host_path: true
+            - type: bind
+              source: /DATA/Downloads/books
+              target: /library
+              read_only: true
+              bind:
+                create_host_path: true
+            - type: bind
+              source: /tmp/sopds_custom/templates/sopds_main.html
+              target: /sopds/sopds_web_backend/templates/sopds_main.html
+            - type: bind
+              source: /tmp/sopds_custom/templates/sopds_hello.html
+              target: /sopds/sopds_web_backend/templates/sopds_hello.html
+            - type: bind
+              source: /tmp/sopds_custom/templates/sopds_logo.html
+              target: /sopds/sopds_web_backend/templates/sopds_logo.html
+            - type: bind
+              source: /tmp/sopds_custom/templates/sopds_menu.html
+              target: /sopds/sopds_web_backend/templates/sopds_menu.html
+            - type: bind
+              source: /tmp/sopds_custom/views.py
+              target: /sopds/sopds_web_backend/views.py
+            - type: bind
+              source: /tmp/sopds_custom/static
+              target: /sopds/static/custom
+    sopds-db:
+        cpu_shares: 90
+        command: []
+        container_name: sopds-db
+        deploy:
+            resources:
+                limits:
+                    memory: "16736321536"
+        environment:
+            POSTGRES_DB: sopds
+            POSTGRES_PASSWORD: "151104"
+            POSTGRES_USER: sopds
+        hostname: sopds-db
+        image: postgres:13-alpine
+        labels:
+            icon: https://opds.workzilla.nl/static/images/Mejnkun.jpeg
+        networks:
+            default: null
+        restart: unless-stopped
+        volumes:
+            - type: bind
+              source: /DATA/AppData/sopds/postgres
+              target: /var/lib/postgresql/data
+              bind:
+                create_host_path: true
+networks:
+    default:
+        name: sopds_default
+x-casaos:
+    author: self
+    category: self
+    hostname: opds.workzilla.nl
+    icon: https://opds.workzilla.nl/static/images/Mejnkun.jpeg
+    index: /
+    is_uncontrolled: false
+    port_map: ""
+    scheme: http
+    title:
+        custom: SOPDS

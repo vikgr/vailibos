@@ -1,0 +1,109 @@
+{% load staticfiles %}
+{% load cache %}
+
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VAILIB Digital Library</title>
+
+    <link rel="stylesheet" type="text/css" href="{% static 'css/sopds.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'foundation-icons/foundation-icons.css' %}">
+
+    <!-- Modern & E-Ink Inject -->
+    <link rel="stylesheet" type="text/css" href="{% static 'custom/css/modern.css' %}?v=18">
+    <script>
+        (function () {
+            const theme = localStorage.getItem('sopds-theme') || 'premium';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+</head>
+
+<body>
+    <div class="app-wrapper">
+
+        <!-- SIDEBAR FOR PREMIUM / TOP HEADER FOR E-INK -->
+        <aside class="sidebar-container">
+
+            <!-- Brand & Auth -->
+            <div class="brand-header" style="margin-bottom: 20px;">
+                <a href="/web/" style="text-decoration: none; color: inherit;">
+                    <h1 class="vailib-brand" style="margin:0;">VAILIB</h1>
+                </a>
+                <div class="auth-box" style="margin-top: 5px;">
+                    {% if user.is_authenticated %}
+                    <a href="/web/logout/"><i class="fi-torso"></i> {{ user.username }}</a>
+                    {% else %}
+                    <a href="/web/login/"><i class="fi-torso"></i> Войти</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Navigation System -->
+            {% include "sopds_menu.html" %}
+
+        </aside>
+
+        <!-- MAIN BODY -->
+        <main class="main-content">
+            <!-- Comfort Search Block on top -->
+            <div style="margin-bottom:20px;">
+                {% include "sopds_logo.html" %}
+            </div>
+
+            <!-- System breadcrumbs & notices -->
+            {% include "sopds_breadcrumbs.html" %}
+            {% if system_message %} {% include "sopds_messages.html" %} {% endif %}
+
+            <!-- Primary App Content -->
+            <div class="content-wrapper">
+                {% block content %}
+                {% block ext-body %} {% endblock %}
+                {% cache cache_t body cache_id %}
+                {% block body %} {% endblock %}
+                {% endcache %}
+                {% endblock %}
+            </div>
+
+            <div style="margin-top: 40px;">
+                {% include "sopds_footer.html" %}
+            </div>
+        </main>
+
+    </div>
+
+    <script src="{% static 'js/vendor/jquery.js' %}"></script>
+    <script src="{% static 'js/vendor/foundation.min.js' %}"></script>
+    <script src="{% static 'custom/js/theme_switcher.js' %}"></script>
+
+    <script>
+        $(document).foundation();
+        if (typeof SetSearch === 'function') SetSearch();
+
+        window.onload = function () {
+            const btn = document.getElementById("theme-toggle");
+            if (btn) {
+                btn.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    let current = document.documentElement.getAttribute("data-theme");
+                    let nextTheme = current === "premium" ? "eink" : "premium";
+                    document.documentElement.setAttribute("data-theme", nextTheme);
+                    localStorage.setItem("sopds-theme", nextTheme);
+                    console.log("Theme switched to", nextTheme);
+                });
+            }
+        };
+
+        Foundation.Abide.defaults.validators['check_search'] = function ($el, required, parent) {
+            const box = document.getElementById('main_searchbox');
+            if (box && box.value.length < 3) return false;
+            return true;
+        };
+    </script>
+    {% block block-js %}{% endblock %}
+</body>
+
+</html>

@@ -1,0 +1,47 @@
+{% extends "sopds_main.html" %}
+
+{% block body %}
+<div class="hello-dashboard">
+    <h2 class="dashboard-title"
+        style="margin-top: 0; margin-bottom: 20px; font-weight: 800; text-transform: uppercase;">Новые Поступления</h2>
+
+    <div class="recent-books-grid">
+        {% for book in recent_books %}
+        <div class="book-card book-item">
+            <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{ book.id }}"
+                style="text-decoration: none; color: inherit;">
+                <div class="cover-wrapper">
+                    {% if book.id %}
+                    <img src="{% url 'opds_catalog:thumb' book.id %}" class="book-cover" alt="Обложка"
+                        onerror="this.src='/static/images/covertmpl.jpg'">
+                    {% else %}
+                    <img src="/static/images/covertmpl.jpg" class="book-cover" alt="No Cover">
+                    {% endif %}
+                </div>
+                <div class="book-info">
+                    <h5 class="book-title">{{ book.title|truncatechars:40 }}</h5>
+                    <p class="book-author">
+                        {% for author in book.authors.all %}
+                        {{ author.full_name }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                        Неизвестный автор
+                        {% endfor %}
+                    </p>
+                    <div class="card-footer"
+                        style="display:flex; justify-content:flex-end; align-items:center; margin-top:10px;">
+                        <div class="actions" style="color:var(--text-muted); font-size:1.1rem; gap:10px; display:flex;">
+                            <i class="fi-book"></i> <i class="fi-bookmark"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="callout" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+            <h3>Библиотека пуста</h3>
+            <p>Выполните сканирование директории.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "sopds_main.html" %}
+{% load staticfiles %}
+{% load i18n %}
+
+{% block body %}
+{% autoescape on %}
+<div class="index-grid">
+	{% for g in items %}
+	{% if not parent_id %}
+	<a href="{% url 'web:genre' %}?section={{g.section_id}}" class="index-card">
+		<div class="index-letter" style="font-size:1.1rem;word-wrap:break-word;">{{ g.section }}</div>
+		{% else %}
+		<a href="{% url 'web:searchbooks' %}?searchtype=g&searchterms={{g.id}}" class="index-card">
+			<div class="index-letter" style="font-size:1.1rem;word-wrap:break-word;">{{ g.subsection }}</div>
+			{% endif %}
+			<div class="index-count">
+				{% blocktrans with g_num_book=g.num_book %}
+				Total: {{ g_num_book }} books.
+				{% endblocktrans %}
+			</div>
+		</a>
+		{% endfor %}
+</div>
+{% endautoescape %}
+
+{% endblock %} {# body #}

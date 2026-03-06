@@ -1,0 +1,71 @@
+name: library-system
+services:
+    # ── Database ───────────────────────────────────────────
+    db:
+        container_name: library-db
+        image: postgres:13-alpine
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: sopds
+            POSTGRES_USER: sopds
+            POSTGRES_PASSWORD: "${DB_PASSWORD:-151104}"
+        volumes:
+            - /DATA/AppData/library/postgres:/var/lib/postgresql/data
+        networks:
+            - library-net
+
+    # ── SOPDS Web & OPDS ──────────────────────────────────
+    sopds:
+        container_name: library-web
+        image: zveronline/sopds:latest
+        restart: unless-stopped
+        depends_on:
+            - db
+        environment:
+            DB_HOST: db
+            DB_NAME: sopds
+            DB_USER: sopds
+            DB_PASS: "${DB_PASSWORD:-151104}"
+            DB_PORT: "5432"
+            SOPDS_ROOT_LIB: /library
+            SOPDS_TMBOT_ENABLE: "False" # We use our own bot
+            TIME_ZONE: Europe/Madrid
+        ports:
+            - "8081:8001"
+        volumes:
+            - /DATA/AppData/library/sopds-db:/var/lib/sopds
+            - /DATA/Downloads/books:/library:ro
+            - ./sopds_main.html:/sopds/sopds_web_backend/templates/sopds_main.html
+            - ./sopds_hello.html:/sopds/sopds_web_backend/templates/sopds_hello.html
+            - ./sopds_logo.html:/sopds/sopds_web_backend/templates/sopds_logo.html
+            - ./sopds_menu.html:/sopds/sopds_web_backend/templates/sopds_menu.html
+            - ./sopds_footer.html:/sopds/sopds_web_backend/templates/sopds_footer.html
+            - ./templates:/sopds/sopds_web_backend/templates
+            - ./modern.css:/sopds/static/custom/css/modern.css
+        networks:
+            - library-net
+
+    # ── Telegram Bot & PDF Converter ──────────────────────
+    bot-converter:
+        container_name: library-bot
+        build:
+            context: .
+            dockerfile: Dockerfile_converter
+        restart: unless-stopped
+        depends_on:
+            - db
+        environment:
+            BOT_TOKEN: "${BOT_TOKEN}"
+            CHAT_ID: "${CHAT_ID}"
+            DB_HOST: db
+            DB_USER: sopds
+            DB_NAME: sopds
+            PGPASSWORD: "${DB_PASSWORD:-151104}"
+        volumes:
+            - /DATA/Downloads/books:/library # RW for conversion
+        networks:
+            - library-net
+
+networks:
+    library-net:
+        name: library_network

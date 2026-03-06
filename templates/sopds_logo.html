@@ -1,0 +1,43 @@
+<div class="comfort-search-wrapper" style="width: 100%;">
+    <!-- Search Type Config -->
+    <div class="search-tabs">
+        <button type="button" class="search-tab active" data-type="title"
+            onclick="switchComfortSearch('title')">Книги</button>
+        <button type="button" class="search-tab" data-type="author"
+            onclick="switchComfortSearch('author')">Авторы</button>
+        <button type="button" class="search-tab" data-type="series"
+            onclick="switchComfortSearch('series')">Серии</button>
+    </div>
+
+    <form method="get" action="/web/search/books/" id="searchform" class="modern-search-form" style="display:flex;">
+        <input class="input-group-field" type="search" name="searchterms" placeholder="Search books, authors, genres..."
+            id="main_searchbox" required style="flex-grow:1;">
+        <button class="search-submit-btn" type="submit" style="white-space:nowrap; margin-bottom:0;"><i
+                class="fi-magnifying-glass"></i></button>
+    </form>
+</div>
+<script>
+    function switchComfortSearch(type) {
+        // Toggle Active Tab UI
+        const tabs = document.querySelectorAll('.search-tab');
+        tabs.forEach(t => t.classList.remove('active'));
+        const activeTab = document.querySelector('.search-tab[data-type="' + type + '"]');
+        if (activeTab) activeTab.classList.add('active');
+
+        // Update Form Logic
+        const form = document.getElementById('searchform');
+        const input = document.getElementById('main_searchbox');
+
+        if (type === 'title') {
+            form.action = "{% url 'web:searchbooks' %}";
+            input.placeholder = "Поиск по названию";
+        } else if (type === 'author') {
+            form.action = "{% url 'web:searchauthors' %}";
+            input.placeholder = "Поиск по автору";
+        } else if (type === 'series') {
+            form.action = "{% url 'web:searchseries' %}";
+            input.placeholder = "Поиск по серии";
+        }
+        input.focus();
+    }
+</script>
