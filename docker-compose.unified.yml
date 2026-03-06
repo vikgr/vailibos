@@ -6,11 +6,11 @@ services:
         image: postgres:13-alpine
         restart: unless-stopped
         environment:
-            POSTGRES_DB: sopds
-            POSTGRES_USER: sopds
-            POSTGRES_PASSWORD: "${DB_PASSWORD:-151104}"
+            POSTGRES_DB: ${POSTGRES_DB:-sopds}
+            POSTGRES_USER: ${POSTGRES_USER:-sopds}
+            POSTGRES_PASSWORD: "${DB_PASSWORD:-changeme}"
         volumes:
-            - /DATA/AppData/library/postgres:/var/lib/postgresql/data
+            - ${DB_DATA_PATH:-./data/postgres}:/var/lib/postgresql/data
         networks:
             - library-net
 
@@ -23,18 +23,18 @@ services:
             - db
         environment:
             DB_HOST: db
-            DB_NAME: sopds
-            DB_USER: sopds
-            DB_PASS: "${DB_PASSWORD:-151104}"
+            DB_NAME: ${POSTGRES_DB:-sopds}
+            DB_USER: ${POSTGRES_USER:-sopds}
+            DB_PASS: "${DB_PASSWORD:-changeme}"
             DB_PORT: "5432"
             SOPDS_ROOT_LIB: /library
             SOPDS_TMBOT_ENABLE: "False" # We use our own bot
-            TIME_ZONE: Europe/Madrid
+            TIME_ZONE: ${TIME_ZONE:-Europe/Madrid}
         ports:
             - "8081:8001"
         volumes:
-            - /DATA/AppData/library/sopds-db:/var/lib/sopds
-            - /DATA/Downloads/books:/library:ro
+            - ${SOPDS_DATA_PATH:-./data/sopds}:/var/lib/sopds
+            - ${BOOKS_PATH:-./data/books}:/library:ro
             - ./sopds_main.html:/sopds/sopds_web_backend/templates/sopds_main.html
             - ./sopds_hello.html:/sopds/sopds_web_backend/templates/sopds_hello.html
             - ./sopds_logo.html:/sopds/sopds_web_backend/templates/sopds_logo.html
@@ -58,11 +58,11 @@ services:
             BOT_TOKEN: "${BOT_TOKEN}"
             CHAT_ID: "${CHAT_ID}"
             DB_HOST: db
-            DB_USER: sopds
-            DB_NAME: sopds
-            PGPASSWORD: "${DB_PASSWORD:-151104}"
+            DB_USER: ${POSTGRES_USER:-sopds}
+            DB_NAME: ${POSTGRES_DB:-sopds}
+            PGPASSWORD: "${DB_PASSWORD:-changeme}"
         volumes:
-            - /DATA/Downloads/books:/library # RW for conversion
+            - ${BOOKS_PATH:-./data/books}:/library # RW for conversion
         networks:
             - library-net
 
