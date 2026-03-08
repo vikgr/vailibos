@@ -416,6 +416,15 @@ body {
     padding: 10px;
 }
 
+/* Swap all generic fallback covers to the white e-ink cover in eink mode */
+[data-theme="eink"] img[src^="/static/images/cover"] {
+    content: url("/static/images/cover2.jpg");
+}
+
+[data-theme="eink"] .book-cover img {
+    filter: grayscale(100%) contrast(1.1);
+}
+
 @media (max-width: 600px) {
     .recent-books-grid {
         grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -466,27 +475,30 @@ body {
 
 /* Catalog List View */
 .catalog-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding-bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+    padding-bottom: 30px;
 }
 
 .catalog-item {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 15px 20px;
+    padding: 20px;
     text-decoration: none;
     transition: all 0.2s ease;
+    min-height: 100px;
 }
 
 .catalog-item:hover {
-    background: var(--btn-bg);
+    transform: translateY(-5px);
     border-color: var(--accent);
-    transform: translateX(5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), var(--accent-glow);
 }
 
 .catalog-icon {
@@ -529,4 +541,302 @@ body {
     font-weight: 800;
     text-transform: uppercase;
     margin-left: 15px;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    list-style: none;
+    gap: 10px;
+    justify-content: center;
+    padding: 20px 0;
+    margin: 0;
+}
+
+.pagination li a,
+.pagination li.current {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 8px 15px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.pagination li a:hover {
+    border-color: var(--accent);
+    box-shadow: var(--accent-glow);
+}
+
+.pagination li.current {
+    background: var(--accent);
+    color: var(--bg-main);
+    border-color: var(--accent);
+    font-weight: 800;
+}
+
+.pagination li.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+[data-theme="eink"] .pagination li a,
+[data-theme="eink"] .pagination li.current {
+    background: #fff;
+    color: #000;
+    border: 3px solid #000;
+    border-radius: 0;
+}
+
+[data-theme="eink"] .pagination li.current {
+    background: #000;
+    color: #fff;
+}
+
+/* Breadcrumbs */
+.modern-breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    background: var(--card-bg);
+    padding: 15px 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.modern-breadcrumbs .crumb {
+    color: var(--text-main);
+}
+
+.modern-breadcrumbs a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.modern-breadcrumbs .separator {
+    color: var(--text-muted);
+    margin: 0 10px;
+}
+
+[data-theme="eink"] .modern-breadcrumbs {
+    background: #fff;
+    border: 4px solid #000;
+    border-radius: 0;
+    color: #000;
+}
+
+[data-theme="eink"] .modern-breadcrumbs a {
+    color: #000;
+    text-decoration: underline;
+}
+
+/* Book Item (List) */
+.modern-book-item {
+    flex-direction: row;
+    gap: 20px;
+    padding: 20px !important;
+    margin-bottom: 15px;
+}
+
+.modern-book-item .book-cover {
+    width: 120px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    aspect-ratio: 2 / 3;
+    background: var(--bg-main);
+}
+
+.modern-book-item .book-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.modern-book-item .book-info {
+    padding: 0;
+    justify-content: flex-start;
+}
+
+.modern-book-item .book-title {
+    font-size: 1.3rem !important;
+    margin-bottom: 10px !important;
+}
+
+.modern-book-item .book-meta p {
+    margin: 4px 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.modern-book-item .book-meta p a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.modern-book-item .book-meta strong {
+    color: var(--text-main);
+}
+
+.modern-book-item .book-actions {
+    margin-top: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.modern-book-item .action-btn {
+    background: var(--btn-bg);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.modern-book-item .action-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.modern-book-item .read-btn {
+    background: var(--accent);
+    color: var(--bg-main);
+    border-color: var(--accent);
+    font-weight: 800;
+}
+
+.modern-book-item .read-btn:hover {
+    background: transparent;
+    color: var(--accent);
+    box-shadow: var(--accent-glow);
+}
+
+.modern-book-item .book-annotation {
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    border-top: 1px dashed var(--border);
+    padding-top: 15px;
+}
+
+[data-theme="eink"] .modern-book-item {
+    border: 4px solid #000 !important;
+}
+
+[data-theme="eink"] .modern-book-item .action-btn {
+    border: 2px solid #000;
+    border-radius: 0;
+    color: #000;
+    background: #fff;
+}
+
+[data-theme="eink"] .modern-book-item .read-btn {
+    background: #000;
+    color: #fff;
+}
+
+[data-theme="eink"] .modern-book-item .book-meta strong {
+    color: #000;
+}
+
+/* Auth Card */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.modern-auth-card {
+    width: 100%;
+    max-width: 400px;
+    padding: 40px !important;
+}
+
+.modern-auth-card .auth-title {
+    text-align: center;
+    color: var(--accent);
+    margin-bottom: 30px;
+    font-size: 1.8rem;
+    text-shadow: var(--accent-glow);
+    font-weight: 800;
+}
+
+.modern-auth-card .form-group {
+    margin-bottom: 20px;
+}
+
+.modern-auth-card label {
+    display: block;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.modern-auth-card .modern-input {
+    width: 100%;
+    background: var(--bg-main) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-main) !important;
+    padding: 12px 15px !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.modern-auth-card .modern-input:focus {
+    border-color: var(--accent) !important;
+    box-shadow: var(--accent-glow) !important;
+    outline: none;
+}
+
+.modern-auth-card .modern-btn {
+    width: 100%;
+    background: var(--accent);
+    color: var(--bg-main);
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.modern-auth-card .modern-btn:hover {
+    box-shadow: 0 0 20px rgba(42, 195, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+[data-theme="eink"] .modern-auth-card {
+    border: 6px solid #000 !important;
+    background: #fff !important;
+}
+
+[data-theme="eink"] .modern-auth-card .auth-title {
+    color: #000;
+    text-shadow: none;
+}
+
+[data-theme="eink"] .modern-auth-card .modern-input {
+    background: #fff !important;
+    border: 3px solid #000 !important;
+    color: #000 !important;
+    border-radius: 0 !important;
+}
+
+[data-theme="eink"] .modern-auth-card .modern-btn {
+    background: #000;
+    color: #fff;
+    border: 4px solid #000;
+    border-radius: 0;
 }

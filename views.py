@@ -118,13 +118,21 @@ def SearchBooksView(request):
         if searchtype == 'm':
             #books = Book.objects.extra(where=["upper(title) like %s"], params=["%%%s%%"%searchterms.upper()]).order_by('title','-docdate')
             books = Book.objects.filter(search_title__contains=searchterms.upper()).order_by('search_title','-docdate')
-            args['breadcrumbs'] = [_('Books'),_('Поиск по названию'),searchterms]
+            args['breadcrumbs'] = [
+                {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                {'name': _('Поиск по названию'), 'url': None},
+                {'name': searchterms, 'url': '?searchtype=m&searchterms=%s' % searchterms}
+            ]
             args['searchobject'] = 'title'
             
         if searchtype == 'b':
             #books = Book.objects.extra(where=["upper(title) like %s"], params=["%s%%"%searchterms.upper()]).order_by('title','-docdate')
             books = Book.objects.filter(search_title__startswith=searchterms.upper()).order_by('search_title','-docdate')
-            args['breadcrumbs'] = [_('Books'),_('Поиск по названию'),searchterms]   
+            args['breadcrumbs'] = [
+                {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                {'name': _('Поиск по названию'), 'url': None},
+                {'name': searchterms, 'url': '?searchtype=b&searchterms=%s' % searchterms}
+            ]
             args['searchobject'] = 'title'         
             
         elif searchtype == 'a':
@@ -137,7 +145,12 @@ def SearchBooksView(request):
                 author_id = 0
                 aname = ""                  
             books = Book.objects.filter(authors=author_id).order_by('search_title','-docdate')  
-            args['breadcrumbs'] = [_('Books'),_('Поиск по автору'),aname]   
+            args['breadcrumbs'] = [
+                {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                {'name': _('Поиск по автору'), 'url': '/web/author/?lang=0'},
+                {'name': aname, 'url': '?searchtype=a&searchterms=%s' % searchterms}
+            ]
+
             args['searchobject'] = 'author' 
             
         # Поиск книг по серии
@@ -150,7 +163,11 @@ def SearchBooksView(request):
                 ser = ""
             #books = Book.objects.filter(series=ser_id).order_by('search_title','-docdate')
             books = Book.objects.filter(series=ser_id).order_by('bseries__ser_no','search_title','-docdate')
-            args['breadcrumbs'] = [_('Books'),_('Поиск по серии'),ser]
+            args['breadcrumbs'] = [
+                {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                {'name': _('Поиск по серии'), 'url': '/web/series/?lang=0'},
+                {'name': ser, 'url': '?searchtype=s&searchterms=%s' % searchterms}
+            ]
             args['searchobject'] = 'series'
             
         # Поиск книг по жанру
@@ -159,10 +176,18 @@ def SearchBooksView(request):
                 genre_id = int(searchterms)
                 section = Genre.objects.get(id=genre_id).section
                 subsection = Genre.objects.get(id=genre_id).subsection
-                args['breadcrumbs'] = [_('Books'),_('Поиск по жанру'),section,subsection]
+                args['breadcrumbs'] = [
+                    {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                    {'name': _('Поиск по жанру'), 'url': '/web/genre/'},
+                    {'name': section, 'url': None},
+                    {'name': subsection, 'url': '?searchtype=g&searchterms=%s' % searchterms}
+                ]
             except:
                 genre_id = 0
-                args['breadcrumbs'] = [_('Books'),_('Поиск по жанру')]
+                args['breadcrumbs'] = [
+                    {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                    {'name': _('Поиск по жанру'), 'url': '/web/genre/'}
+                ]
                 
             books = Book.objects.filter(genres=genre_id).order_by('search_title','-docdate') 
             args['searchobject'] = 'genre'
@@ -171,11 +196,18 @@ def SearchBooksView(request):
         elif searchtype == 'u':
             if config.SOPDS_AUTH:
                 books = Book.objects.filter(bookshelf__user=request.user).order_by('-bookshelf__readtime')
-                args['breadcrumbs'] = [_('Books'),_('Bookshelf'),request.user.username]
+                args['breadcrumbs'] = [
+                    {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                    {'name': _('Bookshelf'), 'url': '/web/search/books/?searchtype=u'},
+                    {'name': request.user.username, 'url': None}
+                ]
                 #books = bookshelf.objects.filter(user=request.user).select_related('book')              
             else:
                 books=Book.objects.filter(id=0)     
-                args['breadcrumbs'] = [_('Books'), _('Bookshelf')] 
+                args['breadcrumbs'] = [
+                    {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                    {'name': _('Bookshelf'), 'url': '/web/search/books/?searchtype=u'}
+                ]
             args['searchobject'] = 'title'
             args['isbookshelf'] = 1
                 
@@ -185,7 +217,11 @@ def SearchBooksView(request):
             book_id = int(searchterms)
             mbook = Book.objects.get(id=book_id)
             books = Book.objects.filter(title=mbook.title, authors__in=mbook.authors.all()).exclude(id=book_id).distinct().order_by('-docdate')
-            args['breadcrumbs'] = [_('Books'),_('Doubles for book'),mbook.title]
+            args['breadcrumbs'] = [
+                {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                {'name': _('Doubles for book'), 'url': None},
+                {'name': mbook.title, 'url': '?searchtype=d&searchterms=%s' % searchterms}
+            ]
             args['searchobject'] = 'title'
             
         # Поиск книги по ID. Хотел найти еще и дубликаты к книге, но почему-то не работает запрос правильно. Ума не приложу почему.    
@@ -197,7 +233,10 @@ def SearchBooksView(request):
                 book_id = 0
                 #mbook = None
             books = Book.objects.filter(id=book_id) 
-            args['breadcrumbs'] = [_('Books'),books[0].title]
+            args['breadcrumbs'] = [
+                {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                {'name': books[0].title, 'url': '?searchtype=i&searchterms=%s' % searchterms}
+            ]
             #books = Book.objects.filter(title=mbook.title, authors__in=mbook.authors.all()).distinct().order_by('-docdate')                
             #args['breadcrumbs'] = [_('Books'),mbook.title]
             args['searchobject'] = 'title'
@@ -313,7 +352,11 @@ def SearchSeriesView(request):
         args['series']=items     
         args['searchobject'] = 'series'
         args['current'] = 'search'        
-        args['breadcrumbs'] = [_('Series'),_('Search'),searchterms]
+        args['breadcrumbs'] = [
+            {'name': _('Series'), 'url': '/web/series/?lang=0'},
+            {'name': _('Search'), 'url': None},
+            {'name': searchterms, 'url': '?searchtype=%s&searchterms=%s' % (searchtype, searchterms)}
+        ]
         args['cache_id']='%s:%s:%s'%(searchterms,searchtype,op.page_num)
         args['cache_t']=config.SOPDS_CACHE_TIME
 
@@ -355,7 +398,11 @@ def SearchAuthorsView(request):
         args['authors']=items     
         args['searchobject'] = 'author'
         args['current'] = 'search'       
-        args['breadcrumbs'] = [_('Authors'),_('Search'),searchterms]
+        args['breadcrumbs'] = [
+            {'name': _('Authors'), 'url': '/web/author/?lang=0'},
+            {'name': _('Search'), 'url': None},
+            {'name': searchterms, 'url': '?searchtype=%s&searchterms=%s' % (searchtype, searchterms)}
+        ]
         args['cache_id']='%s:%s:%s'%(searchterms,searchtype,op.page_num)
         args['cache_t']=config.SOPDS_CACHE_TIME
                                     
@@ -419,7 +466,7 @@ def CatalogsView(request):
         breadcrumbs_list.insert(0, (_('ROOT'), 0))  
     #breadcrumbs_list.insert(0, (_('Catalogs'),-1))    
     args['breadcrumbs_cat'] =  breadcrumbs_list  
-    args['breadcrumbs'] =  [_('Catalogs')]
+    args['breadcrumbs'] =  [{'name': _('Catalogs'), 'url': '/web/catalog/'}]
     args['cache_id'] = '%s:%s:%s' % (args['current'],cat_id, op.page_num)
     args['cache_t'] = config.SOPDS_CACHE_TIME
       
@@ -456,7 +503,12 @@ def BooksView(request):
     args['items']=items
     args['current'] = 'book'      
     args['lang_code'] = lang_code   
-    args['breadcrumbs'] =  [_('Books'),_('Select'),lang_menu[lang_code],chars]
+    args['breadcrumbs'] =  [
+        {'name': _('Books'), 'url': '/web/book/?lang=0'},
+        {'name': _('Select'), 'url': None},
+        {'name': lang_menu[lang_code], 'url': '?lang=%s' % lang_code},
+        {'name': chars, 'url': '?lang=%s&chars=%s' % (lang_code, chars)}
+    ]
     args['cache_id'] = '%s:%s:%s' % (args['current'],lang_code, chars)
     args['cache_t'] = config.SOPDS_CACHE_TIME
       
@@ -493,7 +545,12 @@ def AuthorsView(request):
     args['items']=items
     args['current'] = 'author'      
     args['lang_code'] = lang_code   
-    args['breadcrumbs'] =  [_('Authors'),_('Select'),lang_menu[lang_code],chars]
+    args['breadcrumbs'] =  [
+        {'name': _('Authors'), 'url': '/web/author/?lang=0'},
+        {'name': _('Select'), 'url': None},
+        {'name': lang_menu[lang_code], 'url': '?lang=%s' % lang_code},
+        {'name': chars, 'url': '?lang=%s&chars=%s' % (lang_code, chars)}
+    ]
     args['cache_id'] = '%s:%s:%s' % (args['current'],lang_code, chars)
     args['cache_t'] = config.SOPDS_CACHE_TIME
       
@@ -530,7 +587,12 @@ def SeriesView(request):
     args['items']=items
     args['current'] = 'series'      
     args['lang_code'] = lang_code   
-    args['breadcrumbs'] =  [_('Series'),_('Select'),lang_menu[lang_code],chars]
+    args['breadcrumbs'] =  [
+        {'name': _('Series'), 'url': '/web/series/?lang=0'},
+        {'name': _('Select'), 'url': None},
+        {'name': lang_menu[lang_code], 'url': '?lang=%s' % lang_code},
+        {'name': chars, 'url': '?lang=%s&chars=%s' % (lang_code, chars)}
+    ]
     args['cache_id'] = '%s:%s:%s' % (args['current'],lang_code, chars)
     args['cache_t'] = config.SOPDS_CACHE_TIME
       
@@ -548,11 +610,18 @@ def GenresView(request):
         
     if section_id==0:
         items = Genre.objects.values('section').annotate(section_id=Min('id'), num_book=Count('book')).filter(num_book__gt=0).order_by('section')
-        args['breadcrumbs'] =  [_('Genres'),_('Select')]
+        args['breadcrumbs'] =  [
+            {'name': _('Genres'), 'url': '/web/genre/'},
+            {'name': _('Select'), 'url': None}
+        ]
     else:
         section = Genre.objects.get(id=section_id).section
         items = Genre.objects.filter(section=section).annotate(num_book=Count('book')).filter(num_book__gt=0).values().order_by('subsection')   
-        args['breadcrumbs'] =  [_('Genres'),_('Select'),section]   
+        args['breadcrumbs'] =  [
+            {'name': _('Genres'), 'url': '/web/genre/'},
+            {'name': _('Select'), 'url': '/web/genre/'},
+            {'name': section, 'url': '?section=%s' % section_id}
+        ]
           
     args['items']=items
     args['current'] = 'genre'  
@@ -584,13 +653,13 @@ def BSClearView(request):
     
 def hello(request):
     args = {}
-    args['breadcrumbs'] = [_('HOME')]
+    args['breadcrumbs'] = [{'name': _('HOME'), 'url': '/web/'}]
     args['recent_books'] = Book.objects.all().order_by('-registerdate', '-id')[:12]
     return render(request, 'sopds_hello.html', args)
 
 def LoginView(request):
     args = {}
-    args['breadcrumbs'] = [_('Login')]
+    args['breadcrumbs'] = [{'name': _('Login'), 'url': None}]
     args.update(csrf(request))
     try:
         username = request.POST['username']
@@ -622,7 +691,7 @@ def LoginView(request):
 def LogoutView(request):
     logout(request)
     args = {}
-    args['breadcrumbs'] = [_('Logout')]
+    args['breadcrumbs'] = [{'name': _('Logout'), 'url': None}]
     return redirect(reverse('web:main'))
 
 def handler403(request,args):

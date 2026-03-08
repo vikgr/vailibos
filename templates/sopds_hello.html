@@ -12,10 +12,10 @@
                 style="text-decoration: none; color: inherit;">
                 <div class="cover-wrapper">
                     {% if book.id %}
-                    <img src="{% url 'opds_catalog:thumb' book.id %}" class="book-cover" alt="Обложка"
-                        onerror="this.src='/static/images/covertmpl.jpg'">
+                    <img src="{% url 'opds_catalog:thumb' book.id %}?v=modern" class="book-cover" alt="Обложка"
+                        onerror="this.onerror=null; this.src='/static/images/cover1.jpg';">
                     {% else %}
-                    <img src="/static/images/covertmpl.jpg" class="book-cover" alt="No Cover">
+                    <img src="/static/images/cover1.jpg" class="book-cover" alt="No Cover">
                     {% endif %}
                 </div>
                 <div class="book-info">

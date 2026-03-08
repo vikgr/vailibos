@@ -14,13 +14,11 @@
 			<div class="index-letter" style="font-size:1.1rem;word-wrap:break-word;">{{ g.subsection }}</div>
 			{% endif %}
 			<div class="index-count">
-				{% blocktrans with g_num_book=g.num_book %}
-				Total: {{ g_num_book }} books.
-				{% endblocktrans %}
+				{% blocktrans with g_num_book=g.num_book %}Total: {{ g_num_book }} books.{% endblocktrans %}
 			</div>
 		</a>
 		{% endfor %}
 </div>
 {% endautoescape %}
 
-{% endblock %} {# body #}
+{% endblock %}

@@ -1,39 +1,120 @@
-# 🤖 AI Context: The Unified Vailib Project (v3.5)
+# 🤖 AI Context: The Unified Vailib Project (v4.0)
 
-**ATTENTION ASSISTANT**: If you are reading this, your mission is to continue the development of **Vailib**, a unified digital library system. This project merges a custom Telegram Document Converter Bot with a highly modified instance of the SOPDS (Simple OPDS) catalog.
+**ATTENTION ASSISTANT**: If you are reading this, continue the development of **Vailib**, a unified digital library system at `https://opds.workzilla.nl`. This merges a custom Telegram Doc Converter Bot with a heavily modified SOPDS (Simple OPDS) catalog.
+
+---
 
 ## 📁 Environment Topology
-- **Local Machine Paths**: `C:\Users\vik\Documents\devops\vailib\` contains the source files.
+- **Local Machine**: `C:\Users\vik\Documents\devops\vailib\` — THIS IS THE CANONICAL SOURCE. Do NOT use `casaos/` folder.
 - **Remote Host**: `hproliant` (192.168.31.115). User: `vik`. Sudo Password: `1j2k3l`.
-- **Target Container Mount Point**: `/library`. This path is absolutely critical. Both the Telegram Bot's output directory and the SOPDS scanner's input directory must target `/library`. Do NOT use `/books` or relative paths.
+- **Container**: `sopds` Docker container.
+- **Library mount**: `/library` — used by both the Telegram Bot and SOPDS scanner.
 
-## 🧠 Part 1: The Converter Bot
-The Telegram Bot (housed in `bot.sh`, `bot.py`, `Dockerfile_converter`) accepts PDFs and DJVU files.
-- **Conversion Flow**: It utilizes `ocrmypdf` (for image-only PDFs) and `djvu2pdf` & `Ghostscript` (for `.djvu` extensions) to generate clean PDFs.
-- **Notification**: Updates the user on Telegram with the conversion progress.
-- **Storage**: Deposits the final `.pdf` inside the `/library` volume mount.
+---
 
-## 🎨 Part 2: The UI Redesign Overlay (v3.5)
-The legacy SOPDS Django UI has been ruthlessly completely replaced without altering the base Docker image. We inject a custom CSS/HTML architecture live via Docker volume bind-mounts. Check `sopds-docker-compose.yml`.
+## 🚀 Deployment: How to Push Changes
 
-- **Bound Overrides**:
-  - `/tmp/sopds_custom/templates/sopds_main.html` → `/sopds/sopds_web_backend/templates/sopds_main.html` (The overarching dual-identity Flexbox shell).
-  - `/tmp/sopds_custom/templates/sopds_menu.html` → Navigation and the Theme Toggle logic.
-  - `/tmp/sopds_custom/templates/sopds_logo.html` → The modern Top-Center Search Bar.
-  - `/tmp/sopds_custom/templates/sopds_hello.html` → The dynamic Homepage Dashboard Grid.
-  - `/tmp/sopds_custom/views.py` → The Django backend (Specifically tweaked to inject `recent_books` into the `hello` template).
-  - `/tmp/sopds_custom/static` → Serves `modern.css` and `theme_switcher.js`.
+### Files that ARE bind-mounted (copy to /tmp/sopds_custom):
+```powershell
+scp modern.css views.py templates/sopds_main.html templates/sopds_hello.html templates/sopds_logo.html templates/sopds_menu.html hproliant:~/
+ssh hproliant "echo 1j2k3l | sudo -S cp ~/modern.css /tmp/sopds_custom/static/css/modern.css && echo 1j2k3l | sudo -S cp ~/views.py /tmp/sopds_custom/views.py && echo 1j2k3l | sudo -S cp ~/sopds_main.html /tmp/sopds_custom/templates/sopds_main.html && echo 1j2k3l | sudo -S cp ~/sopds_hello.html /tmp/sopds_custom/templates/sopds_hello.html && echo 1j2k3l | sudo -S cp ~/sopds_logo.html /tmp/sopds_custom/templates/sopds_logo.html && echo 1j2k3l | sudo -S cp ~/sopds_menu.html /tmp/sopds_custom/templates/sopds_menu.html"
+```
 
-### The Dual Interface Paradigms (`modern.css`)
-- **Premium (OLED) `data-theme="premium"`**: A 280px left sidebar, deep dark colors (`#14142D`), glassmorphism (`backdrop-filter`), glowing neon accents.
-- **E-Ink `data-theme="eink"`**: A stark, top-to-bottom brutalist block layout, thick massive borders without border-radius or gradients, absolute black on surgical white. The sidebar snaps to the top using media queries & flex-direction changes.
+### Files NOT bind-mounted (must use `docker cp` directly):
+```powershell
+scp templates/sopds_authors.html templates/sopds_series.html templates/sopds_books.html templates/sopds_catalogs.html templates/sopds_breadcrumbs.html hproliant:~/templates/
+ssh hproliant "echo 1j2k3l | sudo -S docker cp ~/templates/sopds_authors.html sopds:/sopds/sopds_web_backend/templates/sopds_authors.html && echo 1j2k3l | sudo -S docker cp ~/templates/sopds_series.html sopds:/sopds/sopds_web_backend/templates/sopds_series.html && echo 1j2k3l | sudo -S docker cp ~/templates/sopds_books.html sopds:/sopds/sopds_web_backend/templates/sopds_books.html && echo 1j2k3l | sudo -S docker cp ~/templates/sopds_catalogs.html sopds:/sopds/sopds_web_backend/templates/sopds_catalogs.html && echo 1j2k3l | sudo -S docker cp ~/templates/sopds_breadcrumbs.html sopds:/sopds/sopds_web_backend/templates/sopds_breadcrumbs.html"
+```
 
-## 🛠️ The Core Issue Remediation
-- **Django Translation Tags**: The original code used `{% trans %}` heavily inside URLs, causing massive `NoReverseMatch` failures on the live server. These were fixed by hardcoding essential Russian translations (`Найти`, `Название`, etc.) directly into the bound HTML templates.
-- **CSS Caching**: Browsers cache `modern.css` aggressively. Whenever you alter `modern.css`, you MUST bump the `?v=` parameter (e.g. `?v=18` to `?v=19`) inside `sopds_main.html` or the user will not see the layout changes.
+### Always restart after deploying:
+```powershell
+ssh hproliant "echo 1j2k3l | sudo -S docker restart sopds"
+```
 
-## 🔜 Current Mission Objectives (Phase 4)
-When resuming work, these are the priority tasks:
-1. **Launch `docker-compose.unified.yml`**: Test that the combined deployment cleanly spins up both the Bot Container and the SOPDS Container, with both writing/reading the `/library` volume securely.
-2. **Scanner Crontab / Hook**: SOPDS requires the command `python /sopds/manage.py sopds_scanner` to detect new books. The Telegram Bot drops new PDFs into the directory, but they must be parsed. We need an automated way (a hook in the bot, or a fast cron inside SOPDS) to run the scanner.
-3. **Stress Testing**: Ensure large .djvu files do not crash the bot container via OOM (Out of Memory) conditions. Adjust container limit blocks if needed.
+### CRITICAL: Bump CSS version on every `modern.css` change:
+Change `?v=XX` in `templates/sopds_main.html` line 16. Currently at `?v=20`.
+
+---
+
+## 🎨 Theme System (modern.css)
+
+Two themes controlled via `data-theme` attribute on `<html>`:
+- **`data-theme="premium"` (OLED)**: Dark sidebar layout, neon cyan accents, glassmorphism.
+- **`data-theme="eink"` (E-Ink)**: White BG, black text, top-bar layout, thick borders.
+
+Toggle via button in sidebar → saves to `localStorage('sopds-theme')`.
+
+### Cover image strategy:
+| File | Role |
+|------|------|
+| `cover0.jpg` | ❌ White engineering hexagon — **NEVER use as fallback in OLED** |
+| `cover1.jpg` | ✅ Dark gradient triangle — **universal OLED fallback** |
+| `cover2.jpg` | ✅ White engineering hexagon — **E-Ink fallback via CSS `content:` override** |
+
+CSS rule that swaps covers in E-Ink mode:
+```css
+[data-theme="eink"] img[src^="/static/images/cover"] {
+    content: url("/static/images/cover2.jpg");
+}
+```
+
+---
+
+## 🐛 Known Bugs TO FIX (Priority for Next Session)
+
+### 1. Raw `{% trans "Directory" %}` tag in catalog (HIGH PRIORITY)
+**File:** `templates/sopds_catalogs.html` lines 24–25  
+The `{% trans "Directory" %}` tag is split across two lines→ renders as literal text.  
+**Fix:** Join into one line: `<p ...>{% trans "Directory" %}</p>`
+
+### 2. Colored book covers visible in E-Ink mode (HIGH PRIORITY)
+Real book thumbnail URLs (`/opds/catalog/thumb/ID/`) are NOT caught by the CSS cover override.  
+**Fix in `modern.css`:**
+```css
+[data-theme="eink"] img {
+    filter: grayscale(1) contrast(1.15) !important;
+}
+```
+
+### 3. Folder cards grey background in E-Ink (MEDIUM)
+Folder cover wrappers have `background: rgba(0,0,0,0.5)` → grey box in E-Ink.  
+**Fix in `modern.css`:**
+```css
+[data-theme="eink"] .cover-wrapper {
+    background: #fff !important;
+}
+[data-theme="eink"] .fi-folder {
+    color: #000 !important;
+}
+```
+
+### 4. E-Ink borders too heavy for older devices (LOW)
+Current: `border: 4-6px solid #000`, `box-shadow: 6px 6px 0 #000`.  
+**Fix:** Reduce to 2px borders, remove box-shadow on `.book-card`, `.nav-btn`.
+
+---
+
+## ✅ Completed Features (Phase 4 — March 2026)
+- All pages redesigned with thumbnail card grids (books, authors, series, catalog)
+- All breadcrumbs are clickable dicts `{'name': ..., 'url': ...}` with full back-navigation
+- `sopds_breadcrumbs.html` supports both dict and string breadcrumbs
+- Author/Series/Book fallback covers all use `cover1.jpg` (dark triangle) in OLED
+- E-Ink cover override via `content: url(cover2.jpg)` for static images
+- Theme toggle persists via localStorage
+- Django template cache busted via `?v=XX` parameter on CSS link
+
+---
+
+## 🤖 Part 1: The Converter Bot
+Bot handles PDF/DJVU files sent to Telegram.
+- **Files**: `bot.sh`, `Dockerfile_converter`
+- **Converts**: DJVU → PDF via `djvu2pdf` + Ghostscript; image PDFs via `ocrmypdf`
+- **Deposits output to**: `/library` volume
+- **Notifications**: Sends Telegram updates on progress
+
+---
+
+## 🔜 Next Session Priorities
+1. Fix E-Ink bugs listed above (see Bug section)
+2. After fixing, bump CSS to `?v=21`
+3. Test by toggling E-Ink mode on catalog, author search, and a book-list page

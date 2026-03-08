@@ -2,19 +2,24 @@
 {% load i18n %}
 
 {% block ext-body %}
-<form method="post" sction='{% url "web:login" %}'>
-{% csrf_token %}
-<div class="row">
-<div class="small-6 medium-4 large-3 small-centered columns">
-      <label>{% trans "Username" %}
-        <input type="text" name="username" placeholder="{% trans "Enter Username" %}">
-      </label>
-      <label>{% trans "Password" %}
-        <input type="password" name="password" placeholder="{% trans "Enter Password" %}">
-      </label>      
-	  <input type="submit" class="button" value="{% trans "Log in" %}">      
+<div class="auth-container">
+  <div class="book-card modern-auth-card">
+    <h3 class="auth-title">{% trans "User Login" %}</h3>
+    <form method="post" action='{% url "web:login" %}'>
+      {% csrf_token %}
+      <div class="form-group">
+        <label>{% trans "Username" %}</label>
+        <input type="text" class="modern-input" name="username" placeholder="{% trans " Enter Username" %}">
+      </div>
+      <div class="form-group">
+        <label>{% trans "Password" %}</label>
+        <input type="password" class="modern-input" name="password" placeholder="{% trans " Enter Password" %}">
+      </div>
+      <div class="form-actions row small-centered columns text-center">
+        <input type="submit" class="button modern-btn" value="{% trans " Log in" %}">
+      </div>
+    </form>
+  </div>
 </div>
-</div>
-</form>
 <br>
-{% endblock %}  {# body #}
+{% endblock %} {# body #}

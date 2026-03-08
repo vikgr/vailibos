@@ -14,13 +14,11 @@
 			{% endif %}
 			<div class="index-letter">{{ chars.id }}</div>
 			<div class="index-count">
-				{% blocktrans with chars_cnt=chars.cnt %}
-				Total: {{ chars_cnt }} authors.
-				{% endblocktrans %}
+				{% blocktrans with chars_cnt=chars.cnt %}Total: {{ chars_cnt }} authors.{% endblocktrans %}
 			</div>
 		</a>
 		{% endfor %}
 </div>
 {% endautoescape %}
 
-{% endblock %} {# body #}
+{% endblock %}
