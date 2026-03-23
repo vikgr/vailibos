@@ -53,8 +53,6 @@ docker build -t vailib:latest .
 ```
 
 ### 3. Launch with Docker Compose
-```yaml
-version: '3.7'
 services:
   vailib:
     image: vailib:latest

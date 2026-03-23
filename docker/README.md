@@ -22,8 +22,6 @@ This will automatically pull the baseline `zveronline/vailib:latest` image and p
 Because the UI is now natively embedded in the image, your `docker-compose.yml` becomes incredibly clean. You no longer need volume binds for `/tmp/vailib_custom/` scripts!
 
 ```yaml
-version: '3.7'
-
 services:
   vailib:
     image: vailib:latest
