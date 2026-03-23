@@ -2,17 +2,31 @@
 {% load i18n %}
 
 {% block body %}
+{% if vailib_theme != 'premium' %}
+<div class="eink-book-grid" style="margin-top: 15px;">
+   {% for a in authors %}
+   <a href="{% url 'web:searchbooks' %}?searchtype=a&searchterms={{a.id}}" class="eink-book-card" style="justify-content: center; align-items: center; border-style: dotted !important;">
+       <div style="font-size: 3rem; margin-bottom: 10px;">👤</div>
+       <div class="b-title" style="height: auto; text-align: center;">{{ a.full_name }}</div>
+       <div class="b-author"><span data-trans="bk_l">Books:</span> {{ a.book_count }}</div>
+   </a>
+   {% endfor %}
+</div>
+{% else %}
 <div class="recent-books-grid" style="padding-top: 20px;">
    {% for a in authors %}
    <!-- Author Thumbnail -->
-   <div class="book-card book-item"
+   <div class="book-card book-item author-card" data-author="{{ a.full_name }}"
       style="border-radius: 12px; border: 1px solid var(--border); overflow: hidden; background: var(--card-bg); transition: transform 0.3s; display: flex; flex-direction: column;">
       <div class="cover-wrapper"
-         style="aspect-ratio: 2/2.5; width: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; overflow: hidden; justify-content: center;">
+         style="aspect-ratio: 2/2.5; width: 100%; background: #1a1a1a; display: flex; align-items: center; overflow: hidden; justify-content: center; position: relative;">
          <a href="{% url 'web:searchbooks' %}?searchtype=a&searchterms={{a.id}}"
             style="display: block; width: 100%; height: 100%;">
-            <img src="/static/images/cover1.jpg" class="book-cover" alt="Author Cover"
-               style="width: 100%; height: 100%; object-fit: cover;">
+            <div class="author-photo-container" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+                <div class="author-placeholder" style="font-size: 5rem; color: #333;">👤</div>
+                <img src="" class="book-cover author-img" alt="{{ a.full_name }}"
+                   style="width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; top:0; left:0;">
+            </div>
          </a>
       </div>
       <div class="book-info" style="padding: 15px; display: flex; flex-direction: column; flex: 1;">
@@ -22,15 +36,14 @@
                <h5 class="book-title" style="margin: 0; font-size: 1.05rem; font-weight: 700;">{{ a.full_name }}</h5>
             </a>
             <p class="book-author" style="margin: 6px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">
-               {% blocktrans with a_book_count=a.book_count %}
-               Книг: {{ a_book_count }}
-               {% endblocktrans %}
+               <span data-trans="bk_l">Books:</span> {{ a.book_count }}
             </p>
          </div>
       </div>
    </div>
    {% endfor %}
 </div>
+{% endif %}
 
 {% if paginator.num_pages > 1 %}
 <ul class="pagination" role="navigation" aria-label="Pagination">
@@ -39,7 +52,7 @@
       <a href="{% url 'web:searchauthors' %}?searchtype={{searchtype}}&searchterms={{searchterms}}&page={{paginator.previous_page_number}}"
          aria-label="Previous page">
          {% endif %}
-         {% trans "Previous page" %}
+         <span data-trans="prev">{% trans "Previous page" %}</span>
          {% if paginator.has_previous %}</a>{% endif %}
    </li>
 
@@ -57,10 +70,137 @@
       <a href="{% url 'web:searchauthors' %}?searchtype={{searchtype}}&searchterms={{searchterms}}&page={{paginator.next_page_number}}"
          aria-label="Next page">
          {% endif %}
-         {% trans "Next page" %}
+         <span data-trans="next">{% trans "Next page" %}</span>
          {% if paginator.has_next %}</a>{% endif %}
    </li>
 </ul>
 {% endif %}
 
+{% endblock %}
+
+{% block block-js %}
+<script>
+    async function fetchAuthorPhoto(authorName, imgElement) {
+        let cleanName = authorName.replace(/,/g, '').trim();
+        const languages = ['ru', 'en'];
+        
+        console.log("Fetching photo for:", cleanName);
+
+        for (let lang of languages) {
+            try {
+                // Step 1: Search Wikipedia for the best matching title
+                const wikiTitle = await searchWiki(cleanName, lang);
+                if (wikiTitle) {
+                    console.log(`Found wiki title for ${cleanName} in ${lang}: ${wikiTitle}`);
+                    const found = await getWikiImage(wikiTitle, lang, imgElement);
+                    if (found) return;
+                }
+
+                // Step 2: Try swapped name if search failed
+                const parts = cleanName.split(' ');
+                if (parts.length === 2) {
+                    const swappedName = parts[1] + ' ' + parts[0];
+                    const swappedTitle = await searchWiki(swappedName, lang);
+                    if (swappedTitle) {
+                        const found = await getWikiImage(swappedTitle, lang, imgElement);
+                        if (found) return;
+                    }
+                }
+            } catch (e) {
+                console.warn(`Wiki error for ${cleanName} in ${lang}:`, e);
+            }
+        }
+        
+        // Final fallback: OpenLibrary
+        try {
+            const olUrl = `https://openlibrary.org/search/authors.json?q=${encodeURIComponent(cleanName)}`;
+            const response = await fetch(olUrl);
+            const data = await response.json();
+            if (data.docs && data.docs.length > 0 && data.docs[0].key) {
+                const olid = data.docs[0].key;
+                const photoUrl = `https://covers.openlibrary.org/a/olid/${olid}-M.jpg`;
+                console.log(`Trying OpenLibrary for ${cleanName}: ${photoUrl}`);
+                imgElement.src = photoUrl;
+                imgElement.onload = () => { 
+                    if (imgElement.naturalWidth > 5) { // OL returns a 1x1 if not found
+                        showPhoto(imgElement);
+                    }
+                };
+            }
+        } catch(e) {}
+    }
+
+    async function searchWiki(name, lang) {
+        // Appending keywords to narrow down search to authors/books
+        const suffix = (lang === 'ru') ? ' писатель' : ' writer';
+        const url = `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name + suffix)}&format=json&origin=*`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.query && data.query.search && data.query.search.length > 0) {
+            const result = data.query.search[0];
+            const title = result.title;
+            const snippet = result.snippet.toLowerCase();
+            
+            // Check if the title is a reasonable match for the name
+            const nameLower = name.toLowerCase();
+            const nameParts = nameLower.split(' ').filter(p => p.length > 2);
+            
+            // Critical check: Page title MUST contain at least one significant part of the name
+            // (Usually the last name)
+            const titleMatches = nameParts.some(part => title.toLowerCase().includes(part));
+            
+            // Verify it's a person/writer to avoid matches like book titles
+            const hasBioTerms = snippet.includes('писател') || snippet.includes('писатель') || 
+                               snippet.includes('автор') || snippet.includes('writer') || 
+                               snippet.includes('author') || snippet.includes('born') || 
+                               snippet.includes('рожд') || snippet.includes('biography') ||
+                               snippet.includes('деят');
+
+            if (titleMatches && hasBioTerms) {
+                return title;
+            } else {
+                console.log(`Skipping wiki result for ${name}: "${title}" (Matches: ${titleMatches}, Bio: ${hasBioTerms})`);
+            }
+        }
+        return null;
+    }
+
+    async function getWikiImage(title, lang, imgElement) {
+        const url = `https://${lang}.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages&format=json&pithumbsize=500&origin=*`;
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.query && data.query.pages) {
+            const pages = data.query.pages;
+            const pageId = Object.keys(pages)[0];
+            if (pageId !== "-1" && pages[pageId].thumbnail) {
+                console.log(`Successfully got wiki image for ${title}:`, pages[pageId].thumbnail.source);
+                imgElement.src = pages[pageId].thumbnail.source;
+                showPhoto(imgElement);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function showPhoto(imgElement) {
+        imgElement.style.display = 'block';
+        const placeholder = imgElement.previousElementSibling;
+        if (placeholder && placeholder.classList.contains('author-placeholder')) {
+            placeholder.style.display = 'none';
+        }
+    }
+
+    $(document).ready(function() {
+        if ("{{ vailib_theme }}" === "premium") {
+            $('.author-card').each(function() {
+                const authorName = $(this).data('author');
+                const imgElement = $(this).find('.author-img')[0];
+                if (authorName && imgElement) {
+                    fetchAuthorPhoto(authorName, imgElement);
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

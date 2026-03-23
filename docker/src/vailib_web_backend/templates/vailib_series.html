@@ -1,0 +1,75 @@
+{% extends "vailib_main.html" %}
+{% load i18n %}
+
+{% block body %}
+{% if vailib_theme == 'eink' %}
+<div class="eink-book-grid" style="margin-top: 15px;">
+   {% for s in series %}
+   <a href="{% url 'web:searchbooks' %}?searchtype=s&searchterms={{s.id}}" class="eink-book-card" style="justify-content: center; align-items: center; border-style: dotted !important;">
+       <div style="font-size: 3rem; margin-bottom: 10px;">ðŸ“š</div>
+       <div class="b-title" style="height: auto; text-align: center;">{{ s.ser }}</div>
+       <div class="b-author"><span data-trans="bk_l">Books:</span> {{ s.book_count }}</div>
+   </a>
+   {% endfor %}
+</div>
+{% else %}
+<div class="recent-books-grid" style="padding-top: 20px;">
+   {% for s in series %}
+   <!-- Series Thumbnail -->
+   <div class="book-card book-item"
+      style="border-radius: 12px; border: 1px solid var(--border); overflow: hidden; background: var(--card-bg); transition: transform 0.3s; display: flex; flex-direction: column;">
+      <div class="cover-wrapper"
+         style="aspect-ratio: 2/2.5; width: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; overflow: hidden; justify-content: center;">
+         <a href="{% url 'web:searchbooks' %}?searchtype=s&searchterms={{s.id}}"
+            style="display: block; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 5rem; text-decoration: none;">
+            ðŸ“š
+         </a>
+      </div>
+      <div class="book-info" style="padding: 15px; display: flex; flex-direction: column; flex: 1;">
+         <div style="flex: 1; text-align: center;">
+            <a href="{% url 'web:searchbooks' %}?searchtype=s&searchterms={{s.id}}"
+               style="text-decoration: none; color: inherit;">
+               <h5 class="book-title" style="margin: 0; font-size: 1.05rem; font-weight: 700;">{{ s.ser }}</h5>
+            </a>
+            <p class="book-author" style="margin: 6px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">
+               <span data-trans="bk_l">Books:</span> {{ s.book_count }}
+            </p>
+         </div>
+      </div>
+   </div>
+   {% endfor %}
+</div>
+{% endif %}
+
+{% if paginator.num_pages > 1 %}
+<ul class="pagination" role="navigation" aria-label="Pagination">
+   <li class="pagination-previous {% if not paginator.has_previous %}disabled{% endif %}">
+      {% if paginator.has_previous %}
+      <a href="{% url 'web:searchseries' %}?searchtype={{searchtype}}&searchterms={{searchterms}}&page={{paginator.previous_page_number}}"
+         aria-label="Previous page">
+         {% endif %}
+         <span data-trans="prev">{% trans "Previous page" %}</span>
+         {% if paginator.has_previous %}</a>{% endif %}
+   </li>
+
+   {% for pn in paginator.page_range %}
+   {% if paginator.number == pn %}
+   <li class="current">{{pn}}</li>
+   {% else %}
+   <li><a href="{% url 'web:searchseries' %}?searchtype={{searchtype}}&searchterms={{searchterms}}&page={{pn}}"
+         aria-label="Page {{pn}}">{{pn}}</a></li>
+   {% endif %}
+   {% endfor %}
+
+   <li class="pagination-next {% if not paginator.has_next %}disabled{% endif %}">
+      {% if paginator.has_next %}
+      <a href="{% url 'web:searchseries' %}?searchtype={{searchtype}}&searchterms={{searchterms}}&page={{paginator.next_page_number}}"
+         aria-label="Next page">
+         {% endif %}
+         <span data-trans="next">{% trans "Next page" %}</span>
+         {% if paginator.has_next %}</a>{% endif %}
+   </li>
+</ul>
+{% endif %}
+
+{% endblock %}

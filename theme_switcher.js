@@ -1,7 +1,7 @@
 /* Theme Switcher Script for SOPDS */
 
 (function() {
-    const theme = localStorage.getItem('sopds-theme') || 'premium';
+    const theme = localStorage.getItem('sopds-theme') || 'eink';
     document.documentElement.setAttribute('data-theme', theme);
 })();
 
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateBtnText(target);
         });
         
-        updateBtnText(localStorage.getItem('sopds-theme') || 'premium');
+        updateBtnText(localStorage.getItem('sopds-theme') || 'eink');
     }
 
     function updateBtnText(theme) {

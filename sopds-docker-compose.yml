@@ -1,9 +1,9 @@
-name: sopds
+name: vailib
 services:
     sopds:
         cpu_shares: 90
         command: []
-        container_name: sopds
+        container_name: vailib
         depends_on:
             sopds-db:
                 condition: service_started
@@ -48,21 +48,64 @@ services:
               read_only: true
               bind:
                 create_host_path: true
+            # Templates and Custom Code
             - type: bind
               source: /tmp/sopds_custom/templates/sopds_main.html
               target: /sopds/sopds_web_backend/templates/sopds_main.html
             - type: bind
+              source: /tmp/sopds_custom/templates/sopds_books.html
+              target: /sopds/sopds_web_backend/templates/sopds_books.html
+            - type: bind
               source: /tmp/sopds_custom/templates/sopds_hello.html
               target: /sopds/sopds_web_backend/templates/sopds_hello.html
+            - type: bind
+              source: /tmp/sopds_custom/templates/sopds_authors.html
+              target: /sopds/sopds_web_backend/templates/sopds_authors.html
+            - type: bind
+              source: /tmp/sopds_custom/templates/sopds_series.html
+              target: /sopds/sopds_web_backend/templates/sopds_series.html
             - type: bind
               source: /tmp/sopds_custom/templates/sopds_logo.html
               target: /sopds/sopds_web_backend/templates/sopds_logo.html
             - type: bind
+              source: /tmp/sopds_custom/templates/sopds_footer.html
+              target: /sopds/sopds_web_backend/templates/sopds_footer.html
+            - type: bind
               source: /tmp/sopds_custom/templates/sopds_menu.html
               target: /sopds/sopds_web_backend/templates/sopds_menu.html
             - type: bind
+              source: /tmp/sopds_custom/templates/sopds_catalogs.html
+              target: /sopds/sopds_web_backend/templates/sopds_catalogs.html
+            - type: bind
+              source: /tmp/sopds_custom/templates/sopds_selectauthor.html
+              target: /sopds/sopds_web_backend/templates/sopds_selectauthor.html
+            - type: bind
+              source: /tmp/sopds_custom/templates/sopds_selectbook.html
+              target: /sopds/sopds_web_backend/templates/sopds_selectbook.html
+            - type: bind
+              source: /tmp/sopds_custom/templates/sopds_lang_selector.html
+              target: /sopds/sopds_web_backend/templates/sopds_lang_selector.html
+            - type: bind
+              source: /tmp/sopds_custom/templates/sopds_selectgenres.html
+              target: /sopds/sopds_web_backend/templates/sopds_selectgenres.html
+            - type: bind
+              source: /tmp/sopds_custom/templates/sopds_selectseries.html
+              target: /sopds/sopds_web_backend/templates/sopds_selectseries.html
+            - type: bind
               source: /tmp/sopds_custom/views.py
               target: /sopds/sopds_web_backend/views.py
+            - type: bind
+              source: /tmp/sopds_custom/dl.py
+              target: /sopds/opds_catalog/dl.py
+            - type: bind
+              source: /tmp/sopds_custom/models.py
+              target: /sopds/opds_catalog/models.py
+            - type: bind
+              source: /tmp/sopds_custom/opdsdb.py
+              target: /sopds/opds_catalog/opdsdb.py
+            - type: bind
+              source: /tmp/sopds_custom/utils.py
+              target: /sopds/opds_catalog/utils.py
             - type: bind
               source: /tmp/sopds_custom/static
               target: /sopds/static/custom

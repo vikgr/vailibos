@@ -43,7 +43,7 @@ def get_annotation(mybook):
 
 def sopds_login(function=None, redirect_field_name=REDIRECT_FIELD_NAME, url=None):
     actual_decorator = user_passes_test(
-        lambda u: (u.is_authenticated if config.SOPDS_AUTH else True),
+        lambda u: u.is_authenticated,
         login_url=reverse_lazy(url),
         redirect_field_name=redirect_field_name
     ) 
@@ -53,6 +53,16 @@ def sopds_login(function=None, redirect_field_name=REDIRECT_FIELD_NAME, url=None
 
 def sopds_processor(request):
     args={}
+    
+    user_agent = request.META.get('HTTP_USER_AGENT', '').lower()
+    theme_cookie = request.COOKIES.get('vailib_theme')
+    
+    if theme_cookie in ['eink', 'premium']:
+        args['vailib_theme'] = theme_cookie
+    else:
+        # Default to eink for everyone, unless they choose premium manually
+        args['vailib_theme'] = 'eink'
+            
     args['app_title']=settings.TITLE
     args['sopds_auth']=config.SOPDS_AUTH
     args['sopds_version']=settings.VERSION
@@ -110,6 +120,7 @@ def SearchBooksView(request):
         #searchterms0 = int(request.POST.get('searchterms0', ''))
         page_num = int(request.GET.get('page', '1'))
         page_num = page_num if page_num>0 else 1
+        books = Book.objects.none()
         
         #if (len(searchterms)<3) and (searchtype in ('m', 'b', 'e')):
         #    args['errormsg'] = 'Too few symbols in search string !';
@@ -118,17 +129,17 @@ def SearchBooksView(request):
         if searchtype == 'm':
             #books = Book.objects.extra(where=["upper(title) like %s"], params=["%%%s%%"%searchterms.upper()]).order_by('title','-docdate')
             books = Book.objects.filter(search_title__contains=searchterms.upper()).order_by('search_title','-docdate')
-            args['breadcrumbs'] = [
+            args['vailib_breadcrumbs'] = [
                 {'name': _('Books'), 'url': '/web/book/?lang=0'},
                 {'name': _('Поиск по названию'), 'url': None},
                 {'name': searchterms, 'url': '?searchtype=m&searchterms=%s' % searchterms}
             ]
             args['searchobject'] = 'title'
             
-        if searchtype == 'b':
+        elif searchtype == 'b':
             #books = Book.objects.extra(where=["upper(title) like %s"], params=["%s%%"%searchterms.upper()]).order_by('title','-docdate')
             books = Book.objects.filter(search_title__startswith=searchterms.upper()).order_by('search_title','-docdate')
-            args['breadcrumbs'] = [
+            args['vailib_breadcrumbs'] = [
                 {'name': _('Books'), 'url': '/web/book/?lang=0'},
                 {'name': _('Поиск по названию'), 'url': None},
                 {'name': searchterms, 'url': '?searchtype=b&searchterms=%s' % searchterms}
@@ -145,7 +156,7 @@ def SearchBooksView(request):
                 author_id = 0
                 aname = ""                  
             books = Book.objects.filter(authors=author_id).order_by('search_title','-docdate')  
-            args['breadcrumbs'] = [
+            args['vailib_breadcrumbs'] = [
                 {'name': _('Books'), 'url': '/web/book/?lang=0'},
                 {'name': _('Поиск по автору'), 'url': '/web/author/?lang=0'},
                 {'name': aname, 'url': '?searchtype=a&searchterms=%s' % searchterms}
@@ -163,7 +174,7 @@ def SearchBooksView(request):
                 ser = ""
             #books = Book.objects.filter(series=ser_id).order_by('search_title','-docdate')
             books = Book.objects.filter(series=ser_id).order_by('bseries__ser_no','search_title','-docdate')
-            args['breadcrumbs'] = [
+            args['vailib_breadcrumbs'] = [
                 {'name': _('Books'), 'url': '/web/book/?lang=0'},
                 {'name': _('Поиск по серии'), 'url': '/web/series/?lang=0'},
                 {'name': ser, 'url': '?searchtype=s&searchterms=%s' % searchterms}
@@ -176,7 +187,7 @@ def SearchBooksView(request):
                 genre_id = int(searchterms)
                 section = Genre.objects.get(id=genre_id).section
                 subsection = Genre.objects.get(id=genre_id).subsection
-                args['breadcrumbs'] = [
+                args['vailib_breadcrumbs'] = [
                     {'name': _('Books'), 'url': '/web/book/?lang=0'},
                     {'name': _('Поиск по жанру'), 'url': '/web/genre/'},
                     {'name': section, 'url': None},
@@ -184,7 +195,7 @@ def SearchBooksView(request):
                 ]
             except:
                 genre_id = 0
-                args['breadcrumbs'] = [
+                args['vailib_breadcrumbs'] = [
                     {'name': _('Books'), 'url': '/web/book/?lang=0'},
                     {'name': _('Поиск по жанру'), 'url': '/web/genre/'}
                 ]
@@ -196,7 +207,7 @@ def SearchBooksView(request):
         elif searchtype == 'u':
             if config.SOPDS_AUTH:
                 books = Book.objects.filter(bookshelf__user=request.user).order_by('-bookshelf__readtime')
-                args['breadcrumbs'] = [
+                args['vailib_breadcrumbs'] = [
                     {'name': _('Books'), 'url': '/web/book/?lang=0'},
                     {'name': _('Bookshelf'), 'url': '/web/search/books/?searchtype=u'},
                     {'name': request.user.username, 'url': None}
@@ -204,7 +215,7 @@ def SearchBooksView(request):
                 #books = bookshelf.objects.filter(user=request.user).select_related('book')              
             else:
                 books=Book.objects.filter(id=0)     
-                args['breadcrumbs'] = [
+                args['vailib_breadcrumbs'] = [
                     {'name': _('Books'), 'url': '/web/book/?lang=0'},
                     {'name': _('Bookshelf'), 'url': '/web/search/books/?searchtype=u'}
                 ]
@@ -217,28 +228,31 @@ def SearchBooksView(request):
             book_id = int(searchterms)
             mbook = Book.objects.get(id=book_id)
             books = Book.objects.filter(title=mbook.title, authors__in=mbook.authors.all()).exclude(id=book_id).distinct().order_by('-docdate')
-            args['breadcrumbs'] = [
+            args['vailib_breadcrumbs'] = [
                 {'name': _('Books'), 'url': '/web/book/?lang=0'},
                 {'name': _('Doubles for book'), 'url': None},
                 {'name': mbook.title, 'url': '?searchtype=d&searchterms=%s' % searchterms}
             ]
             args['searchobject'] = 'title'
             
-        # Поиск книги по ID. Хотел найти еще и дубликаты к книге, но почему-то не работает запрос правильно. Ума не приложу почему.    
+        # Поиск книги по ID.
         elif searchtype == 'i':
             try:
                 book_id = int(searchterms)
-                #mbook = Book.objects.get(id=book_id)
             except:
                 book_id = 0
-                #mbook = None
             books = Book.objects.filter(id=book_id) 
-            args['breadcrumbs'] = [
+            
+            if books.exists():
+                mbook = books[0]
+                # Find other formats for this book
+                duplicates = Book.objects.filter(title=mbook.title, authors__in=mbook.authors.all()).distinct()
+                args['all_formats'] = [{'id': b.id, 'format': b.format} for b in duplicates]
+
+            args['vailib_breadcrumbs'] = [
                 {'name': _('Books'), 'url': '/web/book/?lang=0'},
-                {'name': books[0].title, 'url': '?searchtype=i&searchterms=%s' % searchterms}
+                {'name': books[0].title if books.exists() else _('Book'), 'url': '?searchtype=i&searchterms=%s' % searchterms}
             ]
-            #books = Book.objects.filter(title=mbook.title, authors__in=mbook.authors.all()).distinct().order_by('-docdate')                
-            #args['breadcrumbs'] = [_('Books'),mbook.title]
             args['searchobject'] = 'title'
         
         # prefetch_related on sqlite on items >999 therow error "too many SQL variables"    
@@ -302,13 +316,14 @@ def SearchBooksView(request):
             if op.d1_first_pos!=0:     
                 items.pop(0)                                   
               
+        args.update(sopds_processor(request))
         args['paginator'] = op.get_data_dict()
         args['searchterms']=searchterms;
         args['searchtype']=searchtype;
         args['books']=items   
         args['current'] = 'search'
         args['cache_id']='%s:%s:%s'%(searchterms,searchtype,op.page_num)
-        args['cache_t']=config.SOPDS_CACHE_TIME
+        args['cache_t']=0
         
     return render(request,'sopds_books.html', args)
 
@@ -346,19 +361,20 @@ def SearchSeriesView(request):
             p = {'id':row.id, 'ser':row.ser, 'lang_code': row.lang_code, 'book_count': row.count_book}
             items.append(p)                     
               
+        args.update(sopds_processor(request))
         args['paginator'] = op.get_data_dict()
         args['searchterms']=searchterms;
         args['searchtype']=searchtype;
         args['series']=items     
         args['searchobject'] = 'series'
         args['current'] = 'search'        
-        args['breadcrumbs'] = [
+        args['vailib_breadcrumbs'] = [
             {'name': _('Series'), 'url': '/web/series/?lang=0'},
             {'name': _('Search'), 'url': None},
             {'name': searchterms, 'url': '?searchtype=%s&searchterms=%s' % (searchtype, searchterms)}
         ]
         args['cache_id']='%s:%s:%s'%(searchterms,searchtype,op.page_num)
-        args['cache_t']=config.SOPDS_CACHE_TIME
+        args['cache_t']=0
 
     return render(request,'sopds_series.html', args)
 
@@ -392,19 +408,20 @@ def SearchAuthorsView(request):
             p = {'id':row.id, 'full_name':row.full_name, 'lang_code': row.lang_code, 'book_count': Book.objects.filter(authors=row).count()}
             items.append(p)                     
             
+        args.update(sopds_processor(request))
         args['paginator'] = op.get_data_dict()              
         args['searchterms']=searchterms;
         args['searchtype']=searchtype;
         args['authors']=items     
         args['searchobject'] = 'author'
         args['current'] = 'search'       
-        args['breadcrumbs'] = [
+        args['vailib_breadcrumbs'] = [
             {'name': _('Authors'), 'url': '/web/author/?lang=0'},
             {'name': _('Search'), 'url': None},
             {'name': searchterms, 'url': '?searchtype=%s&searchterms=%s' % (searchtype, searchterms)}
         ]
         args['cache_id']='%s:%s:%s'%(searchterms,searchtype,op.page_num)
-        args['cache_t']=config.SOPDS_CACHE_TIME
+        args['cache_t']=0
                                     
     return render(request,'sopds_authors.html', args)
 
@@ -466,7 +483,7 @@ def CatalogsView(request):
         breadcrumbs_list.insert(0, (_('ROOT'), 0))  
     #breadcrumbs_list.insert(0, (_('Catalogs'),-1))    
     args['breadcrumbs_cat'] =  breadcrumbs_list  
-    args['breadcrumbs'] =  [{'name': _('Catalogs'), 'url': '/web/catalog/'}]
+    args['vailib_breadcrumbs'] =  [{'name': _('Catalogs'), 'url': '/web/catalog/'}]
     args['cache_id'] = '%s:%s:%s' % (args['current'],cat_id, op.page_num)
     args['cache_t'] = config.SOPDS_CACHE_TIME
       
@@ -503,15 +520,13 @@ def BooksView(request):
     args['items']=items
     args['current'] = 'book'      
     args['lang_code'] = lang_code   
-    args['breadcrumbs'] =  [
+    args['vailib_breadcrumbs'] =  [
         {'name': _('Books'), 'url': '/web/book/?lang=0'},
         {'name': _('Select'), 'url': None},
         {'name': lang_menu[lang_code], 'url': '?lang=%s' % lang_code},
         {'name': chars, 'url': '?lang=%s&chars=%s' % (lang_code, chars)}
     ]
-    args['cache_id'] = '%s:%s:%s' % (args['current'],lang_code, chars)
-    args['cache_t'] = config.SOPDS_CACHE_TIME
-      
+    args.update(sopds_processor(request))
     return render(request,'sopds_selectbook.html', args)      
 
 @vary_on_headers("HTTP_ACCEPT_LANGUAGE")
@@ -545,15 +560,13 @@ def AuthorsView(request):
     args['items']=items
     args['current'] = 'author'      
     args['lang_code'] = lang_code   
-    args['breadcrumbs'] =  [
+    args['vailib_breadcrumbs'] =  [
         {'name': _('Authors'), 'url': '/web/author/?lang=0'},
         {'name': _('Select'), 'url': None},
         {'name': lang_menu[lang_code], 'url': '?lang=%s' % lang_code},
         {'name': chars, 'url': '?lang=%s&chars=%s' % (lang_code, chars)}
     ]
-    args['cache_id'] = '%s:%s:%s' % (args['current'],lang_code, chars)
-    args['cache_t'] = config.SOPDS_CACHE_TIME
-      
+    args.update(sopds_processor(request))
     return render(request,'sopds_selectauthor.html', args)
 
 @vary_on_headers("HTTP_ACCEPT_LANGUAGE")
@@ -587,15 +600,13 @@ def SeriesView(request):
     args['items']=items
     args['current'] = 'series'      
     args['lang_code'] = lang_code   
-    args['breadcrumbs'] =  [
+    args['vailib_breadcrumbs'] =  [
         {'name': _('Series'), 'url': '/web/series/?lang=0'},
         {'name': _('Select'), 'url': None},
         {'name': lang_menu[lang_code], 'url': '?lang=%s' % lang_code},
         {'name': chars, 'url': '?lang=%s&chars=%s' % (lang_code, chars)}
     ]
-    args['cache_id'] = '%s:%s:%s' % (args['current'],lang_code, chars)
-    args['cache_t'] = config.SOPDS_CACHE_TIME
-      
+    args.update(sopds_processor(request))
     return render(request,'sopds_selectseries.html', args)
 
 @vary_on_headers("HTTP_ACCEPT_LANGUAGE")
@@ -610,14 +621,14 @@ def GenresView(request):
         
     if section_id==0:
         items = Genre.objects.values('section').annotate(section_id=Min('id'), num_book=Count('book')).filter(num_book__gt=0).order_by('section')
-        args['breadcrumbs'] =  [
+        args['vailib_breadcrumbs'] =  [
             {'name': _('Genres'), 'url': '/web/genre/'},
             {'name': _('Select'), 'url': None}
         ]
     else:
         section = Genre.objects.get(id=section_id).section
         items = Genre.objects.filter(section=section).annotate(num_book=Count('book')).filter(num_book__gt=0).values().order_by('subsection')   
-        args['breadcrumbs'] =  [
+        args['vailib_breadcrumbs'] =  [
             {'name': _('Genres'), 'url': '/web/genre/'},
             {'name': _('Select'), 'url': '/web/genre/'},
             {'name': section, 'url': '?section=%s' % section_id}
@@ -626,9 +637,7 @@ def GenresView(request):
     args['items']=items
     args['current'] = 'genre'  
     args['parent_id'] = section_id
-    args['cache_id'] = '%s:%s' % (args['current'],section_id)
-    args['cache_t'] = config.SOPDS_CACHE_TIME
-       
+    args.update(sopds_processor(request))
     return render(request,'sopds_selectgenres.html', args)
 
 @vary_on_headers("HTTP_ACCEPT_LANGUAGE")
@@ -650,17 +659,23 @@ def BSDelView(request):
 def BSClearView(request):
     bookshelf.objects.filter(user=request.user).delete()
     return redirect("%s?searchtype=u" % reverse("web:searchbooks"))
-    
+@vary_on_headers("HTTP_ACCEPT_LANGUAGE")
+@sopds_login(url='web:login')
 def hello(request):
     args = {}
-    args['breadcrumbs'] = [{'name': _('HOME'), 'url': '/web/'}]
-    args['recent_books'] = Book.objects.all().order_by('-registerdate', '-id')[:12]
+    args['vailib_breadcrumbs'] = [{'name': _('HOME'), 'url': '/web/'}]
+    if request.user.is_authenticated:
+        args['recent_books'] = Book.objects.all().order_by('-registerdate', '-id')[:12]
+    else:
+        args['recent_books'] = []
+    args.update(sopds_processor(request))
     return render(request, 'sopds_hello.html', args)
 
 def LoginView(request):
     args = {}
-    args['breadcrumbs'] = [{'name': _('Login'), 'url': None}]
+    args['vailib_breadcrumbs'] = [{'name': _('Login'), 'url': None}]
     args.update(csrf(request))
+    args.update(sopds_processor(request))
     try:
         username = request.POST['username']
         password = request.POST['password']
@@ -691,7 +706,7 @@ def LoginView(request):
 def LogoutView(request):
     logout(request)
     args = {}
-    args['breadcrumbs'] = [{'name': _('Logout'), 'url': None}]
+    args['vailib_breadcrumbs'] = [{'name': _('Logout'), 'url': None}]
     return redirect(reverse('web:main'))
 
 def handler403(request,args):

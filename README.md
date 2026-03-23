@@ -1,30 +1,93 @@
-# Vailib Project 🚀
+# 📖 VAILIB: The Ultimate Digital Library 🚀
 
-Welcome to **Vailib**, the ultimate unified library system that merges a powerful **Telegram PDF/DJVU Document Converter Bot** with a modernized **SOPDS Web Library Catalog** (featuring both Premium OLED and sleek E-Ink UI modes).
+[![GitHub License](https://img.shields.io/github/license/vikgr/vailib)](https://github.com/vikgr/vailib/blob/main/LICENSE)
+[![Docker Image](https://img.shields.io/docker/pulls/zveronline/vailib)](https://hub.docker.com/r/zveronline/vailib)
 
-This folder contains the complete, working state of the modernized codebase.
+**Vailib** (v3.5) is a high-performance, modernized digital library ecosystem. It combines a powerful **Telegram Document Converter Bot** with a gorgeous, responsive **Web OPDS Catalog** engine. 
 
-## 📍 Where We Are Right Now
-We have achieved robust milestones on two fronts:
-1. **The Converter Bot**: Fully functional Python Telegram Bot that listens for documents, checks for OCR requirements using `ocrmypdf`, converts them efficiently using `djvu2pdf` and `Ghostscript`, and then saves them definitively into `/library` for parsing.
-2. **The SOPDS Redesign (v3.5)**: We have completely ripped out the legacy Foundation grid of the original OPDS system. We replaced it with a dynamic CSS Flexbox/Grid system injected directly into the live Docker container.
-   - **Dual Identity UI**: It has a beautiful "LIBRA"-style dark premium sidebar mode, and a brutalist, high-contrast Kindle-style E-Ink mode.
-   - **Dashboard Eager Loading**: The homepage actively reads the database and displays the 12 most recently added books in a beautiful grid array.
-   - **Path Fixes**: Both systems correctly point to `/library`. The SOPDS download buttons work flawlessly.
+Built for book lovers, researchers, and archival enthusiasts, Vailib transforms a raw collection of files into a premium, searchable, and globally accessible library experience.
 
-## 🛠️ Folder Contents
-- `sopds-docker-compose.yml`: Binds the modern UI volumes and launches SOPDS.
-- `docker-compose.unified.yml`: The blueprint for launching both the Converter Bot and SOPDS together as **Vailib**.
-- `modern.css` & `theme_switcher.js`: The brains behind the UI redesign.
-- `.html` & `.py` files: The modified Django templates and backend (`views.py`) that implement our changes.
+> [!NOTE]
+> **Vailib** is built on the robust foundation of the [SOPDS](https://github.com/zveronline/sopds) project by **zveronline**. We have extended the core engine with a completely new UI, deep internationalization, and integrated document processing pipelines.
 
-## 🔜 Next Steps (Tomorrow's Mission)
-1. **Container Merger**: Boot up `docker-compose.unified.yml` together. We need to ensure the Telegram Bot and the SOPDS Library can both scan, save, and serve from the `/library` volume simultaneously without permission lockouts.
-2. **Auto-Scan Trigger**: Consider building a hook so that when the Telegram Bot drops a new converted PDF into the folder, the SOPDS scanner command (`./manage.py sopds_scanner`) triggers automatically (or runs efficiently on a tight cron).
-3. **Stress Tests**: Throw large DJVU and complex PDFs at the bot to optimize the OCR queue and memory constraints.
-4. **Final Deployment Polish**: Ensure the `.env` settings for VAILIB are secure. 
+---
 
-## 🤖 Resuming Work
-If you are coming back to work tomorrow with a new AI assistant, just tell them: 
-_"Read the `README_AI_CONTEXT.md` in `C:\Users\vik\Documents\devops\vailib`."_ 
-They will instantly remember all the database queries, CSS class overrrides, and Docker mappings we engineered today!
+## 🌟 Key Features
+
+### 🎨 Dual-Identity UI Engine
+Vailib features a revolutionary theme engine that adapts to any device:
+- **Premium Dark Mode**: A sleek, modern "Cyber-Cat" interface with vibrant accents, CSS transitions, and an OLED-optimized layout. 
+- **High-Efficiency E-Ink Mode**: A pure 1-bit, high-contrast, zero-animation interface specifically engineered for Kindle, Remarkable, and older e-readers.
+
+### 🌎 Global Language Matrix (10+1)
+The entire library interface—including dynamic breadcrumbs and system messages—is fully translated into the world's most popular languages:
+- 🇬🇧 English | 🇷🇺 Russian | 🇩🇪 German | 🇬🇷 Greek | 🇪🇸 Spanish | 🇫🇷 French
+- 🇸🇦 Arabic | 🇮🇳 Hindi | 🇵🇹 Portuguese | 🇨🇳 Chinese (Simplified)
+
+### 🤖 Automatic Document Pipeline
+Integrated **Telegram Converter Bot** support:
+- Upload any **PDF** or **DJVU** via Telegram.
+- **OCR Integration**: Automatically performs OCR on image-only documents.
+- **Auto-Cataloging**: Converted documents are instantly saved to the library volume and indexed for the web catalog.
+
+### ⚡ Docker-First Deployment
+Vailib is shipped as a unified, zero-configuration Docker container. No more complex volume bind-mounts for UI customization—everything is compiled natively into the source.
+
+---
+
+## 🚀 Getting Started
+
+Build and run your own Vailib server in minutes:
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/vikgr/vailib.git
+cd vailib
+```
+
+### 2. Build the Docker Image
+Navigate to the [docker](./docker) directory for detailed build instructions:
+```bash
+cd docker
+docker build -t vailib:latest .
+```
+
+### 3. Launch with Docker Compose
+```yaml
+version: '3.7'
+services:
+  vailib:
+    image: vailib:latest
+    container_name: vailib
+    ports:
+      - "8001:8001"
+    volumes:
+      - /your/library/path:/var/www/html/books:ro
+      - vailib_db:/var/lib/mysql
+volumes:
+  vailib_db:
+```
+
+---
+
+## 📁 Project Structure
+
+- `/docker`: Dockerfiles and native image build logic. No more messy server-side binds.
+- `/vailib/templates`: Overhauled Django templates featuring the "Vailib" UI identity.
+- `/vailib/static/custom`: Centralized CSS/JS for the Modern and E-Ink theme engines.
+- `views.py` & `models.py`: Enhanced backend logic for breadcrumb translation and cover processing.
+
+---
+
+## 🤝 Contributing
+Vailib is an open-source project. Contributions, bug reports, and feature requests are welcome!
+
+**GitHub Repository**: [https://github.com/vikgr/vailib](https://github.com/vikgr/vailib)
+
+---
+
+## ⚖️ Credits & License
+Vailib is licensed under the GPL-3.0 License.
+
+**Foundation**: Based on [SOPDS](https://github.com/zveronline/sopds) by **zveronline**.
+**Development**: Engineered by **vikgr**.

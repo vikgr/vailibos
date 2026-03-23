@@ -8,13 +8,13 @@
 	{% for g in items %}
 	{% if not parent_id %}
 	<a href="{% url 'web:genre' %}?section={{g.section_id}}" class="index-card">
-		<div class="index-letter" style="font-size:1.1rem;word-wrap:break-word;">{{ g.section }}</div>
+		<div class="index-letter" style="font-size: 1.25rem; font-weight: 800; line-height: 1.2; word-break: break-word; overflow-wrap: break-word; hyphens: auto; display: flex; align-items: center; justify-content: center; height: 90px; padding: 5px; margin: 0; text-align: center;">{{ g.section }}</div>
 		{% else %}
 		<a href="{% url 'web:searchbooks' %}?searchtype=g&searchterms={{g.id}}" class="index-card">
-			<div class="index-letter" style="font-size:1.1rem;word-wrap:break-word;">{{ g.subsection }}</div>
+			<div class="index-letter" style="font-size: 1.25rem; font-weight: 800; line-height: 1.2; word-break: break-word; overflow-wrap: break-word; hyphens: auto; display: flex; align-items: center; justify-content: center; height: 90px; padding: 5px; margin: 0; text-align: center;">{{ g.subsection }}</div>
 			{% endif %}
 			<div class="index-count">
-				{% blocktrans with g_num_book=g.num_book %}Total: {{ g_num_book }} books.{% endblocktrans %}
+				<span data-trans="t_tot">Total:</span> {{ g.num_book }} <span data-trans="t_bk">books.</span>
 			</div>
 		</a>
 		{% endfor %}

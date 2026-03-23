@@ -2,15 +2,15 @@
     <!-- Search Type Config -->
     <div class="search-tabs">
         <button type="button" class="search-tab active" data-type="title"
-            onclick="switchComfortSearch('title')">Книги</button>
+            onclick="switchComfortSearch('title')" data-trans="book">Книги</button>
         <button type="button" class="search-tab" data-type="author"
-            onclick="switchComfortSearch('author')">Авторы</button>
+            onclick="switchComfortSearch('author')" data-trans="auth">Авторы</button>
         <button type="button" class="search-tab" data-type="series"
-            onclick="switchComfortSearch('series')">Серии</button>
+            onclick="switchComfortSearch('series')" data-trans="ser">Серии</button>
     </div>
 
     <form method="get" action="/web/search/books/" id="searchform" class="modern-search-form" style="display:flex;">
-        <input class="input-group-field" type="search" name="searchterms" placeholder="Search books, authors, genres..."
+        <input class="input-group-field" type="search" name="searchterms" placeholder="Search books, authors, genres..." data-trans="s_book"
             id="main_searchbox" required style="flex-grow:1;">
         <button class="search-submit-btn" type="submit" style="white-space:nowrap; margin-bottom:0;"><i
                 class="fi-magnifying-glass"></i></button>
@@ -30,13 +30,16 @@
 
         if (type === 'title') {
             form.action = "{% url 'web:searchbooks' %}";
-            input.placeholder = "Поиск по названию";
+            input.setAttribute('data-trans', 's_book');
+            if (typeof applyVailibLang === 'function') applyVailibLang();
         } else if (type === 'author') {
             form.action = "{% url 'web:searchauthors' %}";
-            input.placeholder = "Поиск по автору";
+            input.setAttribute('data-trans', 's_auth');
+            if (typeof applyVailibLang === 'function') applyVailibLang();
         } else if (type === 'series') {
             form.action = "{% url 'web:searchseries' %}";
-            input.placeholder = "Поиск по серии";
+            input.setAttribute('data-trans', 's_ser');
+            if (typeof applyVailibLang === 'function') applyVailibLang();
         }
         input.focus();
     }

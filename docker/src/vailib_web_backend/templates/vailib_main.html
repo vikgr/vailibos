@@ -1,0 +1,462 @@
+{% load staticfiles %}
+{% load i18n %}
+{% load cache %}
+<!DOCTYPE html>
+<html lang="ru" data-theme="{{ vailib_theme|default:"eink" }}">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    {% if vailib_theme == 'eink' %}
+    <title>VAILIB E-INK</title>
+    <style>
+        body { font-family: sans-serif; background: #fff; color: #000; margin: 2%; padding: 0; text-align: center; font-size: 16px; line-height: 1.4; }
+        a { color: #000; text-decoration: underline; word-wrap: break-word; }
+        .nav-header { border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; width: 100%; box-sizing: border-box; }
+        .nav-links { font-size: 1.2em; font-weight: bold; margin: 10px 0; }
+        .nav-links a { margin: 5px 10px; display: inline-block; }
+        .content { text-align: left; max-width: 100%; box-sizing: border-box; word-wrap: break-word; }
+        .theme-switch { border: 2px solid #000; padding: 5px 10px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
+        form { margin: 15px 0; width: 100%; box-sizing: border-box; }
+        input[type="text"] { border: 1px solid #000; padding: 8px; width: 60%; max-width: 300px; box-sizing: border-box; font-size: 16px; }
+        button { border: 2px solid #000; background: #fff; padding: 8px 15px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 5px; }
+        img { max-width: 100%; height: auto; }
+        table { max-width: 100%; overflow-x: auto; display: block; }
+        /* E-Ink placeholder cover: Reference-matched box style */
+        .eink-placeholder { 
+            width: 100%; height: 100%; min-width: 80px; min-height: 120px; 
+            border: 2px solid #000; background: #fff; 
+            display: flex; flex-direction: column; box-sizing: border-box; 
+            text-decoration: none !important; color: #000 !important; overflow: hidden; 
+        }
+        .eink-placeholder .plt-title-box {
+            flex: 3; border-bottom: 2px solid #000;
+            display: flex; align-items: center; justify-content: center;
+            padding: 8px; text-align: center;
+        }
+        .eink-placeholder .plt-author-box {
+            flex: 1.5;
+            display: flex; align-items: center; justify-content: center;
+            padding: 4px; text-align: center; background: #fff;
+        }
+        .eink-placeholder .plt-title { font-size: 0.85rem; font-weight: bold; text-transform: uppercase; margin: 0; line-height: 1.2; display: block; word-wrap: break-word; color: #000 !important; }
+        .eink-placeholder .plt-author { font-size: 0.7rem; text-transform: none; margin-top: 0; display: block; word-wrap: break-word; color: #000 !important; }
+
+        /* E-Ink Book Grid & Card */
+        .eink-book-grid {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 20px !important;
+            justify-content: flex-start !important;
+            width: 100% !important;
+        }
+        .eink-book-card {
+            width: 180px !important;
+            border: 2px solid #000 !important;
+            background: #fff !important;
+            padding: 8px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            text-decoration: none !important;
+            color: #000 !important;
+            box-sizing: border-box !important;
+            margin-bottom: 15px !important;
+        }
+        .eink-book-card:hover { background: #eee !important; }
+        .eink-book-card .cover-container {
+            width: 100% !important;
+            height: 250px !important;
+            border: 1px solid #000 !important;
+            margin-bottom: 8px !important;
+            overflow: hidden !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .eink-book-card .book-details {
+            text-align: center !important;
+        }
+        .eink-book-card .b-title {
+            font-size: 0.95rem !important;
+            font-weight: bold !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 3 !important;
+            line-clamp: 3 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+            height: 3.3rem !important;
+            line-height: 1.1rem !important;
+            margin-bottom: 5px !important;
+        }
+        .eink-book-card .b-author {
+            font-size: 0.8rem !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            display: block !important;
+        }
+
+        /* Blocky E-Ink items (for non-book lists) */
+        .eink-list-item { border: 2px solid #000 !important; background: #fff !important; padding: 8px 15px !important; margin-bottom: 5px !important; display: block !important; text-decoration: none !important; color: #000 !important; font-weight: bold !important; box-sizing: border-box !important; width: 100% !important; clear: both !important; overflow: hidden !important; text-align: left !important; }
+        .eink-list-item:hover { background: #000 !important; color: #fff !important; }
+        .eink-inline-item { border: 2px solid #000 !important; background: #fff !important; padding: 5px 10px !important; margin: 3px !important; display: inline-block !important; text-decoration: none !important; color: #000 !important; font-weight: bold !important; font-size: 14px !important; }
+        .eink-inline-item:hover { background: #000 !important; color: #fff !important; }
+        /* E-Ink breadcrumbs */
+        .eink-breadcrumbs { display: flex !important; flex-wrap: wrap !important; justify-content: flex-start !important; gap: 8px !important; padding: 8px 0 !important; border-bottom: none !important; margin-bottom: 15px !important; font-size: 0.85rem !important; }
+        .eink-breadcrumbs .crumb a { display: inline-block !important; border: 2px solid #000 !important; background: #fff !important; color: #000 !important; padding: 8px 12px !important; text-decoration: none !important; font-weight: 800 !important; text-transform: uppercase !important; font-size: 0.9rem !important; margin: 0 !important; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; line-height: 1.4 !important; }
+        .eink-breadcrumbs .crumb a:hover { background: #000 !important; color: #fff !important; }
+        .eink-breadcrumbs .crumb span { display: inline-block !important; border: 2px solid #000 !important; background: #eee !important; color: #000 !important; padding: 8px 12px !important; font-weight: 800 !important; text-transform: uppercase !important; font-size: 0.9rem !important; margin: 0 !important; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; line-height: 1.4 !important; }
+        .eink-breadcrumbs .separator { display: none !important; }
+        .index-grid { 
+            display: flex !important; 
+            flex-wrap: wrap !important; 
+            width: 100% !important; 
+            margin-top: 10px !important; 
+            justify-content: flex-start !important;
+            gap: 4px !important;
+        }
+        .index-card { 
+            border: 2px solid #000 !important;
+            background: #fff !important;
+            width: 90px !important;
+            height: 54px !important;
+            padding: 4px 6px !important;
+            margin: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-decoration: none !important;
+            color: #000 !important;
+            font-weight: bold !important;
+            box-sizing: border-box !important;
+            flex: 0 0 90px !important;
+            overflow: hidden !important;
+        }
+        .index-card:hover { background: #000 !important; color: #fff !important; }
+        .index-letter { font-size: 1.3rem !important; display: block !important; margin: 0 !important; line-height: 1.2 !important; word-break: break-word !important; text-align: center !important; overflow: hidden !important; }
+        .index-count { font-size: 0.62rem !important; font-weight: normal !important; display: block !important; margin-top: 2px !important; border-top: 1px solid #000 !important; width: 100% !important; padding-top: 2px !important; text-align: center !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+        .auth-container { display: flex !important; justify-content: center !important; padding: 20px !important; width: 100% !important; box-sizing: border-box !important; }
+        .modern-auth-card { width: 100% !important; max-width: 500px !important; text-align: left !important; border: 3px solid #000 !important; padding: 25px !important; background: #fff !important; margin: 0 auto !important; }
+        .auth-title { font-size: 2rem !important; font-weight: 900 !important; margin-bottom: 30px !important; text-align: center !important; text-transform: uppercase !important; border-bottom: 4px solid #000 !important; padding-bottom: 15px !important; }
+        .form-group { margin-bottom: 30px !important; width: 100% !important; clear: both !important; display: block !important; }
+        .form-group label { display: block !important; font-weight: 800 !important; margin-bottom: 12px !important; font-size: 1.5rem !important; clear: both !important; width: 100% !important; }
+        .modern-input { width: 100% !important; border: 3px solid #000 !important; padding: 18px 15px !important; box-sizing: border-box !important; font-size: 1.5rem !important; display: block !important; clear: both !important; background: #fff !important; color: #000 !important; border-radius: 0 !important; }
+        .modern-btn { width: 100% !important; background: #000 !important; color: #fff !important; border: 2px solid #000 !important; padding: 20px !important; font-weight: 900 !important; font-size: 1.6rem !important; cursor: pointer !important; margin-top: 15px !important; text-transform: uppercase !important; display: block !important; clear: both !important; }
+    </style>
+    {% else %}
+    <title>VAILIB Digital Library</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/vailib.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'foundation-icons/foundation-icons.css' %}">
+    {% endif %}
+    <link rel="stylesheet" type="text/css" href="{% static 'custom/css/modern.css' %}?v=006">
+</head>
+
+<body>
+    {% if vailib_theme == 'eink' %}
+    <div class="nav-header">
+        <a href="/web/"><img src="{% static 'custom/logo_eink.png' %}" alt="VAILIB" style="max-height: 120px; width: auto; margin-bottom: 10px;"></a>
+        
+        <div class="lang-selector-container" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; border:none; margin-bottom: 10px; padding-bottom: 5px;">
+            <a href="#" onclick="setVailibLang('ru'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">RU</a>
+            <a href="#" onclick="setVailibLang('en'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">EN</a>
+            <a href="#" onclick="setVailibLang('de'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">DE</a>
+            <a href="#" onclick="setVailibLang('es'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">ES</a>
+            <a href="#" onclick="setVailibLang('fr'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">FR</a>
+            <a href="#" onclick="setVailibLang('el'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">GR</a>
+            <a href="#" onclick="setVailibLang('ar'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">AR</a>
+            <a href="#" onclick="setVailibLang('hi'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">HI</a>
+            <a href="#" onclick="setVailibLang('pt'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">PT</a>
+            <a href="#" onclick="setVailibLang('zh'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">ZH</a>
+        </div>
+
+        <div class="nav-links">
+            <a href="/web/catalog/" data-trans="cat">{% trans "Catalogs" %}</a>
+            <a href="/web/book/?lang=0" data-trans="book">{% trans "Books" %}</a>
+            <a href="/web/author/?lang=0" data-trans="auth">{% trans "Authors" %}</a>
+            <a href="/web/genre/" data-trans="gen">{% trans "Genres" %}</a>
+            <a href="/web/series/?lang=0" data-trans="ser">{% trans "Series" %}</a>
+        </div>
+        <div>
+            {% if user.is_authenticated %}
+            ðŸ‘¤ <a href="/web/logout/">{{ user.username }} <span data-trans="logout">(Ð’Ñ‹Ð¹Ñ‚Ð¸)</span></a>
+            {% else %}
+            ðŸ‘¤ <a href="/web/login/" data-trans="login">Ð’Ð¾Ð¹Ñ‚Ð¸</a>
+            {% endif %}
+        </div>
+        <div>
+            <a href="#" onclick="document.cookie='vailib_theme=premium; path=/'; location.reload();" class="theme-switch" data-trans="color_theme">COLOR THEME</a>
+        </div>
+    </div>
+    
+    <div style="margin-bottom:8px;">
+        {% include "vailib_breadcrumbs.html" %}
+    </div>
+    {% if user.is_authenticated %}
+    <div>
+        <form method="get" action="{% url 'web:searchbooks' %}">
+            <input type="hidden" name="searchtype" value="m">
+            <input type="text" name="searchterms" placeholder="Search..." data-trans="s_p">
+            <button type="submit" data-trans="s_b">ÐÐ°Ð¹Ñ‚Ð¸</button>
+        </form>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="app-wrapper">
+        <!-- SIDEBAR FOR PREMIUM -->
+        <aside class="sidebar-container">
+            <div class="brand-header" style="margin-bottom: 20px;">
+                <a href="/web/" style="text-decoration: none; color: inherit;">
+                    <img src="{% static 'custom/logo_color.png' %}" alt="VAILIB" style="max-width: 100%; height: auto;">
+                </a>
+                <button id="vailib-theme-switcher" class="nav-btn theme-btn" style="width: 100%; border:none; cursor:pointer; margin-top: 10px;">
+                    <span class="premium-icon">ðŸ–¤ E-INK THEME</span>
+                </button>
+                
+                <div class="lang-selector-container" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; background: transparent; border: none; box-shadow: none; padding: 0; margin: 15px 0 0 0;">
+                    <a href="#" onclick="setVailibLang('ru'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/ru.png" width="15" alt="RU" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">RU</span></a>
+                    <a href="#" onclick="setVailibLang('en'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/gb.png" width="15" alt="EN" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">EN</span></a>
+                    <a href="#" onclick="setVailibLang('de'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/de.png" width="15" alt="DE" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">DE</span></a>
+                    <a href="#" onclick="setVailibLang('es'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/es.png" width="15" alt="ES" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">ES</span></a>
+                    <a href="#" onclick="setVailibLang('fr'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/fr.png" width="15" alt="FR" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">FR</span></a>
+                    <a href="#" onclick="setVailibLang('el'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/gr.png" width="15" alt="GR" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">GR</span></a>
+                    <a href="#" onclick="setVailibLang('ar'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/sa.png" width="15" alt="AR" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">AR</span></a>
+                    <a href="#" onclick="setVailibLang('hi'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/in.png" width="15" alt="HI" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">HI</span></a>
+                    <a href="#" onclick="setVailibLang('pt'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/pt.png" width="15" alt="PT" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">PT</span></a>
+                    <a href="#" onclick="setVailibLang('zh'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/cn.png" width="15" alt="ZH" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">ZH</span></a>
+                </div>
+
+                <div class="auth-box" style="margin-top: 10px;">
+                    {% if user.is_authenticated %}
+                    <a href="/web/logout/" class="auth-btn" title="Logout"><i class="fi-torso"></i> <span style="margin-left:5px;">{{ user.username }}</span></a>
+                    {% else %}
+                    <a href="/web/login/" class="auth-btn"><i class="fi-torso"></i> <span data-trans="login">Ð’Ð¾Ð¹Ñ‚Ð¸</span></a>
+                    {% endif %}
+                </div>
+            </div>
+            {% include "vailib_menu.html" %}
+            
+            <div class="sidebar-stats">
+                <h5>{% trans "STATISTICS" %}</h5>
+                <p><b>{% trans "This Ñatalog contains:" %}</b></p>
+                <p>
+                    {{ stats.allbooks }} {% trans "books," %} 
+                    {{ stats.allauthors }} {% trans "authors," %} 
+                    {{ stats.allgenres }} {% trans "genres and" %} 
+                    {{ stats.allseries }} {% trans "series." %}
+                </p>
+                <p style="margin-top: 10px; font-size: 0.75rem; opacity: 0.7;">
+                    <b>{% trans "Last scan:" %}</b> {{ stats.lastscan_date|default:"Never" }}
+                </p>
+            </div>
+        </aside>
+
+        <!-- MAIN BODY -->
+        <main class="main-content">
+            <div style="margin-bottom:20px;">
+                {% include "vailib_logo.html" %}
+            </div>
+            {% include "vailib_breadcrumbs.html" %}
+            {% if system_message %} {% include "vailib_messages.html" %} {% endif %}
+    {% endif %}
+
+    <div class="{% if vailib_theme == 'eink' %}content{% else %}content-wrapper{% endif %}">
+        {% block content %}
+        {% block ext-body %} {% endblock %}
+        {% block body %} {% endblock %}
+        {% endblock %}
+    </div>
+
+    {% if vailib_theme != 'eink' %}
+        </main>
+    </div>
+    {% endif %}
+
+    <script src="{% static 'js/vendor/jquery.js' %}"></script>
+    <script src="{% static 'js/vendor/foundation.min.js' %}"></script>
+
+    <script src="{% static 'custom/js/vailib_ui.js' %}?v=1"></script>
+    {% block block-js %}{% endblock %}
+
+    <script>
+        const vailibDict = {
+            'ru': {
+                cat: 'ÐšÐ°Ñ‚Ð°Ð»Ð¾Ð³Ð¸', book: 'ÐšÐ½Ð¸Ð³Ð¸', auth: 'ÐÐ²Ñ‚Ð¾Ñ€Ñ‹', gen: 'Ð–Ð°Ð½Ñ€Ñ‹', ser: 'Ð¡ÐµÑ€Ð¸Ð¸', set: 'ÐÐ°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸',
+                login: 'Ð’Ð¾Ð¹Ñ‚Ð¸', logout: '(Ð’Ñ‹Ð¹Ñ‚Ð¸)', new_e: 'ÐÐ¾Ð²Ð¸Ð½ÐºÐ¸', new_c: 'ÐÐ¾Ð²Ñ‹Ðµ ÐŸÐ¾ÑÑ‚ÑƒÐ¿Ð»ÐµÐ½Ð¸Ñ',
+                un_auth: 'ÐÐµÐ¸Ð·Ð²ÐµÑÑ‚Ð½Ñ‹Ð¹ Ð°Ð²Ñ‚Ð¾Ñ€', empty: 'Ð‘Ð¸Ð±Ð»Ð¸Ð¾Ñ‚ÐµÐºÐ° Ð¿ÑƒÑÑ‚Ð°', scan: 'Ð’Ñ‹Ð¿Ð¾Ð»Ð½Ð¸Ñ‚Ðµ ÑÐºÐ°Ð½Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ðµ Ð´Ð¸Ñ€ÐµÐºÑ‚Ð¾Ñ€Ð¸Ð¸.',
+                welc: 'Ð”Ð¾Ð±Ñ€Ð¾ Ð¿Ð¾Ð¶Ð°Ð»Ð¾Ð²Ð°Ñ‚ÑŒ Ð² VAILIB', welc_sub: 'Ð’Ð°ÑˆÐ° Ð¿ÐµÑ€ÑÐ¾Ð½Ð°Ð»ÑŒÐ½Ð°Ñ Ñ†Ð¸Ñ„Ñ€Ð¾Ð²Ð°Ñ Ð±Ð¸Ð±Ð»Ð¸Ð¾Ñ‚ÐµÐºÐ°. Ð’Ð¾Ð¹Ð´Ð¸Ñ‚Ðµ, Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ñ‚ÑŒ Ð´Ð¾ÑÑ‚ÑƒÐ¿ Ðº ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ð¸ ÐºÐ½Ð¸Ð³.',
+                welc_btn: 'Ð’Ð¾Ð¹Ñ‚Ð¸ Ð² Ð±Ð¸Ð±Ð»Ð¸Ð¾Ñ‚ÐµÐºÑƒ â†’', s_book: 'ÐŸÐ¾Ð¸ÑÐº Ð¿Ð¾ Ð½Ð°Ð·Ð²Ð°Ð½Ð¸ÑŽ', s_auth: 'ÐŸÐ¾Ð¸ÑÐº Ð¿Ð¾ Ð°Ð²Ñ‚Ð¾Ñ€Ñƒ', s_ser: 'ÐŸÐ¾Ð¸ÑÐº Ð¿Ð¾ ÑÐµÑ€Ð¸Ð¸', s_gen: 'ÐŸÐ¾Ð¸ÑÐº Ð¿Ð¾ Ð¶Ð°Ð½Ñ€Ñƒ', eink_theme: 'ðŸ–¤ E-INK THEME', color_theme: 'Ð¦Ð’Ð•Ð¢ÐÐÐ¯ Ð¢Ð•ÐœÐ',
+                stat: 'Ð¡Ð¢ÐÐ¢Ð˜Ð¡Ð¢Ð˜ÐšÐ', cat_con: 'Ð­Ñ‚Ð¾Ñ‚ ÐºÐ°Ñ‚Ð°Ð»Ð¾Ð³ ÑÐ¾Ð´ÐµÑ€Ð¶Ð¸Ñ‚:', bk_c: 'ÐºÐ½Ð¸Ð³,', aut_c: 'Ð°Ð²Ñ‚Ð¾Ñ€Ð¾Ð²,', gen_c: 'Ð¶Ð°Ð½Ñ€Ð¾Ð² Ð¸', t_tot: 'Ð’ÑÐµÐ³Ð¾:', t_aut: 'Ð°Ð²Ñ‚Ð¾Ñ€Ð¾Ð².', t_bk: 'ÐºÐ½Ð¸Ð³.', t_ser: 'ÑÐµÑ€Ð¸Ð¹.', l_scan: 'ÐŸÐ¾ÑÐ»ÐµÐ´Ð½ÐµÐµ ÑÐºÐ°Ð½Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ðµ:',
+                read: 'Ð§Ð¸Ñ‚Ð°Ñ‚ÑŒ', prev: 'ÐÐ°Ð·Ð°Ð´', next: 'Ð’Ð¿ÐµÑ€ÐµÐ´', bk_l: 'ÐšÐ½Ð¸Ð³:', home: 'ÐÐÐ§ÐÐ›Ðž', s_p: 'ÐŸÐ¾Ð¸ÑÐº...', s_b: 'ÐÐ°Ð¹Ñ‚Ð¸',
+                root: 'ROOT', search: 'ÐŸÐ¾Ð¸ÑÐº', select: 'Ð’Ñ‹Ð±Ð¾Ñ€', bshelf: 'ÐšÐ½Ð¸Ð¶Ð½Ð°Ñ Ð¿Ð¾Ð»ÐºÐ°', show_all: 'ÐŸÐžÐšÐÐ—ÐÐ¢Ð¬ Ð’Ð¡Ð•', doubles: 'Ð”ÑƒÐ±Ð»Ð¸ÐºÐ°Ñ‚Ñ‹ ÐºÐ½Ð¸Ð³Ð¸'
+            },
+            'en': {
+                cat: 'Catalogs', book: 'Books', auth: 'Authors', gen: 'Genres', ser: 'Series', set: 'Settings',
+                login: 'Login', logout: '(Logout)', new_e: 'Recent Additions', new_c: 'New Arrivals',
+                un_auth: 'Unknown Author', empty: 'Library is empty', scan: 'Run a directory scan.',
+                welc: 'Welcome to VAILIB', welc_sub: 'Your personal digital library. Login to access the book collection.',
+                welc_btn: 'Enter Library â†’', s_book: 'Search by title', s_auth: 'Search by author', s_ser: 'Search by series', s_gen: 'Search by genre', eink_theme: 'ðŸ–¤ E-INK THEME', color_theme: 'COLOR THEME',
+                stat: 'STATISTICS', cat_con: 'This catalog contains:', bk_c: 'books,', aut_c: 'authors,', gen_c: 'genres and', t_tot: 'Total:', t_aut: 'authors.', t_bk: 'books.', t_ser: 'series.', l_scan: 'Last collection scan:',
+                read: 'Read', prev: 'Previous', next: 'Next', bk_l: 'Books:', home: 'HOME', s_p: 'Search...', s_b: 'Find',
+                root: 'ROOT', search: 'Search', select: 'Select', bshelf: 'Bookshelf', show_all: 'SHOW ALL', doubles: 'Doubles for book'
+            },
+            'de': {
+                cat: 'Katalog', book: 'BÃ¼cher', auth: 'Autoren', gen: 'Genres', ser: 'Serien', set: 'Einstellungen',
+                login: 'Anmelden', logout: '(Abmelden)', new_e: 'Neue EintrÃ¤ge', new_c: 'Neue AnkÃ¼nfte',
+                un_auth: 'Unbekannter Autor', empty: 'Bibliothek ist leer', scan: 'Verzeichnis scannen.',
+                welc: 'Willkommen bei VAILIB', welc_sub: 'Ihre digitale Bibliothek. Melden Sie sich an.',
+                welc_btn: 'Bibliothek betreten â†’', s_book: 'Nach Titel suchen', s_auth: 'Nach Autor suchen', s_ser: 'Nach Serie suchen', s_gen: 'Nach Genre suchen', eink_theme: 'ðŸ–¤ E-INK THEME', color_theme: 'FARBDESIGN',
+                stat: 'STATISTIK', cat_con: 'Dieser Katalog enthÃ¤lt:', bk_c: 'BÃ¼cher,', aut_c: 'Autoren,', gen_c: 'Genres und', t_tot: 'Gesamt:', t_aut: 'Autoren.', t_bk: 'BÃ¼cher.', t_ser: 'Serien.', l_scan: 'Letzter Scan:',
+                read: 'Lesen', prev: 'ZurÃ¼ck', next: 'Weiter', bk_l: 'BÃ¼cher:', home: 'START', s_p: 'Suchen...', s_b: 'Finden',
+                root: 'ROOT', search: 'Suchen', select: 'AuswÃ¤hlen', bshelf: 'Regal', show_all: 'ALLE ANZEIGEN', doubles: 'Dublikate fÃ¼r Buch'
+            },
+            'el': {
+                cat: 'ÎšÎ±Ï„Î¬Î»Î¿Î³Î¿Î¹', book: 'Î’Î¹Î²Î»Î¯Î±', auth: 'Î£Ï…Î³Î³ÏÎ±Ï†ÎµÎ¯Ï‚', gen: 'Î•Î¯Î´Î·', ser: 'Î£ÎµÎ¹ÏÎ­Ï‚', set: 'Î¡Ï…Î¸Î¼Î¯ÏƒÎµÎ¹Ï‚',
+                login: 'Î•Î¯ÏƒÎ¿Î´Î¿Ï‚', logout: '(ÎˆÎ¾Î¿Î´Î¿Ï‚)', new_e: 'ÎÎ­ÎµÏ‚ Ï€ÏÎ¿ÏƒÎ¸Î®ÎºÎµÏ‚', new_c: 'ÎÎ­ÎµÏ‚ Î±Ï†Î¯Î¾ÎµÎ¹Ï‚',
+                un_auth: 'Î†Î³Î½Ï‰ÏƒÏ„Î¿Ï‚ ÏƒÏ…Î³Î³ÏÎ±Ï†Î­Î±Ï‚', empty: 'Î— Î²Î¹Î²Î»Î¹Î¿Î¸Î®ÎºÎ· ÎµÎ¯Î½Î±Î¹ Î¬Î´ÎµÎ¹Î±', scan: 'Î•ÎºÏ„ÎµÎ»Î­ÏƒÏ„Îµ ÏƒÎ¬ÏÏ‰ÏƒÎ·.',
+                welc: 'ÎšÎ±Î»ÏŽÏ‚ Î®ÏÎ¸Î±Ï„Îµ ÏƒÏ„Î¿ VAILIB', welc_sub: 'Î— ÏˆÎ·Ï†Î¹Î±ÎºÎ® ÏƒÎ±Ï‚ Î²Î¹Î²Î»Î¹Î¿Î¸Î®ÎºÎ·. Î£Ï…Î½Î´ÎµÎ¸ÎµÎ¯Ï„Îµ Î³Î¹Î± Ï€ÏÏŒÏƒÎ²Î±ÏƒÎ·.',
+                welc_btn: 'Î•Î¯ÏƒÎ¿Î´Î¿Ï‚ ÏƒÏ„Î· Î²Î¹Î²Î»Î¹Î¿Î¸Î®ÎºÎ· â†’', s_book: 'Î‘Î½Î±Î¶Î®Ï„Î·ÏƒÎ· (Ï„Î¯Ï„Î»Î¿Ï‚)', s_auth: 'Î‘Î½Î±Î¶Î®Ï„Î·ÏƒÎ· (ÏƒÏ…Î³Î³ÏÎ±Ï†Î­Î±Ï‚)', s_ser: 'Î‘Î½Î±Î¶Î®Ï„Î·ÏƒÎ· (ÏƒÎµÎ¹ÏÎ¬)', s_gen: 'Î‘Î½Î±Î¶Î®Ï„Î·ÏƒÎ· (ÎµÎ¯Î´Î¿Ï‚)', eink_theme: 'ðŸ–¤ E-INK THEME', color_theme: 'Î§Î¡Î©ÎœÎ‘Î¤Î™ÎšÎŸ Î˜Î•ÎœÎ‘',
+                stat: 'Î£Î¤Î‘Î¤Î™Î£Î¤Î™ÎšÎ‘', cat_con: 'Î‘Ï…Ï„ÏŒÏ‚ Î¿ ÎºÎ±Ï„Î¬Î»Î¿Î³Î¿Ï‚ Ï€ÎµÏÎ¹Î­Ï‡ÎµÎ¹:', bk_c: 'Î²Î¹Î²Î»Î¯Î±,', aut_c: 'ÏƒÏ…Î³Î³ÏÎ±Ï†ÎµÎ¯Ï‚,', gen_c: 'ÎµÎ¯Î´Î· ÎºÎ±Î¹', t_tot: 'Î£ÏÎ½Î¿Î»Î¿:', t_aut: 'ÏƒÏ…Î³Î³ÏÎ±Ï†ÎµÎ¯Ï‚.', t_bk: 'Î²Î¹Î²Î»Î¯Î±.', t_ser: 'ÏƒÎµÎ¹ÏÎ­Ï‚.', l_scan: 'Î¤ÎµÎ»ÎµÏ…Ï„Î±Î¯Î± ÏƒÎ¬ÏÏ‰ÏƒÎ·:',
+                read: 'Î”Î¹Î±Î²Î¬ÏƒÏ„Îµ', prev: 'Î ÏÎ¿Î·Î³Î¿ÏÎ¼ÎµÎ½Î¿', next: 'Î•Ï€ÏŒÎ¼ÎµÎ½Î¿', bk_l: 'Î’Î¹Î²Î»Î¯Î±:', home: 'Î‘Î¡Î§Î™ÎšÎ—', s_p: 'Î‘Î½Î±Î¶Î®Ï„Î·ÏƒÎ·...', s_b: 'Î•ÏÏÎµÏƒÎ·',
+                root: 'ROOT', search: 'Î‘Î½Î±Î¶Î®Ï„Î·ÏƒÎ·', select: 'Î•Ï€Î¹Î»Î¿Î³Î®', bshelf: 'Î’Î¹Î²Î»Î¹Î¿Î¸Î®ÎºÎ·', show_all: 'Î Î¡ÎŸÎ’ÎŸÎ›Î— ÎŸÎ›Î©Î', doubles: 'Î”Î¹Ï€Î»ÏŒÏ„Ï…Ï€Î±'
+            },
+            'es': {
+                cat: 'CatÃ¡logos', book: 'Libros', auth: 'Autores', gen: 'GÃ©neros', ser: 'Series', set: 'Ajustes',
+                login: 'Entrar', logout: '(Salir)', new_e: 'Novedades', new_c: 'Recientes',
+                un_auth: 'Autor desconocido', empty: 'Biblioteca vacÃ­a', scan: 'Escanear directorio.',
+                welc: 'Bienvenido a VAILIB', welc_sub: 'Tu biblioteca digital. Inicia sesiÃ³n para acceder.',
+                welc_btn: 'Entrar a la biblioteca â†’', s_book: 'Buscar tÃ­tulo', s_auth: 'Buscar autor', s_ser: 'Buscar serie', s_gen: 'Buscar gÃ©nero', eink_theme: 'ðŸ–¤ E-INK THEME', color_theme: 'TEMA DE COLOR',
+                stat: 'ESTADÃSTICAS', cat_con: 'Este catÃ¡logo contiene:', bk_c: 'libros,', aut_c: 'autores,', gen_c: 'gÃ©neros y', t_tot: 'Total:', t_aut: 'autores.', t_bk: 'libros.', t_ser: 'series.', l_scan: 'Ãšltimo escaneo:',
+                read: 'Leer', prev: 'Anterior', next: 'Siguiente', bk_l: 'Libros:', home: 'INICIO', s_p: 'Buscar...', s_b: 'Buscar',
+                root: 'ROOT', search: 'Buscar', select: 'Seleccionar', bshelf: 'EstanterÃ­a', show_all: 'MOSTRAR TODO', doubles: 'Dobles'
+            },
+            'fr': {
+                cat: 'Catalogues', book: 'Livres', auth: 'Auteurs', gen: 'Genres', ser: 'SÃ©ries', set: 'ParamÃ¨tres',
+                login: 'Connexion', logout: '(DÃ©connexion)', new_e: 'NouveautÃ©s', new_c: 'NouveautÃ©s',
+                un_auth: 'Auteur inconnu', empty: 'BibliothÃ¨que vide', scan: 'Scanner le rÃ©pertoire.',
+                welc: 'Bienvenue sur VAILIB', welc_sub: 'Votre bibliothÃ¨que numÃ©rique. Connectez-vous.',
+                welc_btn: 'Entrer dans la bibliothÃ¨que â†’', s_book: 'Rechercher un titre', s_auth: 'Rechercher un auteur', s_ser: 'Rechercher une sÃ©rie', s_gen: 'Rechercher un genre', eink_theme: 'ðŸ–¤ E-INK THEME', color_theme: 'THÃˆME COULEUR',
+                stat: 'STATISTIQUES', cat_con: 'Ce catalogue contient:', bk_c: 'livres,', aut_c: 'auteurs,', gen_c: 'genres et', t_tot: 'Total:', t_aut: 'auteurs.', t_bk: 'livres.', t_ser: 'sÃ©ries.', l_scan: 'Dernier scan:',
+                read: 'Lire', prev: 'PrÃ©cÃ©dent', next: 'Suivant', bk_l: 'Livres:', home: 'ACCUEIL', s_p: 'Rechercher...', s_b: 'Trouver',
+                root: 'ROOT', search: 'Recherche', select: 'SÃ©lectionner', bshelf: 'Ã‰tagÃ¨re', show_all: 'TOUT AFFICHER', doubles: 'Doublons'
+            },
+            'ar': {
+                cat: 'ÙƒØªØ§Ù„ÙˆØ¬Ø§Øª', book: 'ÙƒØªØ¨', auth: 'Ù…Ø¤Ù„ÙÙˆÙ†', gen: 'Ø£Ù†ÙˆØ§Ø¹', ser: 'Ø³Ù„Ø§Ø³Ù„', set: 'Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª',
+                login: 'Ø¯Ø®ÙˆÙ„', logout: '(Ø®Ø±ÙˆØ¬)', new_e: 'Ø¥Ø¶Ø§ÙØ§Øª Ø­Ø¯ÙŠØ«Ø©', new_c: 'Ø§Ù„ÙˆØ§ÙØ¯ÙˆÙ† Ø§Ù„Ø¬Ø¯Ø¯',
+                un_auth: 'Ù…Ø¤Ù„Ù Ù…Ø¬Ù‡ÙˆÙ„', empty: 'Ø§Ù„Ù…ÙƒØªØ¨Ø© ÙØ§Ø±ØºØ©', scan: 'ÙØ­Øµ Ø§Ù„Ø¯Ù„ÙŠÙ„.',
+                welc: 'Ù…Ø±Ø­Ø¨Ø§ Ø¨Ùƒ ÙÙŠ VAILIB', welc_sub: 'Ù…ÙƒØªØ¨ØªÙƒ Ø§Ù„Ø±Ù‚Ù…ÙŠØ©. Ø³Ø¬Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù„Ù„ÙˆØµÙˆÙ„.',
+                welc_btn: 'Ø¯Ø®ÙˆÙ„ Ø§Ù„Ù…ÙƒØªØ¨Ø© â†’', s_book: 'Ø§Ù„Ø¨Ø­Ø« Ø¨Ø§Ù„Ø¹Ù†ÙˆØ§Ù†', s_auth: 'Ø§Ù„Ø¨Ø­Ø« Ø¨Ø§Ù„Ù…Ø¤Ù„Ù', s_ser: 'Ø§Ù„Ø¨Ø­Ø« Ø¨Ø§Ù„Ø³Ù„Ø³Ù„Ø©', s_gen: 'Ø§Ù„Ø¨Ø­Ø« Ø¨Ø§Ù„Ù†ÙˆØ¹', eink_theme: 'ðŸ–¤ E-INK THEME', color_theme: 'Ø§Ù„Ø³Ù…Ø© Ø§Ù„Ù…Ù„ÙˆÙ†Ø©',
+                stat: 'Ø¥Ø­ØµØ§Ø¦ÙŠØ§Øª', cat_con: 'ÙŠØ­ØªÙˆÙŠ Ù‡Ø°Ø§ Ø§Ù„ÙƒØªØ§Ù„ÙˆØ¬ Ø¹Ù„Ù‰:', bk_c: 'ÙƒØªØ¨,', aut_c: 'Ù…Ø¤Ù„ÙÙŠÙ†,', gen_c: 'Ø£Ù†ÙˆØ§Ø¹ Ùˆ', t_tot: 'Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹:', t_aut: 'Ù…Ø¤Ù„ÙÙŠÙ†.', t_bk: 'ÙƒØªØ¨.', t_ser: 'Ø³Ù„Ø§Ø³Ù„.', l_scan: 'Ø¢Ø®Ø± Ù…Ø³Ø­:',
+                read: 'Ø§Ù‚Ø±Ø£', prev: 'Ø§Ù„Ø³Ø§Ø¨Ù‚', next: 'Ø§Ù„ØªØ§Ù„ÙŠ', bk_l: 'ÙƒØªØ¨:', home: 'Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©', s_p: 'Ø¨Ø­Ø«...', s_b: 'Ø¨Ø­Ø«',
+                root: 'ROOT', search: 'Ø¨Ø­Ø«', select: 'ØªØ­Ø¯ÙŠØ¯', bshelf: 'Ø±Ù Ø§Ù„ÙƒØªØ¨', show_all: 'Ø¹Ø±Ø¶ Ø§Ù„ÙƒÙ„', doubles: 'Ø§Ù„Ù†Ø³Ø® Ø§Ù„Ù…ÙƒØ±Ø±Ø©'
+            },
+            'hi': {
+                cat: 'à¤•à¥ˆà¤Ÿà¤²à¥‰à¤—', book: 'à¤•à¤¿à¤¤à¤¾à¤¬à¥‡à¤‚', auth: 'à¤²à¥‡à¤–à¤•', gen: 'à¤¶à¥ˆà¤²à¤¿à¤¯à¤¾à¤', ser: 'à¤¶à¥à¤°à¥ƒà¤‚à¤–à¤²à¤¾', set: 'à¤¸à¥‡à¤Ÿà¤¿à¤‚à¤—à¥à¤¸',
+                login: 'à¤²à¥‰à¤—à¤¿à¤¨', logout: '(à¤²à¥‰à¤—à¤†à¤‰à¤Ÿ)', new_e: 'à¤¹à¤¾à¤² à¤•à¥‡ à¤œà¥‹à¤¡à¤¼', new_c: 'à¤¨à¤ à¤†à¤—à¤®à¤¨',
+                un_auth: 'à¤…à¤œà¥à¤žà¤¾à¤¤ à¤²à¥‡à¤–à¤•', empty: 'à¤²à¤¾à¤‡à¤¬à¥à¤°à¥‡à¤°à¥€ à¤–à¤¾à¤²à¥€ à¤¹à¥ˆ', scan: 'à¤¡à¤¾à¤¯à¤°à¥‡à¤•à¥à¤Ÿà¤°à¥€ à¤¸à¥à¤•à¥ˆà¤¨ à¤•à¤°à¥‡à¤‚.',
+                welc: 'VAILIB à¤®à¥‡à¤‚ à¤†à¤ªà¤•à¤¾ à¤¸à¥à¤µà¤¾à¤—à¤¤ à¤¹à¥ˆ', welc_sub: 'à¤†à¤ªà¤•à¥€ à¤¡à¤¿à¤œà¤¿à¤Ÿà¤² à¤²à¤¾à¤‡à¤¬à¥à¤°à¥‡à¤°à¥€à¥¤ à¤²à¥‰à¤—à¤¿à¤¨ à¤•à¤°à¥‡à¤‚à¥¤',
+                welc_btn: 'à¤²à¤¾à¤‡à¤¬à¥à¤°à¥‡à¤°à¥€ à¤®à¥‡à¤‚ à¤ªà¥à¤°à¤µà¥‡à¤¶ à¤•à¤°à¥‡à¤‚ â†’', s_book: 'à¤¶à¥€à¤°à¥à¤·à¤• à¤¸à¥‡ à¤–à¥‹à¤œà¥‡à¤‚', s_auth: 'à¤²à¥‡à¤–à¤• à¤¸à¥‡ à¤–à¥‹à¤œà¥‡à¤‚', s_ser: 'à¤¶à¥à¤°à¥ƒà¤‚à¤–à¤²à¤¾ à¤¸à¥‡ à¤–à¥‹à¤œà¥‡à¤‚', s_gen: 'à¤¶à¥ˆà¤²à¥€ à¤¸à¥‡ à¤–à¥‹à¤œà¥‡à¤‚', eink_theme: 'ðŸ–¤ E-INK THEME', color_theme: 'à¤°à¤‚à¤—à¥€à¤¨ à¤¥à¥€à¤®',
+                stat: 'à¤†à¤à¤•à¤¡à¤¼à¥‡', cat_con: 'à¤‡à¤¸ à¤•à¥ˆà¤Ÿà¤²à¥‰à¤— à¤®à¥‡à¤‚ à¤¹à¥ˆ:', bk_c: 'à¤•à¤¿à¤¤à¤¾à¤¬à¥‡à¤‚,', aut_c: 'à¤²à¥‡à¤–à¤•,', gen_c: 'à¤¶à¥ˆà¤²à¤¿à¤¯à¤¾à¤ à¤”à¤°', t_tot: 'à¤•à¥à¤²:', t_aut: 'à¤²à¥‡à¤–à¤•.', t_bk: 'à¤•à¤¿à¤¤à¤¾à¤¬à¥‡à¤‚.', t_ser: 'à¤¶à¥à¤°à¥ƒà¤‚à¤–à¤²à¤¾.', l_scan: 'à¤…à¤‚à¤¤à¤¿à¤® à¤¸à¥à¤•à¥ˆà¤¨:',
+                read: 'à¤ªà¤¢à¤¼à¥‡à¤‚', prev: 'à¤ªà¤¿à¤›à¤²à¤¾', next: 'à¤…à¤—à¤²à¤¾', bk_l: 'à¤•à¤¿à¤¤à¤¾à¤¬à¥‡à¤‚:', home: 'à¤¶à¥à¤°à¥‚', s_p: 'à¤–à¥‹à¤œà¥‡à¤‚...', s_b: 'à¤–à¥‹à¤œà¥‡à¤‚',
+                root: 'ROOT', search: 'à¤–à¥‹à¤œà¥‡à¤‚', select: 'à¤šà¥à¤¨à¥‡à¤‚', bshelf: 'à¤¬à¥à¤•à¤¶à¥‡à¤²à¥à¤«à¤¼', show_all: 'à¤¸à¤­à¥€ à¤¦à¤¿à¤–à¤¾à¤à¤‚', doubles: 'à¤¦à¥‹à¤¹à¤°à¥€ à¤•à¤¿à¤¤à¤¾à¤¬à¥‡à¤‚'
+            },
+            'pt': {
+                cat: 'CatÃ¡logos', book: 'Livros', auth: 'Autores', gen: 'GÃªneros', ser: 'SÃ©ries', set: 'ConfiguraÃ§Ãµes',
+                login: 'Entrar', logout: '(Sair)', new_e: 'Novidades', new_c: 'RecÃ©m Chegados',
+                un_auth: 'Autor desconhecido', empty: 'A biblioteca estÃ¡ vazia', scan: 'Verificar diretÃ³rio.',
+                welc: 'Bem-vindo ao VAILIB', welc_sub: 'Sua biblioteca digital. FaÃ§a o login.',
+                welc_btn: 'Entrar na biblioteca â†’', s_book: 'Pesquisar tÃ­tulo', s_auth: 'Pesquisar autor', s_ser: 'Pesquisar sÃ©rie', s_gen: 'Pesquisar gÃªnero', eink_theme: 'ðŸ–¤ E-INK THEME', color_theme: 'TEMA DE COR',
+                stat: 'ESTATÃSTICAS', cat_con: 'Este catÃ¡logo contÃ©m:', bk_c: 'livros,', aut_c: 'autores,', gen_c: 'gÃªneros e', t_tot: 'Total:', t_aut: 'autores.', t_bk: 'livros.', t_ser: 'sÃ©ries.', l_scan: 'Ãšltimo scan:',
+                read: 'Ler', prev: 'Anterior', next: 'PrÃ³ximo', bk_l: 'Livros:', home: 'INÃCIO', s_p: 'Pesquisar...', s_b: 'Buscar',
+                root: 'ROOT', search: 'Pesquisar', select: 'Selecionar', bshelf: 'Estante', show_all: 'MOSTRAR TUDO', doubles: 'Dobras'
+            },
+            'zh': {
+                cat: 'ç›®å½•', book: 'å›¾ä¹¦', auth: 'ä½œè€…', gen: 'æµæ´¾', ser: 'ç³»åˆ—', set: 'è®¾ç½®',
+                login: 'ç™»å½•', logout: '(é€€å‡º)', new_e: 'æœ€è¿‘æ·»åŠ ', new_c: 'æ–°ä¹¦ä¸Šæž¶',
+                un_auth: 'æœªçŸ¥ä½œè€…', empty: 'å›¾ä¹¦é¦†ä¸ºç©º', scan: 'æ‰«æç›®å½•.',
+                welc: 'æ¬¢è¿Žæ¥åˆ°VAILIB', welc_sub: 'æ‚¨çš„æ•°å­—å›¾ä¹¦é¦†ã€‚è¯·ç™»å½•è®¿é—®ã€‚',
+                welc_btn: 'è¿›å…¥å›¾ä¹¦é¦† â†’', s_book: 'æŒ‰ä¹¦åæœç´¢', s_auth: 'æŒ‰ä½œè€…æœç´¢', s_ser: 'æŒ‰ç³»åˆ—æœç´¢', s_gen: 'æŒ‰æµæ´¾æœç´¢', eink_theme: 'ðŸ–¤ E-INK THEME', color_theme: 'å½©è‰²ä¸»é¢˜',
+                stat: 'ç»Ÿè®¡ä¿¡æ¯', cat_con: 'æ­¤ç›®å½•åŒ…å«:', bk_c: 'å›¾ä¹¦,', aut_c: 'ä½œè€…,', gen_c: 'æµæ´¾å’Œ', t_tot: 'æ€»è®¡:', t_aut: 'ä½œè€….', t_bk: 'å›¾ä¹¦.', t_ser: 'ç³»åˆ—.', l_scan: 'æœ€åŽæ‰«æ:',
+                read: 'é˜…è¯»', prev: 'ä¸Šä¸€é¡µ', next: 'ä¸‹ä¸€é¡µ', bk_l: 'å›¾ä¹¦:', home: 'é¦–é¡µ', s_p: 'æœç´¢...', s_b: 'æŸ¥æ‰¾',
+                root: 'ROOT', search: 'æœç´¢', select: 'é€‰æ‹©', bshelf: 'ä¹¦æž¶', show_all: 'å…¨éƒ¨æ˜¾ç¤º', doubles: 'é‡å¤ä¹¦ç±'
+            }
+        };
+
+        function setVailibLang(lang) {
+            localStorage.setItem('vailib_lang', lang);
+            document.cookie = 'django_language=' + lang + '; path=/; max-age=31536000';
+            applyVailibLang();
+        }
+
+        function applyVailibLang() {
+            let lang = localStorage.getItem('vailib_lang');
+            
+            // Auto-detect browser language if user hasn't chosen one
+            if (!lang) {
+                const navLang = navigator.language || navigator.userLanguage || 'en';
+                const shortLang = navLang.substring(0, 2).toLowerCase();
+                lang = vailibDict[shortLang] ? shortLang : 'en'; // Fallback to English for global users, or RU for Russians
+                
+                localStorage.setItem('vailib_lang', lang);
+                document.cookie = 'django_language=' + lang + '; path=/; max-age=31536000';
+            }
+
+            document.documentElement.lang = lang;
+
+            const dict = vailibDict[lang] || vailibDict['en'];
+            
+            document.querySelectorAll('[data-trans]').forEach(el => {
+                const key = el.getAttribute('data-trans');
+                if (dict[key]) {
+                    let txt = dict[key];
+                    // Strip the 'tonos' (accents) from Greek text to completely eliminate uppercase font-clipping bugs
+                    if (lang === 'el') {
+                        txt = txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    }
+                    if (el.tagName === 'INPUT') el.placeholder = txt;
+                    else el.innerText = txt;
+                }
+            });
+
+            // Handle breadcrumbs dynamically translated
+            document.querySelectorAll('.crumb a, .crumb span').forEach(el => {
+                const text = el.innerText.trim().toUpperCase();
+                
+                // Extra fallbacks for hardcoded Django strings
+                const fallbacks = {
+                    'Ð“Ð›ÐÐ’ÐÐÐ¯': 'home', 'ÐÐÐ™Ð¢Ð˜': 'search', 'Ð’Ð«Ð‘ÐžÐ ': 'select', 
+                    'HOME': 'home', 'START': 'home', 'Î‘Î¡Î§Î™ÎšÎ—': 'home'
+                };
+                
+                let matchedKey = fallbacks[text] || null;
+                
+                if (!matchedKey) {
+                    const checkKeys = ['home', 'cat', 'book', 'auth', 'gen', 'ser', 'stat', 'root', 'search', 'select', 'bshelf', 'show_all', 's_book', 's_auth', 's_ser', 's_gen', 'doubles'];
+                    for (let langKey in vailibDict) {
+                        for (let k of checkKeys) {
+                            if (vailibDict[langKey][k] && vailibDict[langKey][k].toUpperCase() === text) {
+                                matchedKey = k;
+                                break;
+                            }
+                        }
+                        if (matchedKey) break;
+                    }
+                }
+                
+                if (matchedKey && dict[matchedKey]) {
+                    el.innerText = dict[matchedKey];
+                }
+            });
+
+            // Highlight active lang btn
+            document.querySelectorAll('.color-lang-btn, .eink-lang-btn').forEach(btn => {
+                btn.style.opacity = '0.35';
+                if(btn.getAttribute('onclick').includes("'" + lang + "'")) btn.style.opacity = '1';
+                btn.style.transition = "opacity 0.2s";
+            });
+        }
+        
+        document.addEventListener("DOMContentLoaded", applyVailibLang);
+    </script>
+</body>
+</html>

@@ -45,7 +45,21 @@ The redesign is injected live into the running `zveronline/sopds:latest` contain
 - [x] E-Ink High Contrast & Block Layout Achieved.
 - [x] Internal links and search logic patched and functioning.
 - [x] **Dashboard Overhaul (v3.5)**: Search bar moved to Top-Center; Main Dashboard injects the 12 most recent books into a dynamic CSS Grid.
-- [ ] **Phase 3 (Next)**: Perform long-term stress testing for the converter bot and bulk scanning.
-- [ ] **Phase 4 (Next)**: Merge into the unified `Vailib` container via `docker-compose.unified.yml`.
+
+---
+
+## 🔒 Phase 3: Security & Global Localization
+1. **Strict Authentication Refactor**: Corrected a bypass where unauthenticated users could access the root `/web/` and `/web/catalog/`. `views.py` was patched to strictly enforce `@sopds_login` on all routes regardless of database variables, routing all public traffic to the Login screen.
+2. **Top 10 Global Scripts + Greek Indexing**: Pulled `models.py` and `opdsdb.py` from the core container into the local `/tmp/sopds_custom/` bind-mounts.
+   - Expanded the `LangCodes` indexing string and UI dropdown map (`lang_menu`) to support Cyrillic, Latin, Digits, **Greek**, **Arabic/Urdu**, **Devanagari (Hindi)**, and **Bengali**. 
+   - Re-wrote `getlangcode(s)` inside `opdsdb.py` to auto-detect CJK Unicode Ranges (`\u4e00-\u9fff`) for native Chinese indexing without bloating the database arrays. 
+   - *Requires running `sudo docker exec sopds python3 manage.py sopds_scanner clear` to apply buckets.*
+
+---
+
+## 🚀 Future Roadmap
+- [ ] **Phase 4**: Finish modernizing the list templates (`sopds_authors.html`, `sopds_books.html`, `sopds_series.html`) into flexbox-based layouts.
+- [ ] **Phase 5**: Perform long-term stress testing for the converter bot and bulk scanning.
+- [ ] **Phase 6**: Merge completely into the unified `Vailib` container via `docker-compose.unified.yml`.
 
 Your library is now structurally state-of-the-art and ready for the future! 📖🤖

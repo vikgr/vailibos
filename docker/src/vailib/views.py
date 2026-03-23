@@ -1,0 +1,715 @@
+import os
+import codecs
+
+from random import randint
+
+from django.shortcuts import render, redirect
+from django.template.context_processors import csrf
+from django.db.models import Count, Min
+from django.utils.translation import ugettext as _
+from django.contrib.auth import authenticate, login, logout, REDIRECT_FIELD_NAME
+from django.contrib.auth.decorators import user_passes_test
+from django.views.decorators.vary import vary_on_headers
+from django.urls import reverse, reverse_lazy
+from django.utils.html import strip_tags
+from django.db.models import Q
+from django.http import HttpResponseForbidden
+
+from book_tools.format import create_bookfile
+import opds_catalog.zipf as zipfile
+from opds_catalog import models
+from opds_catalog.models import Book, Author, Series, bookshelf, Counter, Catalog, Genre, lang_menu
+from opds_catalog import settings
+from constance import config
+from opds_catalog.opds_paginator import Paginator as OPDS_Paginator
+
+from vailib_web_backend.settings import HALF_PAGES_LINKS
+
+def get_annotation(mybook):
+    full_path = os.path.join(config.vailib_ROOT_LIB, mybook.path)
+    # Ð£Ð±Ð¸Ñ€Ð°ÐµÐ¼ Ð¸Ð· Ð¿ÑƒÑ‚Ð¸ INPX Ð¸ INP Ñ„Ð°Ð¹Ð»
+    inp_path, zip_name = os.path.split(full_path)
+    inpx_path, inp_name = os.path.split(inp_path)
+    path, inpx_name = os.path.split(inpx_path)
+    full_path = os.path.join(path,zip_name)
+    fz = codecs.open(full_path, "rb")
+    z = zipfile.ZipFile(fz, 'r', allowZip64=True)
+    fo = z.open(mybook.filename)
+    book_data = create_bookfile(fo, mybook.filename)
+    annotation = book_data.description if book_data.description else ''
+    annotation = annotation.strip(' \'\&\n-.#\\\`') if isinstance(annotation, str) else annotation.decode('utf8').strip(' \'\&\n-.#\\\`')
+    return annotation
+
+
+def vailib_login(function=None, redirect_field_name=REDIRECT_FIELD_NAME, url=None):
+    actual_decorator = user_passes_test(
+        lambda u: u.is_authenticated,
+        login_url=reverse_lazy(url),
+        redirect_field_name=redirect_field_name
+    ) 
+    if function:
+        return actual_decorator(function)
+    return actual_decorator
+
+def vailib_processor(request):
+    args={}
+    
+    user_agent = request.META.get('HTTP_USER_AGENT', '').lower()
+    theme_cookie = request.COOKIES.get('vailib_theme')
+    
+    if theme_cookie in ['eink', 'premium']:
+        args['vailib_theme'] = theme_cookie
+    else:
+        # Default to eink for everyone, unless they choose premium manually
+        args['vailib_theme'] = 'eink'
+            
+    args['app_title']=settings.TITLE
+    args['vailib_auth']=config.vailib_AUTH
+    args['vailib_version']=settings.VERSION
+    args['alphabet'] = config.vailib_ALPHABET_MENU
+    args['splititems'] = config.vailib_SPLITITEMS
+    args['fb2tomobi'] = (config.vailib_FB2TOMOBI!="")
+    args['fb2toepub'] = (config.vailib_FB2TOEPUB!="")
+    args['nozip'] = settings.NOZIP_FORMATS
+    args['cache_t']=0
+
+    if config.vailib_ALPHABET_MENU:
+        args['lang_menu'] = lang_menu
+    
+    if config.vailib_AUTH:
+        user=request.user
+        if user.is_authenticated:
+            result=[]
+            for row in bookshelf.objects.filter(user=user).order_by('-readtime')[:8]:
+                book = Book.objects.get(id=row.book_id)
+                p = {'id':row.id, 'readtime': row.readtime, 'book_id': row.book_id, 'title': book.title, 'authors':book.authors.values()}
+                result.append(p)
+            args['bookshelf']=result
+        
+    books_count = Counter.objects.get_counter(models.counter_allbooks)
+    if books_count:
+        random_id = randint(1,books_count)
+        try:
+            random_book = Book.objects.all()[random_id-1:random_id][0]
+        except Book.DoesNotExist:
+            random_book= None
+    else:
+        random_book= None
+    # Get annotation if note done yet
+    if random_book and random_book.annotation == 'NotYet':
+        random_book.annotation = get_annotation(random_book)
+        random_book.save()
+    args['random_book'] = random_book
+    stats = { d['name']:d['value'] for d in Counter.obj.all().values() }
+    stats['lastscan_date']=Counter.objects.get_lastscan()
+    args['stats'] = stats
+  
+    return args
+
+# Create your views here.
+@vary_on_headers("HTTP_ACCEPT_LANGUAGE")
+@vailib_login(url='web:login')
+def SearchBooksView(request):
+    #Read searchtype, searchterms, searchterms0, page from form
+    args = {}
+    args.update(csrf(request))
+
+    if request.GET:
+        searchtype = request.GET.get('searchtype', 'm')
+        searchterms = request.GET.get('searchterms', '')
+        #searchterms0 = int(request.POST.get('searchterms0', ''))
+        page_num = int(request.GET.get('page', '1'))
+        page_num = page_num if page_num>0 else 1
+        books = Book.objects.none()
+        
+        #if (len(searchterms)<3) and (searchtype in ('m', 'b', 'e')):
+        #    args['errormsg'] = 'Too few symbols in search string !';
+        #    return render_to_response('vailib_error.html', args)
+        
+        if searchtype == 'm':
+            #books = Book.objects.extra(where=["upper(title) like %s"], params=["%%%s%%"%searchterms.upper()]).order_by('title','-docdate')
+            books = Book.objects.filter(search_title__contains=searchterms.upper()).order_by('search_title','-docdate')
+            args['vailib_breadcrumbs'] = [
+                {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                {'name': _('ÐŸÐ¾Ð¸ÑÐº Ð¿Ð¾ Ð½Ð°Ð·Ð²Ð°Ð½Ð¸ÑŽ'), 'url': None},
+                {'name': searchterms, 'url': '?searchtype=m&searchterms=%s' % searchterms}
+            ]
+            args['searchobject'] = 'title'
+            
+        elif searchtype == 'b':
+            #books = Book.objects.extra(where=["upper(title) like %s"], params=["%s%%"%searchterms.upper()]).order_by('title','-docdate')
+            books = Book.objects.filter(search_title__startswith=searchterms.upper()).order_by('search_title','-docdate')
+            args['vailib_breadcrumbs'] = [
+                {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                {'name': _('ÐŸÐ¾Ð¸ÑÐº Ð¿Ð¾ Ð½Ð°Ð·Ð²Ð°Ð½Ð¸ÑŽ'), 'url': None},
+                {'name': searchterms, 'url': '?searchtype=b&searchterms=%s' % searchterms}
+            ]
+            args['searchobject'] = 'title'         
+            
+        elif searchtype == 'a':
+            try:
+                author_id = int(searchterms)
+                author = Author.objects.get(id=author_id)
+                #aname = "%s %s"%(author.last_name,author.first_name)
+                aname = author.full_name
+            except:
+                author_id = 0
+                aname = ""                  
+            books = Book.objects.filter(authors=author_id).order_by('search_title','-docdate')  
+            args['vailib_breadcrumbs'] = [
+                {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                {'name': _('ÐŸÐ¾Ð¸ÑÐº Ð¿Ð¾ Ð°Ð²Ñ‚Ð¾Ñ€Ñƒ'), 'url': '/web/author/?lang=0'},
+                {'name': aname, 'url': '?searchtype=a&searchterms=%s' % searchterms}
+            ]
+
+            args['searchobject'] = 'author' 
+            
+        # ÐŸÐ¾Ð¸ÑÐº ÐºÐ½Ð¸Ð³ Ð¿Ð¾ ÑÐµÑ€Ð¸Ð¸
+        elif searchtype == 's':
+            try:
+                ser_id = int(searchterms)
+                ser = Series.objects.get(id=ser_id).ser
+            except:
+                ser_id = 0
+                ser = ""
+            #books = Book.objects.filter(series=ser_id).order_by('search_title','-docdate')
+            books = Book.objects.filter(series=ser_id).order_by('bseries__ser_no','search_title','-docdate')
+            args['vailib_breadcrumbs'] = [
+                {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                {'name': _('ÐŸÐ¾Ð¸ÑÐº Ð¿Ð¾ ÑÐµÑ€Ð¸Ð¸'), 'url': '/web/series/?lang=0'},
+                {'name': ser, 'url': '?searchtype=s&searchterms=%s' % searchterms}
+            ]
+            args['searchobject'] = 'series'
+            
+        # ÐŸÐ¾Ð¸ÑÐº ÐºÐ½Ð¸Ð³ Ð¿Ð¾ Ð¶Ð°Ð½Ñ€Ñƒ
+        elif searchtype == 'g':
+            try:
+                genre_id = int(searchterms)
+                section = Genre.objects.get(id=genre_id).section
+                subsection = Genre.objects.get(id=genre_id).subsection
+                args['vailib_breadcrumbs'] = [
+                    {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                    {'name': _('ÐŸÐ¾Ð¸ÑÐº Ð¿Ð¾ Ð¶Ð°Ð½Ñ€Ñƒ'), 'url': '/web/genre/'},
+                    {'name': section, 'url': None},
+                    {'name': subsection, 'url': '?searchtype=g&searchterms=%s' % searchterms}
+                ]
+            except:
+                genre_id = 0
+                args['vailib_breadcrumbs'] = [
+                    {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                    {'name': _('ÐŸÐ¾Ð¸ÑÐº Ð¿Ð¾ Ð¶Ð°Ð½Ñ€Ñƒ'), 'url': '/web/genre/'}
+                ]
+                
+            books = Book.objects.filter(genres=genre_id).order_by('search_title','-docdate') 
+            args['searchobject'] = 'genre'
+                                   
+        # ÐŸÐ¾Ð¸ÑÐº ÐºÐ½Ð¸Ð³ Ð½Ð° ÐºÐ½Ð¸Ð¶Ð½Ð¾Ð¹ Ð¿Ð¾Ð»ÐºÐµ            
+        elif searchtype == 'u':
+            if config.vailib_AUTH:
+                books = Book.objects.filter(bookshelf__user=request.user).order_by('-bookshelf__readtime')
+                args['vailib_breadcrumbs'] = [
+                    {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                    {'name': _('Bookshelf'), 'url': '/web/search/books/?searchtype=u'},
+                    {'name': request.user.username, 'url': None}
+                ]
+                #books = bookshelf.objects.filter(user=request.user).select_related('book')              
+            else:
+                books=Book.objects.filter(id=0)     
+                args['vailib_breadcrumbs'] = [
+                    {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                    {'name': _('Bookshelf'), 'url': '/web/search/books/?searchtype=u'}
+                ]
+            args['searchobject'] = 'title'
+            args['isbookshelf'] = 1
+                
+        # ÐŸÐ¾Ð¸ÑÐº Ð´ÑƒÐ±Ð»Ð¸ÐºÐ°Ñ‚Ð¾Ð² Ð´Ð»Ñ ÐºÐ½Ð¸Ð³Ð¸            
+        elif searchtype == 'd':
+            #try:
+            book_id = int(searchterms)
+            mbook = Book.objects.get(id=book_id)
+            books = Book.objects.filter(title=mbook.title, authors__in=mbook.authors.all()).exclude(id=book_id).distinct().order_by('-docdate')
+            args['vailib_breadcrumbs'] = [
+                {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                {'name': _('Doubles for book'), 'url': None},
+                {'name': mbook.title, 'url': '?searchtype=d&searchterms=%s' % searchterms}
+            ]
+            args['searchobject'] = 'title'
+            
+        # ÐŸÐ¾Ð¸ÑÐº ÐºÐ½Ð¸Ð³Ð¸ Ð¿Ð¾ ID.
+        elif searchtype == 'i':
+            try:
+                book_id = int(searchterms)
+            except:
+                book_id = 0
+            books = Book.objects.filter(id=book_id) 
+            
+            if books.exists():
+                mbook = books[0]
+                # Find other formats for this book
+                duplicates = Book.objects.filter(title=mbook.title, authors__in=mbook.authors.all()).distinct()
+                args['all_formats'] = [{'id': b.id, 'format': b.format} for b in duplicates]
+
+            args['vailib_breadcrumbs'] = [
+                {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                {'name': books[0].title if books.exists() else _('Book'), 'url': '?searchtype=i&searchterms=%s' % searchterms}
+            ]
+            args['searchobject'] = 'title'
+        
+        # prefetch_related on sqlite on items >999 therow error "too many SQL variables"    
+        #if len(books)>0:
+        #    books = books.select_related('authors','genres','series')
+
+        # Ð”Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ Left Join Ñ Ñ‚Ð°Ð±Ð»Ð¸Ñ†ÐµÐ¹ BookShelfÐ± Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ð²Ñ‹Ñ‚Ð°Ñ‰Ð¸Ñ‚ÑŒ Ð´Ð°Ñ‚Ñƒ Ð¿Ñ€Ð¾Ñ‡Ñ‚ÐµÐ½Ð¸Ñ ÐºÐ½Ð¸Ð³Ð¸ Ð¸Ð· ÐºÐ½Ð¸Ð¶Ð½Ð¾Ð¹ Ð¿Ð¾Ð»ÐºÐ¸
+        #books = books.filter(Q(bookshelf__isnull=True)|Q(bookshelf__user=request.user))
+        #books = books.prefetch_related('bookshelf_set')
+        #print(books.query)
+
+        
+        # Ð¤Ð¸Ð»ÑŒÑ‚Ñ€ÑƒÐµÐ¼ Ð´ÑƒÐ±Ð»Ð¸ÐºÐ°Ñ‚Ñ‹ Ð¸ Ñ„Ð¾Ñ€Ð¼Ð¸Ñ€ÑƒÐµÐ¼ Ð²Ñ‹Ð´Ð°Ñ‡Ñƒ Ð·Ð°Ñ‚Ñ€ÐµÐ±Ð¾Ð²Ð°Ð½Ð½Ð¾Ð¹ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ñ‹
+        books_count = books.count()
+        op = OPDS_Paginator(books_count, 0, page_num, config.vailib_MAXITEMS, HALF_PAGES_LINKS)
+        items = []
+        
+        prev_title = ''
+        prev_authors_set = set()
+        
+        # ÐÐ°Ñ‡Ð°Ð¸Ð½Ð°Ð¼ Ð°Ð½Ð°Ð»Ð¸Ð· Ñ Ð¿Ð¾ÑÐ»ÐµÐ´Ð½ÐµÐ³Ð¾ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚Ð° Ð½Ð° Ð¿Ñ€ÐµÐ´Ð¸Ð´ÑƒÑ‰ÐµÐ¹ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ðµ, Ñ‡Ñ‚Ð¾Ñ€Ð±Ñ‹ Ð¾Ð½ "Ð²Ñ‹Ñ‚ÑÐ½ÑƒÐ»" Ñ ÑÑ‚Ð¾Ð¹ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ñ‹
+        # ÑÐ²Ð¾Ð¸ Ð´ÑƒÐ±Ð»Ð¸ÐºÐ°Ñ‚Ñ‹ ÐµÑÐ»Ð¸ Ð¾Ð½Ð¸ ÐµÑÑ‚ÑŒ
+        summary_DOUBLES_HIDE =  config.vailib_DOUBLES_HIDE and (searchtype != 'd')
+        start = op.d1_first_pos if ((op.d1_first_pos==0) or (not summary_DOUBLES_HIDE)) else op.d1_first_pos-1
+        finish = op.d1_last_pos
+        
+        for row in books[start:finish+1]:
+            shortpath = row.path[row.path.rfind('/')+1:]
+            # Get annotation if note done yet
+            if row.annotation == 'NotYet':
+                row.annotation = get_annotation(row)
+                row.save()
+            p = {'doubles':0, 'lang_code': row.lang_code, 'filename': row.filename, 'path': row.path, 'shortpath': shortpath, \
+                  'registerdate': row.registerdate, 'id': row.id, 'annotation': strip_tags(row.annotation), \
+                  'docdate': row.docdate, 'lang': row.lang, 'format': row.format, 'title': row.title, 'filesize': row.filesize,\
+                  'authors': row.authors.values(), 'genres': row.genres.values(), 'series': row.series.values(),'ser_no': row.bseries_set.values('ser_no'),\
+                  'readtime':row.bookshelf_set.filter(user=request.user).values('readtime') if config.vailib_AUTH else None
+                 }
+            if summary_DOUBLES_HIDE:
+                title = p['title']
+                authors_set = {a['id'] for a in p['authors']}         
+                if title.upper()==prev_title.upper() and authors_set==prev_authors_set:
+                    items[-1]['doubles']+=1
+                else:
+                    items.append(p)                   
+                prev_title = title
+                prev_authors_set = authors_set
+            else:
+                items.append(p)
+                
+        # "Ð²Ñ‹Ñ‚ÑÐ³Ð¸Ð²Ð°ÐµÐ¼" Ð´ÑƒÐ±Ð»Ð¸ÐºÐ°Ñ‚Ñ‹ ÐºÐ½Ð¸Ð³ ÑÐ¾ ÑÐ»ÐµÐ´ÑƒÑŽÑ‰ÐµÐ¹ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ñ‹ Ð¸ ÑƒÐ´Ð°Ð»ÑÐµÐ¼ Ð¿ÐµÑ€Ð²Ñ‹Ð¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ð¹ Ñ Ð¿Ñ€ÐµÐ´Ñ‹Ð´ÑƒÑ‰ÐµÐ¹ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ñ‹ Ð¸ "Ð²Ñ‹Ñ‚ÑÐ³Ð¸Ð²Ð°Ð»" Ð´ÑƒÐ±Ð»Ð¸ÐºÐ°Ñ‚Ñ‹ Ñ Ñ‚ÐµÐºÑƒÑ‰ÐµÐ¹
+        if summary_DOUBLES_HIDE:
+            double_flag = True
+            while ((finish+1)<books_count) and double_flag:
+                finish += 1  
+                if books[finish].title.upper()==prev_title.upper() and {a['id'] for a in books[finish].authors.values()}==prev_authors_set:
+                    items[-1]['doubles']+=1
+                else:
+                    double_flag = False   
+            
+            if op.d1_first_pos!=0:     
+                items.pop(0)                                   
+              
+        args.update(vailib_processor(request))
+        args['paginator'] = op.get_data_dict()
+        args['searchterms']=searchterms;
+        args['searchtype']=searchtype;
+        args['books']=items   
+        args['current'] = 'search'
+        args['cache_id']='%s:%s:%s'%(searchterms,searchtype,op.page_num)
+        args['cache_t']=0
+        
+    return render(request,'vailib_books.html', args)
+
+@vary_on_headers("HTTP_ACCEPT_LANGUAGE")
+@vailib_login(url='web:login')
+def SearchSeriesView(request):
+    #Read searchtype, searchterms, searchterms0, page from form
+    args = {}
+    args.update(csrf(request))
+
+    if request.GET:
+        searchtype = request.GET.get('searchtype', 'm')
+        searchterms = request.GET.get('searchterms', '')
+        #searchterms0 = int(request.POST.get('searchterms0', ''))
+        page_num = int(request.GET.get('page', '1'))
+        page_num = page_num if page_num>0 else 1
+        
+        if searchtype == 'm':
+            series = Series.objects.filter(search_ser__contains=searchterms.upper())
+        elif searchtype == 'b': 
+            series = Series.objects.filter(search_ser__startswith=searchterms.upper())
+        elif searchtype == 'e':
+            series = Series.objects.filter(search_ser=searchterms.upper())      
+
+        #if len(series)>0:
+        #    series = series.order_by('ser')   
+        series = series.annotate(count_book=Count('book')).distinct().order_by('search_ser') 
+            
+        # Ð¡Ð¾Ð·Ð´Ð°ÐµÐ¼ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð¸Ñ€ÑƒÑŽÑ‰ÐµÐµ Ð¼Ð½Ð¾Ð¶ÐµÑÑ‚Ð²Ð¾
+        series_count = series.count()
+        op = OPDS_Paginator(series_count, 0, page_num, config.vailib_MAXITEMS, HALF_PAGES_LINKS)        
+        items = []
+        for row in series[op.d1_first_pos:op.d1_last_pos+1]:
+            #p = {'id':row.id, 'ser':row.ser, 'lang_code': row.lang_code, 'book_count': Book.objects.filter(series=row).count()}
+            p = {'id':row.id, 'ser':row.ser, 'lang_code': row.lang_code, 'book_count': row.count_book}
+            items.append(p)                     
+              
+        args.update(vailib_processor(request))
+        args['paginator'] = op.get_data_dict()
+        args['searchterms']=searchterms;
+        args['searchtype']=searchtype;
+        args['series']=items     
+        args['searchobject'] = 'series'
+        args['current'] = 'search'        
+        args['vailib_breadcrumbs'] = [
+            {'name': _('Series'), 'url': '/web/series/?lang=0'},
+            {'name': _('Search'), 'url': None},
+            {'name': searchterms, 'url': '?searchtype=%s&searchterms=%s' % (searchtype, searchterms)}
+        ]
+        args['cache_id']='%s:%s:%s'%(searchterms,searchtype,op.page_num)
+        args['cache_t']=0
+
+    return render(request,'vailib_series.html', args)
+
+@vary_on_headers("HTTP_ACCEPT_LANGUAGE")
+@vailib_login(url='web:login')
+def SearchAuthorsView(request):
+    #Read searchtype, searchterms, searchterms0, page from form    
+    args = {}
+    args.update(csrf(request))
+
+    if request.GET:
+        searchtype = request.GET.get('searchtype', 'm')
+        searchterms = request.GET.get('searchterms', '')
+        #searchterms0 = int(request.POST.get('searchterms0', ''))
+        page_num = int(request.GET.get('page', '1'))
+        page_num = page_num if page_num>0 else 1
+        
+        if searchtype == 'm':
+            authors = Author.objects.filter(search_full_name__contains=searchterms.upper()).order_by('search_full_name')   
+        elif searchtype == 'b':
+            authors = Author.objects.filter(search_full_name__startswith=searchterms.upper()).order_by('search_full_name')    
+        elif searchtype == 'e': 
+            authors = Author.objects.filter(search_full_name=searchterms.upper()).order_by('search_full_name')    
+                        
+        # Ð¡Ð¾Ð·Ð´Ð°ÐµÐ¼ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð¸Ñ€ÑƒÑŽÑ‰ÐµÐµ Ð¼Ð½Ð¾Ð¶ÐµÑÑ‚Ð²Ð¾
+        authors_count = authors.count()
+        op = OPDS_Paginator(authors_count, 0, page_num, config.vailib_MAXITEMS, HALF_PAGES_LINKS)        
+        items = []
+        
+        for row in authors[op.d1_first_pos:op.d1_last_pos+1]:
+            p = {'id':row.id, 'full_name':row.full_name, 'lang_code': row.lang_code, 'book_count': Book.objects.filter(authors=row).count()}
+            items.append(p)                     
+            
+        args.update(vailib_processor(request))
+        args['paginator'] = op.get_data_dict()              
+        args['searchterms']=searchterms;
+        args['searchtype']=searchtype;
+        args['authors']=items     
+        args['searchobject'] = 'author'
+        args['current'] = 'search'       
+        args['vailib_breadcrumbs'] = [
+            {'name': _('Authors'), 'url': '/web/author/?lang=0'},
+            {'name': _('Search'), 'url': None},
+            {'name': searchterms, 'url': '?searchtype=%s&searchterms=%s' % (searchtype, searchterms)}
+        ]
+        args['cache_id']='%s:%s:%s'%(searchterms,searchtype,op.page_num)
+        args['cache_t']=0
+                                    
+    return render(request,'vailib_authors.html', args)
+
+@vary_on_headers("HTTP_ACCEPT_LANGUAGE")
+@vailib_login(url='web:login')
+def CatalogsView(request):   
+    args = {}
+
+    if request.GET:
+        cat_id = request.GET.get('cat', None)
+        page_num = int(request.GET.get('page', '1'))   
+    else:
+        cat_id = None
+        page_num = 1
+
+    try:
+        if cat_id is not None:
+            cat = Catalog.objects.get(id=cat_id)
+        else:
+            cat = Catalog.objects.get(parent__id=cat_id)
+    except Catalog.DoesNotExist:
+        cat = None
+    
+    catalogs_list = Catalog.objects.filter(parent=cat).order_by("cat_name")
+    catalogs_count = catalogs_list.count()
+    # prefetch_related on sqlite on items >999 therow error "too many SQL variables"
+    #books_list = Book.objects.filter(catalog=cat).prefetch_related('authors','genres','series').order_by("title")
+    books_list = Book.objects.filter(catalog=cat).order_by("search_title")
+    books_count = books_list.count()
+    
+    # ÐŸÐ¾Ð»ÑƒÑ‡Ð°ÐµÐ¼ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð¸Ñ€ÑƒÑŽÑ‰Ð¸Ð¹ ÑÐ¿Ð¸ÑÐ¾Ðº
+    op = OPDS_Paginator(catalogs_count, books_count, page_num, config.vailib_MAXITEMS, HALF_PAGES_LINKS)
+    items = []
+    
+    for row in catalogs_list[op.d1_first_pos:op.d1_last_pos+1]:
+        p = {'is_catalog':1, 'title': row.cat_name,'id': row.id, 'cat_type':row.cat_type, 'parent_id':row.parent_id}       
+        items.append(p)
+          
+    for row in books_list[op.d2_first_pos:op.d2_last_pos+1]:
+        shortpath = row.path[row.path.rfind('/')+1:]
+        p = {'is_catalog':0, 'lang_code': row.lang_code, 'filename': row.filename, 'path': row.path, 'shortpath': shortpath, \
+              'registerdate': row.registerdate, 'id': row.id, 'annotation': strip_tags(row.annotation), \
+              'docdate': row.docdate, 'lang': row.lang, 'format': row.format, 'title': row.title, 'filesize': row.filesize, \
+              'authors':row.authors.values(), 'genres':row.genres.values(), 'series':row.series.values(), 'ser_no':row.bseries_set.values('ser_no'),\
+              'readtime': row.bookshelf_set.filter(user=request.user).values('readtime') if config.vailib_AUTH else None
+             }
+        items.append(p)
+                    
+    args['paginator'] = op.get_data_dict()
+    args['items']=items
+    args['cat_id'] = cat_id
+    args['current'] = 'catalog'     
+    
+    breadcrumbs_list = []
+    if cat:
+        while (cat.parent):
+            breadcrumbs_list.insert(0, (cat.cat_name, cat.id))
+            cat = cat.parent
+        breadcrumbs_list.insert(0, (_('ROOT'), 0))  
+    #breadcrumbs_list.insert(0, (_('Catalogs'),-1))    
+    args['breadcrumbs_cat'] =  breadcrumbs_list  
+    args['vailib_breadcrumbs'] =  [{'name': _('Catalogs'), 'url': '/web/catalog/'}]
+    args['cache_id'] = '%s:%s:%s' % (args['current'],cat_id, op.page_num)
+    args['cache_t'] = config.vailib_CACHE_TIME
+      
+    return render(request,'vailib_catalogs.html', args)  
+
+@vary_on_headers("HTTP_ACCEPT_LANGUAGE")
+@vailib_login(url='web:login')
+def BooksView(request):   
+    args = {}
+
+    if request.GET:
+        lang_code = int(request.GET.get('lang', '0'))  
+        chars = request.GET.get('chars', '')
+    else:
+        lang_code = 0
+        chars = ''
+        
+    length = len(chars)+1
+    if lang_code:
+        sql="""select %(length)s as l, substring(search_title,1,%(length)s) as id, count(*) as cnt 
+               from opds_catalog_book 
+               where lang_code=%(lang_code)s and search_title like '%(chars)s%%%%'
+               group by substring(search_title,1,%(length)s) 
+               order by id"""%{'length':length, 'lang_code':lang_code, 'chars':chars}
+    else:
+        sql="""select %(length)s as l, substring(search_title,1,%(length)s) as id, count(*) as cnt 
+               from opds_catalog_book 
+               where search_title like '%(chars)s%%%%'
+               group by substring(search_title,1,%(length)s) 
+               order by id"""%{'length':length,'chars':chars}
+      
+    items = Book.objects.raw(sql)
+          
+    args['items']=items
+    args['current'] = 'book'      
+    args['lang_code'] = lang_code   
+    args['vailib_breadcrumbs'] =  [
+        {'name': _('Books'), 'url': '/web/book/?lang=0'},
+        {'name': _('Select'), 'url': None},
+        {'name': lang_menu[lang_code], 'url': '?lang=%s' % lang_code},
+        {'name': chars, 'url': '?lang=%s&chars=%s' % (lang_code, chars)}
+    ]
+    args.update(vailib_processor(request))
+    return render(request,'vailib_selectbook.html', args)      
+
+@vary_on_headers("HTTP_ACCEPT_LANGUAGE")
+@vailib_login(url='web:login')
+def AuthorsView(request):   
+    args = {}
+
+    if request.GET:
+        lang_code = int(request.GET.get('lang', '0'))  
+        chars = request.GET.get('chars', '')
+    else:
+        lang_code = 0
+        chars = ''
+        
+    length = len(chars)+1
+    if lang_code:
+        sql="""select %(length)s as l, substring(search_full_name,1,%(length)s) as id, count(*) as cnt 
+               from opds_catalog_author 
+               where lang_code=%(lang_code)s and search_full_name like '%(chars)s%%%%'
+               group by substring(search_full_name,1,%(length)s) 
+               order by id"""%{'length':length, 'lang_code':lang_code, 'chars':chars}
+    else:
+        sql="""select %(length)s as l, substring(search_full_name,1,%(length)s) as id, count(*) as cnt 
+               from opds_catalog_author 
+               where search_full_name like '%(chars)s%%%%'
+               group by substring(search_full_name,1,%(length)s) 
+               order by id"""%{'length':length,'chars':chars}
+      
+    items = Author.objects.raw(sql)
+          
+    args['items']=items
+    args['current'] = 'author'      
+    args['lang_code'] = lang_code   
+    args['vailib_breadcrumbs'] =  [
+        {'name': _('Authors'), 'url': '/web/author/?lang=0'},
+        {'name': _('Select'), 'url': None},
+        {'name': lang_menu[lang_code], 'url': '?lang=%s' % lang_code},
+        {'name': chars, 'url': '?lang=%s&chars=%s' % (lang_code, chars)}
+    ]
+    args.update(vailib_processor(request))
+    return render(request,'vailib_selectauthor.html', args)
+
+@vary_on_headers("HTTP_ACCEPT_LANGUAGE")
+@vailib_login(url='web:login')
+def SeriesView(request):   
+    args = {}
+
+    if request.GET:
+        lang_code = int(request.GET.get('lang', '0'))  
+        chars = request.GET.get('chars', '')
+    else:
+        lang_code = 0
+        chars = ''
+        
+    length = len(chars)+1
+    if lang_code:
+        sql="""select %(length)s as l, substring(search_ser,1,%(length)s) as id, count(*) as cnt 
+               from opds_catalog_series 
+               where lang_code=%(lang_code)s and search_ser like '%(chars)s%%%%'
+               group by substring(search_ser,1,%(length)s)
+               order by id"""%{'length':length, 'lang_code':lang_code, 'chars':chars}
+    else:
+        sql="""select %(length)s as l, substring(search_ser,1,%(length)s) as id, count(*) as cnt 
+               from opds_catalog_series 
+               where search_ser like '%(chars)s%%%%'
+               group by substring(search_ser,1,%(length)s) 
+               order by id"""%{'length':length,'chars':chars}
+      
+    items = Series.objects.raw(sql)
+          
+    args['items']=items
+    args['current'] = 'series'      
+    args['lang_code'] = lang_code   
+    args['vailib_breadcrumbs'] =  [
+        {'name': _('Series'), 'url': '/web/series/?lang=0'},
+        {'name': _('Select'), 'url': None},
+        {'name': lang_menu[lang_code], 'url': '?lang=%s' % lang_code},
+        {'name': chars, 'url': '?lang=%s&chars=%s' % (lang_code, chars)}
+    ]
+    args.update(vailib_processor(request))
+    return render(request,'vailib_selectseries.html', args)
+
+@vary_on_headers("HTTP_ACCEPT_LANGUAGE")
+@vailib_login(url='web:login')
+def GenresView(request):   
+    args = {}
+
+    if request.GET:
+        section_id = int(request.GET.get('section', '0'))  
+    else:
+        section_id = 0
+        
+    if section_id==0:
+        items = Genre.objects.values('section').annotate(section_id=Min('id'), num_book=Count('book')).filter(num_book__gt=0).order_by('section')
+        args['vailib_breadcrumbs'] =  [
+            {'name': _('Genres'), 'url': '/web/genre/'},
+            {'name': _('Select'), 'url': None}
+        ]
+    else:
+        section = Genre.objects.get(id=section_id).section
+        items = Genre.objects.filter(section=section).annotate(num_book=Count('book')).filter(num_book__gt=0).values().order_by('subsection')   
+        args['vailib_breadcrumbs'] =  [
+            {'name': _('Genres'), 'url': '/web/genre/'},
+            {'name': _('Select'), 'url': '/web/genre/'},
+            {'name': section, 'url': '?section=%s' % section_id}
+        ]
+          
+    args['items']=items
+    args['current'] = 'genre'  
+    args['parent_id'] = section_id
+    args.update(vailib_processor(request))
+    return render(request,'vailib_selectgenres.html', args)
+
+@vary_on_headers("HTTP_ACCEPT_LANGUAGE")
+@vailib_login(url='web:login')
+def BSDelView(request):
+    if request.GET:
+        book = request.GET.get('book', None)
+    else:
+        book = None
+       
+    book = int(book)
+       
+    bookshelf.objects.filter(user=request.user, book=book).delete()
+    
+    return redirect("%s?searchtype=u"%reverse("web:searchbooks"))
+
+@vary_on_headers("HTTP_ACCEPT_LANGUAGE")
+@vailib_login(url='web:login')
+def BSClearView(request):
+    bookshelf.objects.filter(user=request.user).delete()
+    return redirect("%s?searchtype=u" % reverse("web:searchbooks"))
+@vary_on_headers("HTTP_ACCEPT_LANGUAGE")
+@vailib_login(url='web:login')
+def hello(request):
+    args = {}
+    args['vailib_breadcrumbs'] = [{'name': _('HOME'), 'url': '/web/'}]
+    if request.user.is_authenticated:
+        args['recent_books'] = Book.objects.all().order_by('-registerdate', '-id')[:12]
+    else:
+        args['recent_books'] = []
+    args.update(vailib_processor(request))
+    return render(request, 'vailib_hello.html', args)
+
+def LoginView(request):
+    args = {}
+    args['vailib_breadcrumbs'] = [{'name': _('Login'), 'url': None}]
+    args.update(csrf(request))
+    args.update(vailib_processor(request))
+    try:
+        username = request.POST['username']
+        password = request.POST['password']
+    except KeyError:
+        return render(request, 'vailib_login.html', args)
+    
+    next_url = request.GET.get('next',reverse("web:main"))
+
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        if user.is_active:
+            login(request, user)
+            return redirect(next_url)
+        else:
+            args['system_message']={'text':_('This account is not active!'),'type':'alert'}
+            return handler403(request,args)
+            #return render(request, 'vailib_login.html', args)
+    else:
+        args['system_message']={'text':_('User does not exist or the password is incorrect!'),'type':'alert'}
+        return handler403(request,args)
+        #return render(request, 'vailib_login.html', args)
+
+    return handler403(request,args)
+    #return render(request, 'vailib_login.html', args)
+
+@vary_on_headers("HTTP_ACCEPT_LANGUAGE")
+@vailib_login(url='web:login')
+def LogoutView(request):
+    logout(request)
+    args = {}
+    args['vailib_breadcrumbs'] = [{'name': _('Logout'), 'url': None}]
+    return redirect(reverse('web:main'))
+
+def handler403(request,args):
+    response = render(request, 'vailib_login.html', args)
+    response.status_code = 403
+    return response

@@ -1,0 +1,48 @@
+<div class="lang-selector-container">
+    {% for key, val in lang_menu.items %}
+        {% if vailib_theme == 'eink' %}
+            <a href="?lang={{ key }}" class="eink-lang-btn {% if key == lang_code %}active{% endif %}" title="{{ val }}">
+                {% if key == 1 %}RU
+                {% elif key == 2 %}EN
+                {% elif key == 3 %}#
+                {% elif key == 4 %}GR
+                {% elif key == 5 %}AR
+                {% elif key == 6 %}HI
+                {% elif key == 7 %}BN
+                {% elif key == 8 %}ZH
+                {% elif key == 9 %}?
+                {% elif key == 0 %}ALL
+                {% endif %}
+            </a>
+        {% else %}
+            <a href="?lang={{ key }}" class="color-lang-btn {% if key == lang_code %}active{% endif %}" title="{{ val }}">
+                <span class="lang-flag">
+                {% if key == 1 %}🇷🇺
+                {% elif key == 2 %}🇬🇧
+                {% elif key == 3 %}🔢
+                {% elif key == 4 %}🇬🇷
+                {% elif key == 5 %}🇸🇦
+                {% elif key == 6 %}🇮🇳
+                {% elif key == 7 %}🇧🇩
+                {% elif key == 8 %}🇨🇳
+                {% elif key == 9 %}🔣
+                {% elif key == 0 %}🌍
+                {% endif %}
+                </span>
+                <span class="lang-code">
+                {% if key == 1 %}RU
+                {% elif key == 2 %}EN
+                {% elif key == 3 %}#
+                {% elif key == 4 %}GR
+                {% elif key == 5 %}AR
+                {% elif key == 6 %}HI
+                {% elif key == 7 %}BN
+                {% elif key == 8 %}ZH
+                {% elif key == 9 %}SYM
+                {% elif key == 0 %}ALL
+                {% endif %}
+                </span>
+            </a>
+        {% endif %}
+    {% endfor %}
+</div>

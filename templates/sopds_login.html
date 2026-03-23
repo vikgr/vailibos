@@ -3,23 +3,22 @@
 
 {% block ext-body %}
 <div class="auth-container">
-  <div class="book-card modern-auth-card">
+  <div class="modern-auth-card">
     <h3 class="auth-title">{% trans "User Login" %}</h3>
     <form method="post" action='{% url "web:login" %}'>
       {% csrf_token %}
       <div class="form-group">
         <label>{% trans "Username" %}</label>
-        <input type="text" class="modern-input" name="username" placeholder="{% trans " Enter Username" %}">
+        <input type="text" class="modern-input" name="username" placeholder="{% trans "Enter Username" %}">
       </div>
       <div class="form-group">
         <label>{% trans "Password" %}</label>
-        <input type="password" class="modern-input" name="password" placeholder="{% trans " Enter Password" %}">
+        <input type="password" class="modern-input" name="password" placeholder="{% trans "Enter Password" %}">
       </div>
-      <div class="form-actions row small-centered columns text-center">
-        <input type="submit" class="button modern-btn" value="{% trans " Log in" %}">
+      <div class="form-actions" style="margin-top: 25px;">
+        <button type="submit" class="modern-btn auth-submit-btn">{% trans "Log in" %}</button>
       </div>
     </form>
   </div>
 </div>
-<br>
-{% endblock %} {# body #}
+{% endblock %}

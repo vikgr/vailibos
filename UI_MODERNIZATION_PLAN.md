@@ -1,6 +1,11 @@
 # Vailib Full UI Modernization Plan
 
-This plan outlines the steps to replace the remaining legacy, table-based user interfaces with the new OLED glassmorphic theme, bringing the entire app to a "GitHub-ready" public release state.
+🚨 **NEW STRATEGIC PILLAR (RECORDED)** 🚨
+**We are completely separating the two UI themes to ensure compatibility and performance:**
+1. **E-Ink/Legacy Theme (`eink`)**: Must be EXTREMELY simple, minimalistic, and lightweight to support very old devices (e.g., Opera Mini on Android 2, old Nook Touches). It will use basic, native HTML/CSS without modern grid/flexbox or heavy Javascript. This is a complete departure from using a single layout engine.
+2. **Modern Premium Theme (`premium`)**: Will be a separate full-stack implementation using the newest code, modern flexbox/grid, and advanced UI visual effects.
+
+This plan outlines the steps to replace the remaining legacy, table-based user interfaces with the new OLED glassmorphic theme, and simplifying the legacy theme.
 
 ## UI Audit Findings
 From inspecting the site and the latest screenshot provided, the following areas still run on the old Foundation/Table design and need an upgrade:

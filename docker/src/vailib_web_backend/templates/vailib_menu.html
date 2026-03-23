@@ -1,0 +1,37 @@
+{% load i18n %}
+<ul class="vailib-nav-menu">
+    <li class="nav-item">
+        <a href="/web/catalog/" class="nav-btn {% if current == 'catalog' %}active{% endif %}">
+            <i class="fi-folder"></i> <span class="nav-text" data-trans="cat">{% trans "Catalogs" %}</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="/web/book/?lang=0" class="nav-btn {% if current == 'book' %}active{% endif %}">
+            <i class="fi-book"></i> <span class="nav-text" data-trans="book">{% trans "Books" %}</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="/web/author/?lang=0" class="nav-btn {% if current == 'author' %}active{% endif %}">
+            <i class="fi-torsos"></i> <span class="nav-text" data-trans="auth">{% trans "Authors" %}</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="/web/genre/" class="nav-btn {% if current == 'genre' %}active{% endif %}">
+            <i class="fi-price-tag"></i> <span class="nav-text" data-trans="gen">{% trans "Genres" %}</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="/web/series/?lang=0" class="nav-btn {% if current == 'series' %}active{% endif %}">
+            <i class="fi-list-thumbnails"></i> <span class="nav-text" data-trans="ser">{% trans "Series" %}</span>
+        </a>
+    </li>
+
+    {% if user.is_superuser %}
+    <li class="nav-item" style="margin-top: 15px;">
+        <a href="/admin/" class="nav-btn admin-btn">
+            <i class="fi-widget"></i> <span class="nav-text" data-trans="set">ÐÐ°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸</span>
+        </a>
+    </li>
+    {% endif %}
+
+</ul>

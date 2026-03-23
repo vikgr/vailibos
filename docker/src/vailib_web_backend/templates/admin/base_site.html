@@ -1,0 +1,9 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} | vailib site admin {% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">vailib administration</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

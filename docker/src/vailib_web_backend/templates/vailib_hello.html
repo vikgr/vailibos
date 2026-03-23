@@ -1,0 +1,107 @@
+{% extends "vailib_main.html" %}
+{% load staticfiles %}
+
+{% block body %}
+{% if vailib_theme != 'premium' %}
+    {% if user.is_authenticated %}
+    <h2 style="text-align: left; border-bottom: 2px solid #000; padding-bottom: 5px; margin-top: 0;" data-trans="new_e">ÐÐ¾Ð²Ð¸Ð½ÐºÐ¸</h2>
+    <div class="eink-book-grid" style="margin-top: 15px;">
+        {% for book in recent_books %}
+        <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{ book.id }}" class="eink-book-card">
+            <div class="cover-container">
+                <img src="{% url 'opds_catalog:thumb' book.id %}" alt="C" style="width:100%; height:100%; object-fit: cover;" onload="checkEinkCover(this)" onerror="this.style.setProperty('display', 'none', 'important'); if(this.nextElementSibling) this.nextElementSibling.style.setProperty('display', 'flex', 'important');">
+                <div class="eink-placeholder" style="display:none;">
+                    <div class="plt-title-box"><span class="plt-title">{{ book.title|truncatechars:150 }}</span></div>
+                    <div class="plt-author-box"><span class="plt-author">{% for author in book.authors.all %}{{ author.full_name|truncatechars:100 }}{% if not forloop.last %}, {% endif %}{% empty %}<span data-trans="un_auth">Unknown Author</span>{% endfor %}</span></div>
+                </div>
+            </div>
+            <div class="book-details">
+                <div class="b-title">{{ book.title|truncatechars:150 }}</div>
+                <div class="b-author">
+                    {% for author in book.authors.all %}{{ author.full_name|truncatechars:100 }}{% if not forloop.last %}, {% endif %}{% empty %}<span data-trans="un_auth">ÐÐµÐ¸Ð·Ð²ÐµÑÑ‚Ð½Ñ‹Ð¹ Ð°Ð²Ñ‚Ð¾Ñ€</span>{% endfor %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 20px;">
+        <h1 style="font-size: 1.5rem;" data-trans="welc">Ð”Ð¾Ð±Ñ€Ð¾ Ð¿Ð¾Ð¶Ð°Ð»Ð¾Ð²Ð°Ñ‚ÑŒ Ð² VAILIB</h1>
+        <p data-trans="welc_sub">Ð’Ð¾Ð¹Ð´Ð¸Ñ‚Ðµ Ð´Ð»Ñ Ð´Ð¾ÑÑ‚ÑƒÐ¿Ð° Ðº Ð±Ð¸Ð±Ð»Ð¸Ð¾Ñ‚ÐµÐºÐµ.</p>
+        <a href="/web/login/" class="theme-switch" style="display: block; width: 200px; margin: 20px auto;" data-trans="login">Ð’ÐžÐ™Ð¢Ð˜</a>
+    </div>
+    {% endif %}
+{% else %}
+{% if user.is_authenticated %}
+{# ===== LOGGED IN: show recent books grid ===== #}
+<div class="hello-dashboard">
+    <h2 class="dashboard-title" data-trans="new_c"
+        style="margin-top: 0; margin-bottom: 20px; font-weight: 800; text-transform: uppercase;">ÐÐ¾Ð²Ñ‹Ðµ ÐŸÐ¾ÑÑ‚ÑƒÐ¿Ð»ÐµÐ½Ð¸Ñ</h2>
+
+    <div class="recent-books-grid">
+        {% for book in recent_books %}
+        <div class="book-card book-item">
+            <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{ book.id }}"
+                style="text-decoration: none; color: inherit;">
+                <div class="cover-wrapper">
+                    {% if book.id %}
+                    <img src="{% url 'opds_catalog:thumb' book.id %}" class="book-cover" alt="ÐžÐ±Ð»Ð¾Ð¶ÐºÐ°"
+                        onload="checkEinkCover(this)" onerror="this.style.setProperty('display', 'none', 'important'); if(this.nextElementSibling) this.nextElementSibling.style.setProperty('display', 'flex', 'important');">
+                    <div class="modern-placeholder">
+                        <div class="triangle-icon"></div>
+                        <div class="m-plt-content">
+                            <div class="m-plt-title">{{ book.title }}</div>
+                            <div class="m-plt-author">{% for author in book.authors.all %}{{ author.full_name }}{% if not forloop.last %}, {% endif %}{% empty %}<span data-trans="un_auth">Unknown Author</span>{% endfor %}</div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="modern-placeholder" style="display: flex;">
+                        <div class="triangle-icon"></div>
+                        <div class="m-plt-content">
+                            <div class="m-plt-title">{{ book.title }}</div>
+                            <div class="m-plt-author">{% for author in book.authors.all %}{{ author.full_name }}{% if not forloop.last %}, {% endif %}{% empty %}<span data-trans="un_auth">Unknown Author</span>{% endfor %}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="book-info">
+                    <h5 class="book-title">{{ book.title|truncatechars:40 }}</h5>
+                    <p class="book-author">
+                        {% for author in book.authors.all %}
+                        {{ author.full_name }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                        <span data-trans="un_auth">ÐÐµÐ¸Ð·Ð²ÐµÑÑ‚Ð½Ñ‹Ð¹ Ð°Ð²Ñ‚Ð¾Ñ€</span>
+                        {% endfor %}
+                    </p>
+                    <div class="card-footer"
+                        style="display:flex; justify-content:flex-end; align-items:center; margin-top:10px;">
+                        <div class="actions" style="color:var(--text-muted); font-size:1.1rem; gap:10px; display:flex;">
+                            <i class="fi-book"></i> <i class="fi-bookmark"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="callout" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+            <h3 data-trans="empty">Ð‘Ð¸Ð±Ð»Ð¸Ð¾Ñ‚ÐµÐºÐ° Ð¿ÑƒÑÑ‚Ð°</h3>
+            <p data-trans="scan">Ð’Ñ‹Ð¿Ð¾Ð»Ð½Ð¸Ñ‚Ðµ ÑÐºÐ°Ð½Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ðµ Ð´Ð¸Ñ€ÐµÐºÑ‚Ð¾Ñ€Ð¸Ð¸.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% else %}
+{# ===== GUEST: show welcome screen ===== #}
+<div class="welcome-screen">
+    <div class="welcome-card">
+        <div class="welcome-logo">ðŸ“š</div>
+        <h1 class="welcome-title" data-trans="welc">Ð”Ð¾Ð±Ñ€Ð¾ Ð¿Ð¾Ð¶Ð°Ð»Ð¾Ð²Ð°Ñ‚ÑŒ Ð² VAILIB</h1>
+        <p class="welcome-subtitle" data-trans="welc_sub">Ð’Ð°ÑˆÐ° Ð¿ÐµÑ€ÑÐ¾Ð½Ð°Ð»ÑŒÐ½Ð°Ñ Ñ†Ð¸Ñ„Ñ€Ð¾Ð²Ð°Ñ Ð±Ð¸Ð±Ð»Ð¸Ð¾Ñ‚ÐµÐºÐ°. Ð’Ð¾Ð¹Ð´Ð¸Ñ‚Ðµ, Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ñ‚ÑŒ Ð´Ð¾ÑÑ‚ÑƒÐ¿ Ðº ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ð¸
+            ÐºÐ½Ð¸Ð³.</p>
+        <a href="/web/login/" class="welcome-login-btn" data-trans="welc_btn">Ð’Ð¾Ð¹Ñ‚Ð¸ Ð² Ð±Ð¸Ð±Ð»Ð¸Ð¾Ñ‚ÐµÐºÑƒ â†’</a>
+    </div>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

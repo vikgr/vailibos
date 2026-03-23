@@ -1,0 +1,46 @@
+<div class="comfort-search-wrapper" style="width: 100%;">
+    <!-- Search Type Config -->
+    <div class="search-tabs">
+        <button type="button" class="search-tab active" data-type="title"
+            onclick="switchComfortSearch('title')" data-trans="book">ÐšÐ½Ð¸Ð³Ð¸</button>
+        <button type="button" class="search-tab" data-type="author"
+            onclick="switchComfortSearch('author')" data-trans="auth">ÐÐ²Ñ‚Ð¾Ñ€Ñ‹</button>
+        <button type="button" class="search-tab" data-type="series"
+            onclick="switchComfortSearch('series')" data-trans="ser">Ð¡ÐµÑ€Ð¸Ð¸</button>
+    </div>
+
+    <form method="get" action="/web/search/books/" id="searchform" class="modern-search-form" style="display:flex;">
+        <input class="input-group-field" type="search" name="searchterms" placeholder="Search books, authors, genres..." data-trans="s_book"
+            id="main_searchbox" required style="flex-grow:1;">
+        <button class="search-submit-btn" type="submit" style="white-space:nowrap; margin-bottom:0;"><i
+                class="fi-magnifying-glass"></i></button>
+    </form>
+</div>
+<script>
+    function switchComfortSearch(type) {
+        // Toggle Active Tab UI
+        const tabs = document.querySelectorAll('.search-tab');
+        tabs.forEach(t => t.classList.remove('active'));
+        const activeTab = document.querySelector('.search-tab[data-type="' + type + '"]');
+        if (activeTab) activeTab.classList.add('active');
+
+        // Update Form Logic
+        const form = document.getElementById('searchform');
+        const input = document.getElementById('main_searchbox');
+
+        if (type === 'title') {
+            form.action = "{% url 'web:searchbooks' %}";
+            input.setAttribute('data-trans', 's_book');
+            if (typeof applyVailibLang === 'function') applyVailibLang();
+        } else if (type === 'author') {
+            form.action = "{% url 'web:searchauthors' %}";
+            input.setAttribute('data-trans', 's_auth');
+            if (typeof applyVailibLang === 'function') applyVailibLang();
+        } else if (type === 'series') {
+            form.action = "{% url 'web:searchseries' %}";
+            input.setAttribute('data-trans', 's_ser');
+            if (typeof applyVailibLang === 'function') applyVailibLang();
+        }
+        input.focus();
+    }
+</script>

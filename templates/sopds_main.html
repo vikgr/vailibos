@@ -1,109 +1,462 @@
 {% load staticfiles %}
+{% load i18n %}
 {% load cache %}
-
 <!DOCTYPE html>
-<html lang="ru">
-
+<html lang="ru" data-theme="{{ vailib_theme|default:"eink" }}">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VAILIB Digital Library</title>
 
+    {% if vailib_theme == 'eink' %}
+    <title>VAILIB E-INK</title>
+    <style>
+        body { font-family: sans-serif; background: #fff; color: #000; margin: 2%; padding: 0; text-align: center; font-size: 16px; line-height: 1.4; }
+        a { color: #000; text-decoration: underline; word-wrap: break-word; }
+        .nav-header { border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; width: 100%; box-sizing: border-box; }
+        .nav-links { font-size: 1.2em; font-weight: bold; margin: 10px 0; }
+        .nav-links a { margin: 5px 10px; display: inline-block; }
+        .content { text-align: left; max-width: 100%; box-sizing: border-box; word-wrap: break-word; }
+        .theme-switch { border: 2px solid #000; padding: 5px 10px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
+        form { margin: 15px 0; width: 100%; box-sizing: border-box; }
+        input[type="text"] { border: 1px solid #000; padding: 8px; width: 60%; max-width: 300px; box-sizing: border-box; font-size: 16px; }
+        button { border: 2px solid #000; background: #fff; padding: 8px 15px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 5px; }
+        img { max-width: 100%; height: auto; }
+        table { max-width: 100%; overflow-x: auto; display: block; }
+        /* E-Ink placeholder cover: Reference-matched box style */
+        .eink-placeholder { 
+            width: 100%; height: 100%; min-width: 80px; min-height: 120px; 
+            border: 2px solid #000; background: #fff; 
+            display: flex; flex-direction: column; box-sizing: border-box; 
+            text-decoration: none !important; color: #000 !important; overflow: hidden; 
+        }
+        .eink-placeholder .plt-title-box {
+            flex: 3; border-bottom: 2px solid #000;
+            display: flex; align-items: center; justify-content: center;
+            padding: 8px; text-align: center;
+        }
+        .eink-placeholder .plt-author-box {
+            flex: 1.5;
+            display: flex; align-items: center; justify-content: center;
+            padding: 4px; text-align: center; background: #fff;
+        }
+        .eink-placeholder .plt-title { font-size: 0.85rem; font-weight: bold; text-transform: uppercase; margin: 0; line-height: 1.2; display: block; word-wrap: break-word; color: #000 !important; }
+        .eink-placeholder .plt-author { font-size: 0.7rem; text-transform: none; margin-top: 0; display: block; word-wrap: break-word; color: #000 !important; }
+
+        /* E-Ink Book Grid & Card */
+        .eink-book-grid {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 20px !important;
+            justify-content: flex-start !important;
+            width: 100% !important;
+        }
+        .eink-book-card {
+            width: 180px !important;
+            border: 2px solid #000 !important;
+            background: #fff !important;
+            padding: 8px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            text-decoration: none !important;
+            color: #000 !important;
+            box-sizing: border-box !important;
+            margin-bottom: 15px !important;
+        }
+        .eink-book-card:hover { background: #eee !important; }
+        .eink-book-card .cover-container {
+            width: 100% !important;
+            height: 250px !important;
+            border: 1px solid #000 !important;
+            margin-bottom: 8px !important;
+            overflow: hidden !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .eink-book-card .book-details {
+            text-align: center !important;
+        }
+        .eink-book-card .b-title {
+            font-size: 0.95rem !important;
+            font-weight: bold !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 3 !important;
+            line-clamp: 3 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+            height: 3.3rem !important;
+            line-height: 1.1rem !important;
+            margin-bottom: 5px !important;
+        }
+        .eink-book-card .b-author {
+            font-size: 0.8rem !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            display: block !important;
+        }
+
+        /* Blocky E-Ink items (for non-book lists) */
+        .eink-list-item { border: 2px solid #000 !important; background: #fff !important; padding: 8px 15px !important; margin-bottom: 5px !important; display: block !important; text-decoration: none !important; color: #000 !important; font-weight: bold !important; box-sizing: border-box !important; width: 100% !important; clear: both !important; overflow: hidden !important; text-align: left !important; }
+        .eink-list-item:hover { background: #000 !important; color: #fff !important; }
+        .eink-inline-item { border: 2px solid #000 !important; background: #fff !important; padding: 5px 10px !important; margin: 3px !important; display: inline-block !important; text-decoration: none !important; color: #000 !important; font-weight: bold !important; font-size: 14px !important; }
+        .eink-inline-item:hover { background: #000 !important; color: #fff !important; }
+        /* E-Ink breadcrumbs */
+        .eink-breadcrumbs { display: flex !important; flex-wrap: wrap !important; justify-content: flex-start !important; gap: 8px !important; padding: 8px 0 !important; border-bottom: none !important; margin-bottom: 15px !important; font-size: 0.85rem !important; }
+        .eink-breadcrumbs .crumb a { display: inline-block !important; border: 2px solid #000 !important; background: #fff !important; color: #000 !important; padding: 8px 12px !important; text-decoration: none !important; font-weight: 800 !important; text-transform: uppercase !important; font-size: 0.9rem !important; margin: 0 !important; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; line-height: 1.4 !important; }
+        .eink-breadcrumbs .crumb a:hover { background: #000 !important; color: #fff !important; }
+        .eink-breadcrumbs .crumb span { display: inline-block !important; border: 2px solid #000 !important; background: #eee !important; color: #000 !important; padding: 8px 12px !important; font-weight: 800 !important; text-transform: uppercase !important; font-size: 0.9rem !important; margin: 0 !important; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; line-height: 1.4 !important; }
+        .eink-breadcrumbs .separator { display: none !important; }
+        .index-grid { 
+            display: flex !important; 
+            flex-wrap: wrap !important; 
+            width: 100% !important; 
+            margin-top: 10px !important; 
+            justify-content: flex-start !important;
+            gap: 4px !important;
+        }
+        .index-card { 
+            border: 2px solid #000 !important;
+            background: #fff !important;
+            width: 90px !important;
+            height: 54px !important;
+            padding: 4px 6px !important;
+            margin: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-decoration: none !important;
+            color: #000 !important;
+            font-weight: bold !important;
+            box-sizing: border-box !important;
+            flex: 0 0 90px !important;
+            overflow: hidden !important;
+        }
+        .index-card:hover { background: #000 !important; color: #fff !important; }
+        .index-letter { font-size: 1.3rem !important; display: block !important; margin: 0 !important; line-height: 1.2 !important; word-break: break-word !important; text-align: center !important; overflow: hidden !important; }
+        .index-count { font-size: 0.62rem !important; font-weight: normal !important; display: block !important; margin-top: 2px !important; border-top: 1px solid #000 !important; width: 100% !important; padding-top: 2px !important; text-align: center !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+        .auth-container { display: flex !important; justify-content: center !important; padding: 20px !important; width: 100% !important; box-sizing: border-box !important; }
+        .modern-auth-card { width: 100% !important; max-width: 500px !important; text-align: left !important; border: 3px solid #000 !important; padding: 25px !important; background: #fff !important; margin: 0 auto !important; }
+        .auth-title { font-size: 2rem !important; font-weight: 900 !important; margin-bottom: 30px !important; text-align: center !important; text-transform: uppercase !important; border-bottom: 4px solid #000 !important; padding-bottom: 15px !important; }
+        .form-group { margin-bottom: 30px !important; width: 100% !important; clear: both !important; display: block !important; }
+        .form-group label { display: block !important; font-weight: 800 !important; margin-bottom: 12px !important; font-size: 1.5rem !important; clear: both !important; width: 100% !important; }
+        .modern-input { width: 100% !important; border: 3px solid #000 !important; padding: 18px 15px !important; box-sizing: border-box !important; font-size: 1.5rem !important; display: block !important; clear: both !important; background: #fff !important; color: #000 !important; border-radius: 0 !important; }
+        .modern-btn { width: 100% !important; background: #000 !important; color: #fff !important; border: 2px solid #000 !important; padding: 20px !important; font-weight: 900 !important; font-size: 1.6rem !important; cursor: pointer !important; margin-top: 15px !important; text-transform: uppercase !important; display: block !important; clear: both !important; }
+    </style>
+    {% else %}
+    <title>VAILIB Digital Library</title>
     <link rel="stylesheet" type="text/css" href="{% static 'css/sopds.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'foundation-icons/foundation-icons.css' %}">
-
-    <!-- Modern & E-Ink Inject -->
-    <link rel="stylesheet" type="text/css" href="{% static 'custom/css/modern.css' %}?v=20">
-    <script>
-        (function () {
-            const theme = localStorage.getItem('sopds-theme') || 'premium';
-            document.documentElement.setAttribute('data-theme', theme);
-        })();
-    </script>
+    {% endif %}
+    <link rel="stylesheet" type="text/css" href="{% static 'custom/css/modern.css' %}?v=006">
 </head>
 
 <body>
+    {% if vailib_theme == 'eink' %}
+    <div class="nav-header">
+        <a href="/web/"><img src="{% static 'custom/logo_eink.png' %}" alt="VAILIB" style="max-height: 120px; width: auto; margin-bottom: 10px;"></a>
+        
+        <div class="lang-selector-container" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; border:none; margin-bottom: 10px; padding-bottom: 5px;">
+            <a href="#" onclick="setVailibLang('ru'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">RU</a>
+            <a href="#" onclick="setVailibLang('en'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">EN</a>
+            <a href="#" onclick="setVailibLang('de'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">DE</a>
+            <a href="#" onclick="setVailibLang('es'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">ES</a>
+            <a href="#" onclick="setVailibLang('fr'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">FR</a>
+            <a href="#" onclick="setVailibLang('el'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">GR</a>
+            <a href="#" onclick="setVailibLang('ar'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">AR</a>
+            <a href="#" onclick="setVailibLang('hi'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">HI</a>
+            <a href="#" onclick="setVailibLang('pt'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">PT</a>
+            <a href="#" onclick="setVailibLang('zh'); return false;" class="eink-lang-btn" style="width: 100%; height: 28px; font-size: 11px; line-height: 24px; padding: 0;">ZH</a>
+        </div>
+
+        <div class="nav-links">
+            <a href="/web/catalog/" data-trans="cat">{% trans "Catalogs" %}</a>
+            <a href="/web/book/?lang=0" data-trans="book">{% trans "Books" %}</a>
+            <a href="/web/author/?lang=0" data-trans="auth">{% trans "Authors" %}</a>
+            <a href="/web/genre/" data-trans="gen">{% trans "Genres" %}</a>
+            <a href="/web/series/?lang=0" data-trans="ser">{% trans "Series" %}</a>
+        </div>
+        <div>
+            {% if user.is_authenticated %}
+            👤 <a href="/web/logout/">{{ user.username }} <span data-trans="logout">(Выйти)</span></a>
+            {% else %}
+            👤 <a href="/web/login/" data-trans="login">Войти</a>
+            {% endif %}
+        </div>
+        <div>
+            <a href="#" onclick="document.cookie='vailib_theme=premium; path=/'; location.reload();" class="theme-switch" data-trans="color_theme">COLOR THEME</a>
+        </div>
+    </div>
+    
+    <div style="margin-bottom:8px;">
+        {% include "sopds_breadcrumbs.html" %}
+    </div>
+    {% if user.is_authenticated %}
+    <div>
+        <form method="get" action="{% url 'web:searchbooks' %}">
+            <input type="hidden" name="searchtype" value="m">
+            <input type="text" name="searchterms" placeholder="Search..." data-trans="s_p">
+            <button type="submit" data-trans="s_b">Найти</button>
+        </form>
+    </div>
+    {% endif %}
+    {% else %}
     <div class="app-wrapper">
-
-        <!-- SIDEBAR FOR PREMIUM / TOP HEADER FOR E-INK -->
+        <!-- SIDEBAR FOR PREMIUM -->
         <aside class="sidebar-container">
-
-            <!-- Brand & Auth -->
             <div class="brand-header" style="margin-bottom: 20px;">
                 <a href="/web/" style="text-decoration: none; color: inherit;">
-                    <h1 class="vailib-brand" style="margin:0;">VAILIB</h1>
+                    <img src="{% static 'custom/logo_color.png' %}" alt="VAILIB" style="max-width: 100%; height: auto;">
                 </a>
-                <div class="auth-box" style="margin-top: 5px;">
+                <button id="vailib-theme-switcher" class="nav-btn theme-btn" style="width: 100%; border:none; cursor:pointer; margin-top: 10px;">
+                    <span class="premium-icon">🖤 E-INK THEME</span>
+                </button>
+                
+                <div class="lang-selector-container" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; background: transparent; border: none; box-shadow: none; padding: 0; margin: 15px 0 0 0;">
+                    <a href="#" onclick="setVailibLang('ru'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/ru.png" width="15" alt="RU" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">RU</span></a>
+                    <a href="#" onclick="setVailibLang('en'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/gb.png" width="15" alt="EN" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">EN</span></a>
+                    <a href="#" onclick="setVailibLang('de'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/de.png" width="15" alt="DE" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">DE</span></a>
+                    <a href="#" onclick="setVailibLang('es'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/es.png" width="15" alt="ES" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">ES</span></a>
+                    <a href="#" onclick="setVailibLang('fr'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/fr.png" width="15" alt="FR" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">FR</span></a>
+                    <a href="#" onclick="setVailibLang('el'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/gr.png" width="15" alt="GR" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">GR</span></a>
+                    <a href="#" onclick="setVailibLang('ar'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/sa.png" width="15" alt="AR" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">AR</span></a>
+                    <a href="#" onclick="setVailibLang('hi'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/in.png" width="15" alt="HI" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">HI</span></a>
+                    <a href="#" onclick="setVailibLang('pt'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/pt.png" width="15" alt="PT" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">PT</span></a>
+                    <a href="#" onclick="setVailibLang('zh'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px;"><img src="https://flagcdn.com/w20/cn.png" width="15" alt="ZH" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">ZH</span></a>
+                </div>
+
+                <div class="auth-box" style="margin-top: 10px;">
                     {% if user.is_authenticated %}
-                    <a href="/web/logout/"><i class="fi-torso"></i> {{ user.username }}</a>
+                    <a href="/web/logout/" class="auth-btn" title="Logout"><i class="fi-torso"></i> <span style="margin-left:5px;">{{ user.username }}</span></a>
                     {% else %}
-                    <a href="/web/login/"><i class="fi-torso"></i> Войти</a>
+                    <a href="/web/login/" class="auth-btn"><i class="fi-torso"></i> <span data-trans="login">Войти</span></a>
                     {% endif %}
                 </div>
             </div>
-
-            <!-- Navigation System -->
             {% include "sopds_menu.html" %}
-
+            
+            <div class="sidebar-stats">
+                <h5>{% trans "STATISTICS" %}</h5>
+                <p><b>{% trans "This сatalog contains:" %}</b></p>
+                <p>
+                    {{ stats.allbooks }} {% trans "books," %} 
+                    {{ stats.allauthors }} {% trans "authors," %} 
+                    {{ stats.allgenres }} {% trans "genres and" %} 
+                    {{ stats.allseries }} {% trans "series." %}
+                </p>
+                <p style="margin-top: 10px; font-size: 0.75rem; opacity: 0.7;">
+                    <b>{% trans "Last scan:" %}</b> {{ stats.lastscan_date|default:"Never" }}
+                </p>
+            </div>
         </aside>
 
         <!-- MAIN BODY -->
         <main class="main-content">
-            <!-- Comfort Search Block on top -->
             <div style="margin-bottom:20px;">
                 {% include "sopds_logo.html" %}
             </div>
-
-            <!-- System breadcrumbs & notices -->
             {% include "sopds_breadcrumbs.html" %}
             {% if system_message %} {% include "sopds_messages.html" %} {% endif %}
+    {% endif %}
 
-            <!-- Primary App Content -->
-            <div class="content-wrapper">
-                {% block content %}
-                {% block ext-body %} {% endblock %}
-                {% cache cache_t body cache_id %}
-                {% block body %} {% endblock %}
-                {% endcache %}
-                {% endblock %}
-            </div>
-
-            <div style="margin-top: 40px;">
-                {% include "sopds_footer.html" %}
-            </div>
-        </main>
-
+    <div class="{% if vailib_theme == 'eink' %}content{% else %}content-wrapper{% endif %}">
+        {% block content %}
+        {% block ext-body %} {% endblock %}
+        {% block body %} {% endblock %}
+        {% endblock %}
     </div>
+
+    {% if vailib_theme != 'eink' %}
+        </main>
+    </div>
+    {% endif %}
 
     <script src="{% static 'js/vendor/jquery.js' %}"></script>
     <script src="{% static 'js/vendor/foundation.min.js' %}"></script>
-    <script src="{% static 'custom/js/theme_switcher.js' %}"></script>
+
+    <script src="{% static 'custom/js/vailib_ui.js' %}?v=1"></script>
+    {% block block-js %}{% endblock %}
 
     <script>
-        $(document).foundation();
-        if (typeof SetSearch === 'function') SetSearch();
-
-        window.onload = function () {
-            const btn = document.getElementById("theme-toggle");
-            if (btn) {
-                btn.addEventListener("click", function (e) {
-                    e.preventDefault();
-                    let current = document.documentElement.getAttribute("data-theme");
-                    let nextTheme = current === "premium" ? "eink" : "premium";
-                    document.documentElement.setAttribute("data-theme", nextTheme);
-                    localStorage.setItem("sopds-theme", nextTheme);
-                    console.log("Theme switched to", nextTheme);
-                });
+        const vailibDict = {
+            'ru': {
+                cat: 'Каталоги', book: 'Книги', auth: 'Авторы', gen: 'Жанры', ser: 'Серии', set: 'Настройки',
+                login: 'Войти', logout: '(Выйти)', new_e: 'Новинки', new_c: 'Новые Поступления',
+                un_auth: 'Неизвестный автор', empty: 'Библиотека пуста', scan: 'Выполните сканирование директории.',
+                welc: 'Добро пожаловать в VAILIB', welc_sub: 'Ваша персональная цифровая библиотека. Войдите, чтобы получить доступ к коллекции книг.',
+                welc_btn: 'Войти в библиотеку →', s_book: 'Поиск по названию', s_auth: 'Поиск по автору', s_ser: 'Поиск по серии', s_gen: 'Поиск по жанру', eink_theme: '🖤 E-INK THEME', color_theme: 'ЦВЕТНАЯ ТЕМА',
+                stat: 'СТАТИСТИКА', cat_con: 'Этот каталог содержит:', bk_c: 'книг,', aut_c: 'авторов,', gen_c: 'жанров и', t_tot: 'Всего:', t_aut: 'авторов.', t_bk: 'книг.', t_ser: 'серий.', l_scan: 'Последнее сканирование:',
+                read: 'Читать', prev: 'Назад', next: 'Вперед', bk_l: 'Книг:', home: 'НАЧАЛО', s_p: 'Поиск...', s_b: 'Найти',
+                root: 'ROOT', search: 'Поиск', select: 'Выбор', bshelf: 'Книжная полка', show_all: 'ПОКАЗАТЬ ВСЕ', doubles: 'Дубликаты книги'
+            },
+            'en': {
+                cat: 'Catalogs', book: 'Books', auth: 'Authors', gen: 'Genres', ser: 'Series', set: 'Settings',
+                login: 'Login', logout: '(Logout)', new_e: 'Recent Additions', new_c: 'New Arrivals',
+                un_auth: 'Unknown Author', empty: 'Library is empty', scan: 'Run a directory scan.',
+                welc: 'Welcome to VAILIB', welc_sub: 'Your personal digital library. Login to access the book collection.',
+                welc_btn: 'Enter Library →', s_book: 'Search by title', s_auth: 'Search by author', s_ser: 'Search by series', s_gen: 'Search by genre', eink_theme: '🖤 E-INK THEME', color_theme: 'COLOR THEME',
+                stat: 'STATISTICS', cat_con: 'This catalog contains:', bk_c: 'books,', aut_c: 'authors,', gen_c: 'genres and', t_tot: 'Total:', t_aut: 'authors.', t_bk: 'books.', t_ser: 'series.', l_scan: 'Last collection scan:',
+                read: 'Read', prev: 'Previous', next: 'Next', bk_l: 'Books:', home: 'HOME', s_p: 'Search...', s_b: 'Find',
+                root: 'ROOT', search: 'Search', select: 'Select', bshelf: 'Bookshelf', show_all: 'SHOW ALL', doubles: 'Doubles for book'
+            },
+            'de': {
+                cat: 'Katalog', book: 'Bücher', auth: 'Autoren', gen: 'Genres', ser: 'Serien', set: 'Einstellungen',
+                login: 'Anmelden', logout: '(Abmelden)', new_e: 'Neue Einträge', new_c: 'Neue Ankünfte',
+                un_auth: 'Unbekannter Autor', empty: 'Bibliothek ist leer', scan: 'Verzeichnis scannen.',
+                welc: 'Willkommen bei VAILIB', welc_sub: 'Ihre digitale Bibliothek. Melden Sie sich an.',
+                welc_btn: 'Bibliothek betreten →', s_book: 'Nach Titel suchen', s_auth: 'Nach Autor suchen', s_ser: 'Nach Serie suchen', s_gen: 'Nach Genre suchen', eink_theme: '🖤 E-INK THEME', color_theme: 'FARBDESIGN',
+                stat: 'STATISTIK', cat_con: 'Dieser Katalog enthält:', bk_c: 'Bücher,', aut_c: 'Autoren,', gen_c: 'Genres und', t_tot: 'Gesamt:', t_aut: 'Autoren.', t_bk: 'Bücher.', t_ser: 'Serien.', l_scan: 'Letzter Scan:',
+                read: 'Lesen', prev: 'Zurück', next: 'Weiter', bk_l: 'Bücher:', home: 'START', s_p: 'Suchen...', s_b: 'Finden',
+                root: 'ROOT', search: 'Suchen', select: 'Auswählen', bshelf: 'Regal', show_all: 'ALLE ANZEIGEN', doubles: 'Dublikate für Buch'
+            },
+            'el': {
+                cat: 'Κατάλογοι', book: 'Βιβλία', auth: 'Συγγραφείς', gen: 'Είδη', ser: 'Σειρές', set: 'Ρυθμίσεις',
+                login: 'Είσοδος', logout: '(Έξοδος)', new_e: 'Νέες προσθήκες', new_c: 'Νέες αφίξεις',
+                un_auth: 'Άγνωστος συγγραφέας', empty: 'Η βιβλιοθήκη είναι άδεια', scan: 'Εκτελέστε σάρωση.',
+                welc: 'Καλώς ήρθατε στο VAILIB', welc_sub: 'Η ψηφιακή σας βιβλιοθήκη. Συνδεθείτε για πρόσβαση.',
+                welc_btn: 'Είσοδος στη βιβλιοθήκη →', s_book: 'Αναζήτηση (τίτλος)', s_auth: 'Αναζήτηση (συγγραφέας)', s_ser: 'Αναζήτηση (σειρά)', s_gen: 'Αναζήτηση (είδος)', eink_theme: '🖤 E-INK THEME', color_theme: 'ΧΡΩΜΑΤΙΚΟ ΘΕΜΑ',
+                stat: 'ΣΤΑΤΙΣΤΙΚΑ', cat_con: 'Αυτός ο κατάλογος περιέχει:', bk_c: 'βιβλία,', aut_c: 'συγγραφείς,', gen_c: 'είδη και', t_tot: 'Σύνολο:', t_aut: 'συγγραφείς.', t_bk: 'βιβλία.', t_ser: 'σειρές.', l_scan: 'Τελευταία σάρωση:',
+                read: 'Διαβάστε', prev: 'Προηγούμενο', next: 'Επόμενο', bk_l: 'Βιβλία:', home: 'ΑΡΧΙΚΗ', s_p: 'Αναζήτηση...', s_b: 'Εύρεση',
+                root: 'ROOT', search: 'Αναζήτηση', select: 'Επιλογή', bshelf: 'Βιβλιοθήκη', show_all: 'ΠΡΟΒΟΛΗ ΟΛΩΝ', doubles: 'Διπλότυπα'
+            },
+            'es': {
+                cat: 'Catálogos', book: 'Libros', auth: 'Autores', gen: 'Géneros', ser: 'Series', set: 'Ajustes',
+                login: 'Entrar', logout: '(Salir)', new_e: 'Novedades', new_c: 'Recientes',
+                un_auth: 'Autor desconocido', empty: 'Biblioteca vacía', scan: 'Escanear directorio.',
+                welc: 'Bienvenido a VAILIB', welc_sub: 'Tu biblioteca digital. Inicia sesión para acceder.',
+                welc_btn: 'Entrar a la biblioteca →', s_book: 'Buscar título', s_auth: 'Buscar autor', s_ser: 'Buscar serie', s_gen: 'Buscar género', eink_theme: '🖤 E-INK THEME', color_theme: 'TEMA DE COLOR',
+                stat: 'ESTADÍSTICAS', cat_con: 'Este catálogo contiene:', bk_c: 'libros,', aut_c: 'autores,', gen_c: 'géneros y', t_tot: 'Total:', t_aut: 'autores.', t_bk: 'libros.', t_ser: 'series.', l_scan: 'Último escaneo:',
+                read: 'Leer', prev: 'Anterior', next: 'Siguiente', bk_l: 'Libros:', home: 'INICIO', s_p: 'Buscar...', s_b: 'Buscar',
+                root: 'ROOT', search: 'Buscar', select: 'Seleccionar', bshelf: 'Estantería', show_all: 'MOSTRAR TODO', doubles: 'Dobles'
+            },
+            'fr': {
+                cat: 'Catalogues', book: 'Livres', auth: 'Auteurs', gen: 'Genres', ser: 'Séries', set: 'Paramètres',
+                login: 'Connexion', logout: '(Déconnexion)', new_e: 'Nouveautés', new_c: 'Nouveautés',
+                un_auth: 'Auteur inconnu', empty: 'Bibliothèque vide', scan: 'Scanner le répertoire.',
+                welc: 'Bienvenue sur VAILIB', welc_sub: 'Votre bibliothèque numérique. Connectez-vous.',
+                welc_btn: 'Entrer dans la bibliothèque →', s_book: 'Rechercher un titre', s_auth: 'Rechercher un auteur', s_ser: 'Rechercher une série', s_gen: 'Rechercher un genre', eink_theme: '🖤 E-INK THEME', color_theme: 'THÈME COULEUR',
+                stat: 'STATISTIQUES', cat_con: 'Ce catalogue contient:', bk_c: 'livres,', aut_c: 'auteurs,', gen_c: 'genres et', t_tot: 'Total:', t_aut: 'auteurs.', t_bk: 'livres.', t_ser: 'séries.', l_scan: 'Dernier scan:',
+                read: 'Lire', prev: 'Précédent', next: 'Suivant', bk_l: 'Livres:', home: 'ACCUEIL', s_p: 'Rechercher...', s_b: 'Trouver',
+                root: 'ROOT', search: 'Recherche', select: 'Sélectionner', bshelf: 'Étagère', show_all: 'TOUT AFFICHER', doubles: 'Doublons'
+            },
+            'ar': {
+                cat: 'كتالوجات', book: 'كتب', auth: 'مؤلفون', gen: 'أنواع', ser: 'سلاسل', set: 'إعدادات',
+                login: 'دخول', logout: '(خروج)', new_e: 'إضافات حديثة', new_c: 'الوافدون الجدد',
+                un_auth: 'مؤلف مجهول', empty: 'المكتبة فارغة', scan: 'فحص الدليل.',
+                welc: 'مرحبا بك في VAILIB', welc_sub: 'مكتبتك الرقمية. سجل الدخول للوصول.',
+                welc_btn: 'دخول المكتبة →', s_book: 'البحث بالعنوان', s_auth: 'البحث بالمؤلف', s_ser: 'البحث بالسلسلة', s_gen: 'البحث بالنوع', eink_theme: '🖤 E-INK THEME', color_theme: 'السمة الملونة',
+                stat: 'إحصائيات', cat_con: 'يحتوي هذا الكتالوج على:', bk_c: 'كتب,', aut_c: 'مؤلفين,', gen_c: 'أنواع و', t_tot: 'المجموع:', t_aut: 'مؤلفين.', t_bk: 'كتب.', t_ser: 'سلاسل.', l_scan: 'آخر مسح:',
+                read: 'اقرأ', prev: 'السابق', next: 'التالي', bk_l: 'كتب:', home: 'الرئيسية', s_p: 'بحث...', s_b: 'بحث',
+                root: 'ROOT', search: 'بحث', select: 'تحديد', bshelf: 'رف الكتب', show_all: 'عرض الكل', doubles: 'النسخ المكررة'
+            },
+            'hi': {
+                cat: 'कैटलॉग', book: 'किताबें', auth: 'लेखक', gen: 'शैलियाँ', ser: 'श्रृंखला', set: 'सेटिंग्स',
+                login: 'लॉगिन', logout: '(लॉगआउट)', new_e: 'हाल के जोड़', new_c: 'नए आगमन',
+                un_auth: 'अज्ञात लेखक', empty: 'लाइब्रेरी खाली है', scan: 'डायरेक्टरी स्कैन करें.',
+                welc: 'VAILIB में आपका स्वागत है', welc_sub: 'आपकी डिजिटल लाइब्रेरी। लॉगिन करें।',
+                welc_btn: 'लाइब्रेरी में प्रवेश करें →', s_book: 'शीर्षक से खोजें', s_auth: 'लेखक से खोजें', s_ser: 'श्रृंखला से खोजें', s_gen: 'शैली से खोजें', eink_theme: '🖤 E-INK THEME', color_theme: 'रंगीन थीम',
+                stat: 'आँकड़े', cat_con: 'इस कैटलॉग में है:', bk_c: 'किताबें,', aut_c: 'लेखक,', gen_c: 'शैलियाँ और', t_tot: 'कुल:', t_aut: 'लेखक.', t_bk: 'किताबें.', t_ser: 'श्रृंखला.', l_scan: 'अंतिम स्कैन:',
+                read: 'पढ़ें', prev: 'पिछला', next: 'अगला', bk_l: 'किताबें:', home: 'शुरू', s_p: 'खोजें...', s_b: 'खोजें',
+                root: 'ROOT', search: 'खोजें', select: 'चुनें', bshelf: 'बुकशेल्फ़', show_all: 'सभी दिखाएं', doubles: 'दोहरी किताबें'
+            },
+            'pt': {
+                cat: 'Catálogos', book: 'Livros', auth: 'Autores', gen: 'Gêneros', ser: 'Séries', set: 'Configurações',
+                login: 'Entrar', logout: '(Sair)', new_e: 'Novidades', new_c: 'Recém Chegados',
+                un_auth: 'Autor desconhecido', empty: 'A biblioteca está vazia', scan: 'Verificar diretório.',
+                welc: 'Bem-vindo ao VAILIB', welc_sub: 'Sua biblioteca digital. Faça o login.',
+                welc_btn: 'Entrar na biblioteca →', s_book: 'Pesquisar título', s_auth: 'Pesquisar autor', s_ser: 'Pesquisar série', s_gen: 'Pesquisar gênero', eink_theme: '🖤 E-INK THEME', color_theme: 'TEMA DE COR',
+                stat: 'ESTATÍSTICAS', cat_con: 'Este catálogo contém:', bk_c: 'livros,', aut_c: 'autores,', gen_c: 'gêneros e', t_tot: 'Total:', t_aut: 'autores.', t_bk: 'livros.', t_ser: 'séries.', l_scan: 'Último scan:',
+                read: 'Ler', prev: 'Anterior', next: 'Próximo', bk_l: 'Livros:', home: 'INÍCIO', s_p: 'Pesquisar...', s_b: 'Buscar',
+                root: 'ROOT', search: 'Pesquisar', select: 'Selecionar', bshelf: 'Estante', show_all: 'MOSTRAR TUDO', doubles: 'Dobras'
+            },
+            'zh': {
+                cat: '目录', book: '图书', auth: '作者', gen: '流派', ser: '系列', set: '设置',
+                login: '登录', logout: '(退出)', new_e: '最近添加', new_c: '新书上架',
+                un_auth: '未知作者', empty: '图书馆为空', scan: '扫描目录.',
+                welc: '欢迎来到VAILIB', welc_sub: '您的数字图书馆。请登录访问。',
+                welc_btn: '进入图书馆 →', s_book: '按书名搜索', s_auth: '按作者搜索', s_ser: '按系列搜索', s_gen: '按流派搜索', eink_theme: '🖤 E-INK THEME', color_theme: '彩色主题',
+                stat: '统计信息', cat_con: '此目录包含:', bk_c: '图书,', aut_c: '作者,', gen_c: '流派和', t_tot: '总计:', t_aut: '作者.', t_bk: '图书.', t_ser: '系列.', l_scan: '最后扫描:',
+                read: '阅读', prev: '上一页', next: '下一页', bk_l: '图书:', home: '首页', s_p: '搜索...', s_b: '查找',
+                root: 'ROOT', search: '搜索', select: '选择', bshelf: '书架', show_all: '全部显示', doubles: '重复书籍'
             }
         };
 
-        Foundation.Abide.defaults.validators['check_search'] = function ($el, required, parent) {
-            const box = document.getElementById('main_searchbox');
-            if (box && box.value.length < 3) return false;
-            return true;
-        };
-    </script>
-    {% block block-js %}{% endblock %}
-</body>
+        function setVailibLang(lang) {
+            localStorage.setItem('vailib_lang', lang);
+            document.cookie = 'django_language=' + lang + '; path=/; max-age=31536000';
+            applyVailibLang();
+        }
 
+        function applyVailibLang() {
+            let lang = localStorage.getItem('vailib_lang');
+            
+            // Auto-detect browser language if user hasn't chosen one
+            if (!lang) {
+                const navLang = navigator.language || navigator.userLanguage || 'en';
+                const shortLang = navLang.substring(0, 2).toLowerCase();
+                lang = vailibDict[shortLang] ? shortLang : 'en'; // Fallback to English for global users, or RU for Russians
+                
+                localStorage.setItem('vailib_lang', lang);
+                document.cookie = 'django_language=' + lang + '; path=/; max-age=31536000';
+            }
+
+            document.documentElement.lang = lang;
+
+            const dict = vailibDict[lang] || vailibDict['en'];
+            
+            document.querySelectorAll('[data-trans]').forEach(el => {
+                const key = el.getAttribute('data-trans');
+                if (dict[key]) {
+                    let txt = dict[key];
+                    // Strip the 'tonos' (accents) from Greek text to completely eliminate uppercase font-clipping bugs
+                    if (lang === 'el') {
+                        txt = txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    }
+                    if (el.tagName === 'INPUT') el.placeholder = txt;
+                    else el.innerText = txt;
+                }
+            });
+
+            // Handle breadcrumbs dynamically translated
+            document.querySelectorAll('.crumb a, .crumb span').forEach(el => {
+                const text = el.innerText.trim().toUpperCase();
+                
+                // Extra fallbacks for hardcoded Django strings
+                const fallbacks = {
+                    'ГЛАВНАЯ': 'home', 'НАЙТИ': 'search', 'ВЫБОР': 'select', 
+                    'HOME': 'home', 'START': 'home', 'ΑΡΧΙΚΗ': 'home'
+                };
+                
+                let matchedKey = fallbacks[text] || null;
+                
+                if (!matchedKey) {
+                    const checkKeys = ['home', 'cat', 'book', 'auth', 'gen', 'ser', 'stat', 'root', 'search', 'select', 'bshelf', 'show_all', 's_book', 's_auth', 's_ser', 's_gen', 'doubles'];
+                    for (let langKey in vailibDict) {
+                        for (let k of checkKeys) {
+                            if (vailibDict[langKey][k] && vailibDict[langKey][k].toUpperCase() === text) {
+                                matchedKey = k;
+                                break;
+                            }
+                        }
+                        if (matchedKey) break;
+                    }
+                }
+                
+                if (matchedKey && dict[matchedKey]) {
+                    el.innerText = dict[matchedKey];
+                }
+            });
+
+            // Highlight active lang btn
+            document.querySelectorAll('.color-lang-btn, .eink-lang-btn').forEach(btn => {
+                btn.style.opacity = '0.35';
+                if(btn.getAttribute('onclick').includes("'" + lang + "'")) btn.style.opacity = '1';
+                btn.style.transition = "opacity 0.2s";
+            });
+        }
+        
+        document.addEventListener("DOMContentLoaded", applyVailibLang);
+    </script>
+</body>
 </html>
