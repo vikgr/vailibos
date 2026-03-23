@@ -1,0 +1,13 @@
+secrets.txt
+.env
+__pycache__/
+*.pyc
+.DS_Store
+node_modules/
+dist/
+build/
+.venv/
+env/
+venv/
+.idea/
+.vscode/
