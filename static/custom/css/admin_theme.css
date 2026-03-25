@@ -720,3 +720,75 @@ ul.object-tools li a.addlink:hover {
 .help { color: var(--text-muted); font-size: 12px; font-style: italic; margin-top: 4px; }
 .errorlist { color: var(--accent-danger); font-size: 13px; }
 .errornote { background: rgba(255,87,87,0.1); border: 1px solid rgba(255,87,87,0.25); border-radius: var(--radius-sm); padding: 10px 14px; color: var(--accent-danger); }
+
+/* ══════════════════════════════════════════════════════════════
+   NUCLEAR OVERRIDE — Kill all Django admin orange/brown legacy
+   ══════════════════════════════════════════════════════════════ */
+
+/* Module headers (caption) — main orange offender */
+.module > h2,
+.module > table > caption,
+.module caption,
+#content-related .module h2,
+#content-related h2,
+table.module caption {
+  background: var(--bg-card-alt) !important;
+  color: var(--accent) !important;
+  border-bottom: 1px solid var(--border) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.2px !important;
+  text-transform: uppercase !important;
+  padding: 14px 20px !important;
+}
+
+/* Module wrapper */
+.module {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-lg) !important;
+  margin-bottom: 20px !important;
+  overflow: hidden !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+/* All th in admin */
+th {
+  background: var(--bg-card-alt) !important;
+  color: var(--text-muted) !important;
+  border-bottom: 1px solid var(--border) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.8px !important;
+  text-transform: uppercase !important;
+}
+
+/* td general */
+td {
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+/* Module caption links */
+.module caption a,
+.module > h2 a {
+  color: var(--accent) !important;
+}
+
+/* Django's default a color in admin */
+#content a:not(.button):not(.addlink):not(.changelink):not(.deletelink) {
+  color: var(--text-link) !important;
+}
+
+/* Row stripe — override Django defaults */
+tr.row1 { background: var(--bg-row-odd) !important; }
+tr.row2 { background: var(--bg-row-even) !important; }
+tr:hover { background: var(--bg-row-hover) !important; }
+
+/* Django default orange on links with class */
+.changelink a { color: var(--accent-yellow) !important; }
+.addlink a { color: var(--accent-green) !important; }
+
+/* Wipe any inline background hacks on tds with classes */
+td.action-checkbox { width: 32px !important; }
+
