@@ -792,3 +792,384 @@ tr:hover { background: var(--bg-row-hover) !important; }
 /* Wipe any inline background hacks on tds with classes */
 td.action-checkbox { width: 32px !important; }
 
+
+/* ══════════════════════════════════════════════════════════════
+   CONSTANCE CONFIG PAGE — Premium Settings UI Enhancements
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Sticky save bar ── */
+#vailib-settings-bar {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: var(--bg-header);
+  border-bottom: 2px solid var(--border-accent);
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  backdrop-filter: blur(8px);
+}
+
+#vailib-settings-bar .vsb-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+#vailib-settings-bar .vsb-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#vailib-settings-save-btn {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 8px 20px !important;
+  font-family: inherit !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all var(--transition) !important;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+#vailib-settings-save-btn:hover {
+  background: var(--accent-hover) !important;
+  box-shadow: 0 4px 16px rgba(124,106,255,0.35) !important;
+  transform: translateY(-1px);
+}
+
+#vailib-modified-badge {
+  background: rgba(255,209,102,0.12);
+  border: 1px solid rgba(255,209,102,0.3);
+  color: var(--accent-yellow);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  display: none;
+  white-space: nowrap;
+}
+
+#vailib-modified-badge.visible {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+#vailib-modified-badge.unsaved {
+  animation: vailib-pulse 2s infinite;
+}
+
+@keyframes vailib-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* ── Quick settings search ── */
+#vailib-settings-search {
+  background: var(--bg-input) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-primary) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 6px 12px !important;
+  font-family: inherit !important;
+  font-size: 12px !important;
+  width: 200px !important;
+  transition: all var(--transition) !important;
+  outline: none !important;
+}
+
+#vailib-settings-search:focus {
+  border-color: var(--border-focus) !important;
+  box-shadow: 0 0 0 2px rgba(124,106,255,0.15) !important;
+  width: 260px !important;
+}
+
+#vailib-settings-search::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* ── Jump navigation sidebar ── */
+#vailib-jump-nav {
+  position: fixed;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.vailib-jump-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition);
+  text-decoration: none !important;
+  display: block;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vailib-jump-item:hover,
+.vailib-jump-item.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff !important;
+  transform: translateX(-2px);
+  box-shadow: 0 0 10px rgba(124,106,255,0.3);
+}
+
+/* ── Section collapsible ── */
+.vailib-section-header {
+  cursor: pointer;
+  user-select: none;
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 14px !important;
+}
+
+.vailib-section-header:hover {
+  background: rgba(124,106,255,0.05) !important;
+}
+
+.vailib-chevron {
+  font-size: 10px;
+  opacity: 0.5;
+  transition: transform 0.25s;
+  flex-shrink: 0;
+}
+
+.vailib-section-collapsed .vailib-chevron {
+  transform: rotate(-90deg);
+}
+
+.vailib-section-body {
+  overflow: hidden;
+  max-height: 4000px;
+  transition: max-height 0.35s ease, opacity 0.25s ease;
+  opacity: 1;
+}
+
+.vailib-section-collapsed .vailib-section-body {
+  max-height: 0 !important;
+  opacity: 0;
+}
+
+/* ── Toggle switches ── */
+.vailib-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 8px;
+  margin: 2px 0;
+}
+
+.vailib-toggle input[type="checkbox"] {
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  pointer-events: none !important;
+}
+
+.vailib-slider {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: var(--border);
+  border-radius: 12px;
+  transition: background 0.25s, box-shadow 0.25s;
+  flex-shrink: 0;
+}
+
+.vailib-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+}
+
+.vailib-toggle input:checked ~ .vailib-slider {
+  background: var(--accent-teal);
+  box-shadow: 0 0 10px rgba(61,217,192,0.3);
+}
+
+.vailib-toggle input:checked ~ .vailib-slider::before {
+  transform: translateX(20px);
+}
+
+.vailib-toggle-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  min-width: 24px;
+  transition: color 0.25s;
+}
+
+.vailib-toggle input:checked ~ .vailib-toggle-label {
+  color: var(--accent-teal);
+}
+
+/* ── Single-line path textareas ── */
+textarea[name="SOPDS_ROOT_LIB"],
+textarea[name="SOPDS_NOCOVER_PATH"],
+textarea[name="SOPDS_ZIPCODEPAGE"],
+textarea[name="SOPDS_FB2TOEPUB"],
+textarea[name="SOPDS_FB2TOMOBI"],
+textarea[name="SOPDS_TEMP_DIR"],
+textarea[name="SOPDS_SERVER_LOG"],
+textarea[name="SOPDS_SCANNER_LOG"],
+textarea[name="SOPDS_TELEBOT_LOG"],
+textarea[name="SOPDS_SERVER_PID"],
+textarea[name="SOPDS_SCANNER_PID"],
+textarea[name="SOPDS_TELEBOT_PID"] {
+  height: 40px !important;
+  resize: none !important;
+  overflow: hidden !important;
+  padding-top: 10px !important;
+  line-height: 1.2 !important;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace !important;
+  font-size: 12px !important;
+}
+
+/* ── Extension tag chips ── */
+.vailib-ext-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 7px;
+}
+
+.vailib-ext-chip {
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  letter-spacing: 0.5px;
+  border: 1px solid transparent;
+  transition: transform 0.15s;
+}
+
+.vailib-ext-chip:hover { transform: scale(1.05); }
+
+/* ── Telegram API token mask ── */
+.vailib-token-wrap {
+  position: relative;
+}
+
+.vailib-token-toggle {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 3px 9px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+  z-index: 5;
+  font-family: inherit;
+}
+
+.vailib-token-toggle:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.vailib-token-masked {
+  color: transparent !important;
+  text-shadow: 0 0 8px var(--text-muted);
+  letter-spacing: 3px;
+}
+
+/* ── Cron human summary ── */
+.vailib-cron-summary {
+  background: rgba(61,217,192,0.06);
+  border: 1px solid rgba(61,217,192,0.2);
+  border-radius: var(--radius-sm);
+  padding: 7px 14px;
+  font-size: 12px;
+  color: var(--accent-teal);
+  margin-top: 6px;
+}
+
+/* ── Modified row highlight ── */
+tr.vailib-row-modified > td:first-child {
+  border-left: 3px solid var(--accent) !important;
+}
+
+.vailib-mod-pill {
+  background: rgba(124,106,255,0.12);
+  border: 1px solid rgba(124,106,255,0.2);
+  color: var(--accent);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* ── Section warning note ── */
+.vailib-section-warning {
+  background: rgba(255,209,102,0.06);
+  border-left: 3px solid rgba(255,209,102,0.4);
+  padding: 8px 16px;
+  font-size: 12px;
+  color: var(--accent-yellow);
+  margin: 0;
+  display: none;
+}
+
+.vailib-section-warning.visible {
+  display: block;
+}
+
+/* ── Language preview ── */
+#vailib-lang-preview {
+  margin-top: 7px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  transition: color 0.3s;
+}
+
+/* ── Search dim hidden rows ── */
+tr.vailib-row-hidden { display: none !important; }
+

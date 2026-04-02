@@ -88,5 +88,386 @@
 </div>
 <!-- END Container -->
 
+<script>
+/* ── VAILIB SETTINGS PAGE ENHANCEMENTS (Phase A+B) ─────────── */
+(function() {
+  'use strict';
+  if (!window.location.pathname.includes('/constance/config/')) return;
+
+  var SECTION_ICONS = ['⚙️','🖥️','🔍','⏰','🤖','🔧','📄'];
+  var EXT_PALETTE = {
+    '.pdf':'#ff6b6b','.epub':'#4ecdc4','.fb2':'#7c6aff',
+    '.djvu':'#ffd166','.mobi':'#f9844a','.zip':'#a8dadc','.cbr':'#ff9f43'
+  };
+  var LANG_PREVIEW = {
+    'en-us':'Catalogs | Books | Authors | Genres | Series',
+    'ru':'Каталоги | Книги | Авторы | Жанры | Серии',
+    'de':'Katalog | Bücher | Autoren | Genres | Serien',
+    'el':'Κατάλογοι | Βιβλία | Συγγραφείς | Είδη | Σειρές',
+    'es':'Catálogos | Libros | Autores | Géneros | Series',
+    'fr':'Catalogues | Livres | Auteurs | Genres | Séries',
+    'ar':'كتالوجات | كتب | مؤلفون | أنواع | سلاسل',
+    'hi':'कैटलॉग | किताबें | लेखक | शैलियाँ | श्रृंखला',
+    'pt':'Catálogos | Livros | Autores | Gêneros | Séries',
+    'zh-hans':'目录 | 图书 | 作者 | 流派 | 系列',
+    'bn':'ক্যাটালগ | বই | লেখক | ধরন | সিরিজ'
+  };
+  /* Sections to collapse by default (0-indexed) */
+  var DEFAULT_COLLAPSED = [3, 4, 5, 6];
+
+  document.addEventListener('DOMContentLoaded', function() {
+    wrapSections();
+    buildStickyBar();
+    buildJumpNav();
+    makeToggleSwitches();
+    addExtChips();
+    maskToken();
+    addCronSummary();
+    addLangPreview();
+    initSearch();
+    initUnsavedWarning();
+    markModifiedRows();
+  });
+
+  /* ── 1. WRAP SECTIONS ────────────────────────────────────── */
+  function wrapSections() {
+    /* Constance renders each group as a .module div containing an h2 + table,
+       OR as a <table> with a <caption>. Handle both. */
+    var sections = [];
+
+    /* Strategy A: .module wrappers with h2 */
+    document.querySelectorAll('.module').forEach(function(mod) {
+      var h2 = mod.querySelector(':scope > h2');
+      if (h2 && !h2.classList.contains('vailib-section-header')) {
+        sections.push({ wrapper: mod, header: h2 });
+      }
+    });
+    /* Strategy B: tables with caption (fallback) */
+    if (sections.length === 0) {
+      document.querySelectorAll('table').forEach(function(tbl) {
+        var cap = tbl.querySelector('caption');
+        if (cap) sections.push({ wrapper: tbl, header: cap });
+      });
+    }
+
+    sections.forEach(function(sec, i) {
+      var wrapper = sec.wrapper;
+      var header  = sec.header;
+
+      /* Mark header as collapsible */
+      header.classList.add('vailib-section-header');
+      var chev = document.createElement('span');
+      chev.className = 'vailib-chevron';
+      chev.textContent = '▼';
+      header.appendChild(chev);
+
+      /* Wrap body content */
+      var body = document.createElement('div');
+      body.className = 'vailib-section-body';
+      /* Move all siblings after header into body */
+      var next = header.nextSibling;
+      while (next) {
+        var tmp = next.nextSibling;
+        body.appendChild(next);
+        next = tmp;
+      }
+      wrapper.appendChild(body);
+
+      /* Warning note for Log & PID section (last one) */
+      var warn = null;
+      if (i === sections.length - 1) {
+        warn = document.createElement('div');
+        warn.className = 'vailib-section-warning';
+        warn.textContent = '⚠️ Internal system paths — only change if you know what you\'re doing.';
+        body.insertBefore(warn, body.firstChild);
+      }
+
+      /* Restore saved / default state */
+      var key = 'vailib_sec_' + i;
+      var stored = localStorage.getItem(key);
+      var collapsed = stored !== null ? stored === '1' : DEFAULT_COLLAPSED.includes(i);
+      if (collapsed) {
+        wrapper.classList.add('vailib-section-collapsed');
+        if (warn) warn.classList.remove('visible');
+      } else {
+        if (warn) warn.classList.add('visible');
+      }
+
+      /* Click handler */
+      header.addEventListener('click', function() {
+        var isNowCollapsed = wrapper.classList.toggle('vailib-section-collapsed');
+        localStorage.setItem(key, isNowCollapsed ? '1' : '0');
+        if (warn) warn.classList.toggle('visible', !isNowCollapsed);
+      });
+    });
+  }
+
+  /* ── 2. STICKY SAVE BAR ──────────────────────────────────── */
+  function buildStickyBar() {
+    var form = document.querySelector('#content-main form, form[method="post"]');
+    if (!form) return;
+
+    var bar = document.createElement('div');
+    bar.id = 'vailib-settings-bar';
+    bar.innerHTML =
+      '<span class="vsb-title">⚙️ SOPDS Configuration</span>' +
+      '<div class="vsb-actions">' +
+        '<input type="text" id="vailib-settings-search" placeholder="🔍 Search settings…" autocomplete="off">' +
+        '<span id="vailib-modified-badge"></span>' +
+        '<button type="button" id="vailib-settings-save-btn">💾 Save Settings</button>' +
+      '</div>';
+
+    var content = document.getElementById('content');
+    if (content) content.insertBefore(bar, content.firstChild);
+
+    document.getElementById('vailib-settings-save-btn').addEventListener('click', function() {
+      var real = form.querySelector('input[type="submit"], button[type="submit"]');
+      if (real) real.click(); else form.submit();
+    });
+  }
+
+  /* ── 3. JUMP NAV ─────────────────────────────────────────── */
+  function buildJumpNav() {
+    var headers = document.querySelectorAll('.vailib-section-header');
+    if (headers.length < 2) return;
+
+    var nav = document.createElement('div');
+    nav.id = 'vailib-jump-nav';
+
+    headers.forEach(function(h, i) {
+      var raw  = h.childNodes[0] ? h.childNodes[0].textContent.trim() : ('Section ' + (i+1));
+      var text = raw.replace(/^\d+\.\s*/, '').substring(0, 14);
+      var a = document.createElement('a');
+      a.className = 'vailib-jump-item';
+      a.href = '#';
+      a.title = raw.replace(/^\d+\.\s*/, '');
+      a.textContent = (SECTION_ICONS[i] || '•') + ' ' + text;
+      a.addEventListener('click', function(e) {
+        e.preventDefault();
+        h.closest('.module, table').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      nav.appendChild(a);
+    });
+    document.body.appendChild(nav);
+
+    /* Scroll spy */
+    window.addEventListener('scroll', function() {
+      var items = nav.querySelectorAll('.vailib-jump-item');
+      headers.forEach(function(h, i) {
+        var rect = h.closest('.module, table').getBoundingClientRect();
+        if (rect.top <= 130 && rect.bottom > 130) {
+          items.forEach(function(it) { it.classList.remove('active'); });
+          if (items[i]) items[i].classList.add('active');
+        }
+      });
+    }, { passive: true });
+  }
+
+  /* ── 4. TOGGLE SWITCHES ──────────────────────────────────── */
+  function makeToggleSwitches() {
+    document.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+      if (cb.closest('.vailib-toggle')) return; /* already done */
+      var label = document.createElement('label');
+      label.className = 'vailib-toggle';
+      var slider = document.createElement('span');
+      slider.className = 'vailib-slider';
+      var lbl = document.createElement('span');
+      lbl.className = 'vailib-toggle-label';
+      lbl.textContent = cb.checked ? 'ON' : 'OFF';
+      cb.addEventListener('change', function() {
+        lbl.textContent = cb.checked ? 'ON' : 'OFF';
+      });
+      cb.parentNode.insertBefore(label, cb);
+      label.appendChild(cb);
+      label.appendChild(slider);
+      label.appendChild(lbl);
+    });
+  }
+
+  /* ── 5. EXTENSION CHIPS ──────────────────────────────────── */
+  function addExtChips() {
+    var ta = document.querySelector('textarea[name="SOPDS_BOOK_EXTENSIONS"]');
+    if (!ta) return;
+    var box = document.createElement('div');
+    box.className = 'vailib-ext-chips';
+    ta.parentNode.insertBefore(box, ta.nextSibling);
+    function render() {
+      box.innerHTML = '';
+      (ta.value.trim().split(/\s+/) || []).forEach(function(ext) {
+        if (!ext) return;
+        var chip = document.createElement('span');
+        chip.className = 'vailib-ext-chip';
+        chip.textContent = ext;
+        var color = EXT_PALETTE[ext] || '#7c6aff';
+        chip.style.cssText = 'color:' + color + ';background:' + color + '18;border-color:' + color + '44';
+        box.appendChild(chip);
+      });
+    }
+    render();
+    ta.addEventListener('input', render);
+  }
+
+  /* ── 6. TOKEN MASKING ────────────────────────────────────── */
+  function maskToken() {
+    var ta = document.querySelector('textarea[name="SOPDS_TELEBOT_API_TOKEN"]');
+    if (!ta) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'vailib-token-wrap';
+    ta.parentNode.insertBefore(wrap, ta);
+    wrap.appendChild(ta);
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'vailib-token-toggle';
+    btn.textContent = '👁 Show';
+    wrap.appendChild(btn);
+    var masked = true;
+    ta.classList.add('vailib-token-masked');
+    btn.addEventListener('click', function() {
+      masked = !masked;
+      ta.classList.toggle('vailib-token-masked', masked);
+      btn.textContent = masked ? '👁 Show' : '🙈 Hide';
+    });
+  }
+
+  /* ── 7. CRON HUMAN SUMMARY ───────────────────────────────── */
+  function addCronSummary() {
+    var FIELDS = ['SOPDS_SCAN_SHED_MIN','SOPDS_SCAN_SHED_HOUR','SOPDS_SCAN_SHED_DAY','SOPDS_SCAN_SHED_DOW'];
+    var els = FIELDS.map(function(n) { return document.querySelector('[name="' + n + '"]'); });
+    if (!els[0]) return;
+    /* Find a good parent: the closest shared ancestor row or section */
+    var lastEl = els[els.length - 1];
+    if (!lastEl) return;
+    var summary = document.createElement('div');
+    summary.className = 'vailib-cron-summary';
+    var anchor = lastEl.closest('tr') || lastEl.parentNode;
+    anchor.parentNode.insertBefore(summary, anchor.nextSibling);
+    function update() {
+      var min  = (els[0] && els[0].value) || '*';
+      var hour = (els[1] && els[1].value) || '*';
+      var day  = (els[2] && els[2].value) || '*';
+      var dow  = (els[3] && els[3].value) || '*';
+      var time = (hour === '*' ? 'every hour' : 'at ' + hour + ':' + (min === '*' ? '00' : min.padStart(2,'0')));
+      var dayStr = day === '*' ? 'every day' : 'on day ' + day + ' of the month';
+      var dowMap = {'0':'Sunday','1':'Monday','2':'Tuesday','3':'Wednesday','4':'Thursday','5':'Friday','6':'Saturday','*':'any weekday'};
+      var dowStr = dow === '*' ? '' : ' (' + (dowMap[dow] || 'weekday ' + dow) + ')';
+      summary.textContent = '⏰ Runs ' + time + ', ' + dayStr + dowStr;
+    }
+    update();
+    els.forEach(function(el) { if (el) el.addEventListener('input', update); });
+  }
+
+  /* ── 8. LANGUAGE PREVIEW ─────────────────────────────────── */
+  function addLangPreview() {
+    var sel = document.querySelector('select[name="SOPDS_LANGUAGE"]');
+    if (!sel) return;
+    var prev = document.createElement('div');
+    prev.id = 'vailib-lang-preview';
+    sel.parentNode.insertBefore(prev, sel.nextSibling);
+    function update() {
+      var lang = sel.value.toLowerCase();
+      var text = LANG_PREVIEW[lang] || LANG_PREVIEW['en-us'];
+      prev.textContent = '🌐 ' + text;
+    }
+    update();
+    sel.addEventListener('change', update);
+  }
+
+  /* ── 9. QUICK SEARCH ─────────────────────────────────────── */
+  function initSearch() {
+    var inp = document.getElementById('vailib-settings-search');
+    if (!inp) return;
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        inp.focus(); inp.select();
+      }
+      if (e.key === 'Escape' && document.activeElement === inp) {
+        inp.value = ''; filter(''); inp.blur();
+      }
+    });
+    inp.addEventListener('input', function() { filter(this.value.toLowerCase().trim()); });
+  }
+
+  function filter(q) {
+    document.querySelectorAll('.vailib-section-body table tbody tr, .module tbody tr').forEach(function(row) {
+      if (!q) { row.classList.remove('vailib-row-hidden'); return; }
+      var match = row.textContent.toLowerCase().includes(q);
+      row.classList.toggle('vailib-row-hidden', !match);
+    });
+    /* Auto-expand sections that have matches */
+    document.querySelectorAll('.module, table').forEach(function(sec) {
+      if (!q) return;
+      var visible = sec.querySelectorAll('tbody tr:not(.vailib-row-hidden)').length;
+      if (visible > 0) sec.classList.remove('vailib-section-collapsed');
+    });
+  }
+
+  /* ── 10. UNSAVED CHANGES WARNING ─────────────────────────── */
+  function initUnsavedWarning() {
+    var badge = document.getElementById('vailib-modified-badge');
+    var initVals = new Map();
+    var dirty = 0;
+    document.querySelectorAll('input:not([type=submit]):not([type=button]), textarea, select').forEach(function(el) {
+      if (!el.name) return;
+      initVals.set(el.name, el.type === 'checkbox' ? el.checked : el.value);
+    });
+    function check() {
+      dirty = 0;
+      initVals.forEach(function(orig, name) {
+        var el = document.querySelector('[name="' + name + '"]');
+        if (!el) return;
+        var cur = el.type === 'checkbox' ? el.checked : el.value;
+        if (cur !== orig) dirty++;
+      });
+      if (!badge) return;
+      if (dirty > 0) {
+        badge.textContent = '⚠️ ' + dirty + ' unsaved change' + (dirty !== 1 ? 's' : '');
+        badge.className = 'visible unsaved';
+      } else {
+        badge.textContent = '';
+        badge.className = '';
+      }
+    }
+    document.querySelectorAll('input, textarea, select').forEach(function(el) {
+      el.addEventListener('input', check);
+      el.addEventListener('change', check);
+    });
+    window.addEventListener('beforeunload', function(e) {
+      if (dirty > 0) { e.preventDefault(); e.returnValue = ''; }
+    });
+    var form = document.querySelector('#content-main form, form[method="post"]');
+    if (form) form.addEventListener('submit', function() { dirty = 0; });
+  }
+
+  /* ── 11. MODIFIED ROW HIGHLIGHTS ─────────────────────────── */
+  function markModifiedRows() {
+    /* The IS MODIFIED column contains a colored icon — img with green/red or an emoji */
+    document.querySelectorAll('tbody tr').forEach(function(row) {
+      var cells = row.querySelectorAll('td');
+      if (cells.length < 1) return;
+      var lastCell = cells[cells.length - 1];
+      /* Green indicator = modified (class, src, or text content) */
+      var isModified = lastCell.querySelector('img[src*="yes"]') ||
+                       lastCell.querySelector('.vmark') ||
+                       (lastCell.innerHTML.indexOf('green') > -1) ||
+                       (lastCell.querySelector('img') &&
+                        lastCell.querySelector('img').src &&
+                        lastCell.querySelector('img').src.indexOf('icon-yes') > -1);
+      if (isModified) {
+        row.classList.add('vailib-row-modified');
+        var nameCell = cells[0];
+        if (nameCell && !nameCell.querySelector('.vailib-mod-pill')) {
+          var pill = document.createElement('span');
+          pill.className = 'vailib-mod-pill';
+          pill.textContent = 'MODIFIED';
+          nameCell.appendChild(pill);
+        }
+      }
+    });
+  }
+
+})();
+</script>
+
 </body>
 </html>
