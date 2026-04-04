@@ -18,7 +18,7 @@ From inspecting the site and the latest screenshot provided, the following areas
 
 ## Proposed Changes
 
-We will execute these changes directly in the `C:\Users\vik\Documents\devops\vailib` project directory. All changes will be synchronized to the `sopds` docker container for live previewing.
+We will execute these changes directly in the `C:\Users\vik\Documents\devops\vailib` project directory. Changes are deployed to production via `git push` followed by `bash /home/vik/vailib/deploy.sh` on hproliant.
 
 ### 1. Refactor List Templates
 #### [MODIFY] `templates/sopds_authors.html`

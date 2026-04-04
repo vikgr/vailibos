@@ -71,6 +71,8 @@ The importer script inside `/sopds/opds_catalog/dl.py` determines `lang_code` by
 - Run a full library rescan `docker exec sopds python3 manage.py sopds_scanner clear` to re-bucket existing titles based on the new character maps.
 
 ## Deliverables
-- [ ] Customized `models.py` created locally.
-- [ ] Customized `dl.py` created locally with Python regex logic for Chinese ranges.
-- [ ] Updated `docker-compose` routing.
+- [x] Customized `models.py` — expanded `LangCodes` (codes 4–8) live in production.
+- [x] Customized `opdsdb.py` — CJK auto-detection via Unicode block ranges (`\u4e00-\u9fff`).
+- [x] `sopds-docker-compose.yml` — bind-mounts `models.py` and `opdsdb.py` from `/home/vik/vailib/`.
+
+> **Status**: ✅ Fully deployed as of March 2026 (Phase 3). Run `docker exec sopds python3 manage.py sopds_scanner clear` after any `LangCodes` change to re-bucket existing titles.
