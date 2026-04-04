@@ -1173,3 +1173,172 @@ tr.vailib-row-modified > td:first-child {
 /* ── Search dim hidden rows ── */
 tr.vailib-row-hidden { display: none !important; }
 
+
+/* ══════════════════════════════════════════════════════════════
+   PHASE C — Advanced UX Enhancements
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Cron preset dropdown ── */
+.vailib-cron-presets {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 4px;
+}
+
+.vailib-cron-preset-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+#vailib-cron-preset-sel {
+  background: var(--bg-input) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-primary) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 5px 10px !important;
+  font-size: 12px !important;
+  font-family: inherit !important;
+  cursor: pointer;
+  width: auto !important;
+  transition: border-color var(--transition) !important;
+}
+
+#vailib-cron-preset-sel:focus,
+#vailib-cron-preset-sel:hover {
+  border-color: var(--accent) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(124,106,255,0.15) !important;
+}
+
+/* ── Reset confirmation popover ── */
+#vailib-reset-popover {
+  position: absolute;
+  background: var(--bg-card);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-card), var(--shadow-glow);
+  z-index: 2000;
+  width: 264px;
+  display: none;
+}
+
+#vailib-reset-popover.visible {
+  display: block;
+  animation: vrp-in 0.15s ease;
+}
+
+@keyframes vrp-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+.vrp-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.vrp-default {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  word-break: break-all;
+  line-height: 1.5;
+}
+
+.vrp-default code {
+  background: var(--bg-page);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 11px;
+  color: var(--accent);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+}
+
+.vrp-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.vrp-btn {
+  flex: 1;
+  padding: 6px 10px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  border-radius: var(--radius-sm) !important;
+  cursor: pointer !important;
+  transition: all var(--transition) !important;
+  font-family: inherit !important;
+  text-align: center;
+}
+
+.vrp-btn-yes {
+  background: rgba(255,87,87,0.1) !important;
+  border: 1px solid rgba(255,87,87,0.3) !important;
+  color: var(--accent-danger) !important;
+}
+
+.vrp-btn-yes:hover {
+  background: rgba(255,87,87,0.22) !important;
+  border-color: rgba(255,87,87,0.5) !important;
+}
+
+.vrp-btn-no {
+  background: var(--bg-card-alt) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-secondary) !important;
+}
+
+.vrp-btn-no:hover {
+  background: var(--bg-row-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ── Telegram bot status badge ── */
+.vailib-tg-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  margin-left: auto;    /* push badge to the right, chevron stays last */
+  margin-right: 10px;
+  pointer-events: none; /* don't swallow header click-to-collapse */
+  white-space: nowrap;
+  transition: all 0.35s;
+  flex-shrink: 0;
+}
+
+.vailib-tg-loading {
+  background: rgba(139,145,181,0.08);
+  border: 1px solid rgba(139,145,181,0.2);
+  color: var(--text-muted);
+}
+
+.vailib-tg-online {
+  background: rgba(61,217,150,0.1);
+  border: 1px solid rgba(61,217,150,0.3);
+  color: var(--accent-green);
+  box-shadow: 0 0 8px rgba(61,217,150,0.15);
+}
+
+.vailib-tg-offline {
+  background: rgba(255,87,87,0.1);
+  border: 1px solid rgba(255,87,87,0.3);
+  color: var(--accent-danger);
+}
+
+.vailib-tg-disabled {
+  background: rgba(85,90,122,0.08);
+  border: 1px solid rgba(85,90,122,0.15);
+  color: var(--text-muted);
+}
+

@@ -2,7 +2,7 @@
 
 > **Scope:** `http://opds.workzilla.nl/admin/constance/config/`  
 > **Approach:** Pure CSS + JS injection via `admin_theme.css` and `templates/admin/base.html` — **no backend/Django changes needed**, fully achieved through the existing bind-mount system.  
-> **Status:** 📋 PLANNED — not yet implemented
+> **Status:** ✅ FULLY IMPLEMENTED — Phase A + B + C complete (2026-04-04)
 
 ---
 

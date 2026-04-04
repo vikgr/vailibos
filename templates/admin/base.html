@@ -127,6 +127,9 @@
     initSearch();
     initUnsavedWarning();
     markModifiedRows();
+    addCronPresets();
+    initResetPopovers();
+    initTelegramStatus();
   });
 
   /* ── 1. WRAP SECTIONS ────────────────────────────────────── */
@@ -464,6 +467,151 @@
         }
       }
     });
+  }
+
+  /* ── 12. CRON PRESETS DROPDOWN ───────────────────────────── */
+  function addCronPresets() {
+    var FIELDS = ['SOPDS_SCAN_SHED_MIN','SOPDS_SCAN_SHED_HOUR','SOPDS_SCAN_SHED_DAY','SOPDS_SCAN_SHED_DOW'];
+    var els = FIELDS.map(function(n) { return document.querySelector('[name="' + n + '"]'); });
+    if (!els[0]) return;
+    var PRESETS = [
+      { label: '— Select preset —',          values: null },
+      { label: '⏰ Every day at 3 AM',        values: ['0','3','*','*'] },
+      { label: '🌙 Every day at midnight',    values: ['0','0','*','*'] },
+      { label: '📅 Weekly — Monday 3 AM',     values: ['0','3','*','1'] },
+      { label: '📅 Weekly — Sunday midnight', values: ['0','0','*','0'] },
+      { label: '📆 Monthly — 1st day, 3 AM',  values: ['0','3','1','*'] },
+      { label: '🔕 Never (disabled)',          values: ['0','0','31','0'] }
+    ];
+    var wrap = document.createElement('div');
+    wrap.className = 'vailib-cron-presets';
+    var lbl = document.createElement('label');
+    lbl.className = 'vailib-cron-preset-label';
+    lbl.textContent = '⚡ Quick preset:';
+    lbl.htmlFor = 'vailib-cron-preset-sel';
+    var sel = document.createElement('select');
+    sel.id = 'vailib-cron-preset-sel';
+    PRESETS.forEach(function(p, i) {
+      var opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = p.label;
+      sel.appendChild(opt);
+    });
+    wrap.appendChild(lbl);
+    wrap.appendChild(sel);
+    /* Insert before the cron summary (which addCronSummary already created) */
+    var summary = document.querySelector('.vailib-cron-summary');
+    if (summary) summary.parentNode.insertBefore(wrap, summary);
+    sel.addEventListener('change', function() {
+      var preset = PRESETS[parseInt(this.value, 10)];
+      if (!preset || !preset.values) return;
+      els.forEach(function(el, i) {
+        if (el) { el.value = preset.values[i]; el.dispatchEvent(new Event('input', {bubbles:true})); }
+      });
+      setTimeout(function() { sel.value = '0'; }, 120);
+    });
+  }
+
+  /* ── 13. RESET CONFIRMATION POPOVER ─────────────────────── */
+  function initResetPopovers() {
+    var resetLinks = document.querySelectorAll('a[href*="reset"]');
+    if (!resetLinks.length) return;
+    var pop = document.createElement('div');
+    pop.id = 'vailib-reset-popover';
+    pop.innerHTML =
+      '<div class="vrp-title" id="vrp-title">Reset this field?</div>' +
+      '<div class="vrp-default" id="vrp-default"></div>' +
+      '<div class="vrp-buttons">' +
+        '<button type="button" id="vrp-yes" class="vrp-btn vrp-btn-yes">✓ Reset</button>' +
+        '<button type="button" id="vrp-no"  class="vrp-btn vrp-btn-no">✕ Cancel</button>' +
+      '</div>';
+    document.body.appendChild(pop);
+    var pending = null;
+    function show(link, name, def) {
+      pending = link;
+      document.getElementById('vrp-title').textContent = 'Reset ' + name + '?';
+      var defEl = document.getElementById('vrp-default');
+      defEl.innerHTML = def ? 'Restore to: <code>' + def + '</code>' : 'Restore to default value.';
+      var rect = link.getBoundingClientRect();
+      pop.style.top  = (rect.bottom + window.scrollY + 8) + 'px';
+      pop.style.left = Math.min(rect.left + window.scrollX, window.innerWidth - 280) + 'px';
+      pop.classList.add('visible');
+    }
+    function hide() { pop.classList.remove('visible'); pending = null; }
+    document.getElementById('vrp-yes').addEventListener('click', function() {
+      if (pending) { pending._ok = true; pending.click(); }
+      hide();
+    });
+    document.getElementById('vrp-no').addEventListener('click', hide);
+    document.addEventListener('click', function(e) { if (!pop.contains(e.target)) hide(); }, true);
+    resetLinks.forEach(function(a) {
+      a.addEventListener('click', function(e) {
+        if (a._ok) { a._ok = false; return; }
+        e.preventDefault(); e.stopImmediatePropagation();
+        var row = a.closest('tr');
+        var name = '', def = '';
+        if (row) {
+          var cell = row.querySelector('td:first-child');
+          if (cell) name = cell.textContent.trim().split(/\s+/)[0] || 'this field';
+          var defCell = row.querySelector('td:last-child');
+          if (defCell) def = defCell.getAttribute('title') || defCell.textContent.trim().substring(0, 60);
+        }
+        show(a, name, def);
+      });
+    });
+  }
+
+  /* ── 14. TELEGRAM BOT STATUS BADGE ──────────────────────── */
+  function initTelegramStatus() {
+    var tgHeader = null;
+    document.querySelectorAll('.vailib-section-header').forEach(function(h) {
+      if (h.textContent.toLowerCase().indexOf('telegram') > -1) tgHeader = h;
+    });
+    if (!tgHeader) return;
+    var ta = document.querySelector('textarea[name="SOPDS_TELEBOT_API_TOKEN"]');
+    if (!ta) return;
+    var badge = document.createElement('span');
+    badge.id = 'vailib-tg-badge';
+    badge.className = 'vailib-tg-badge vailib-tg-loading';
+    badge.textContent = '⟳ Checking…';
+    var chev = tgHeader.querySelector('.vailib-chevron');
+    tgHeader.insertBefore(badge, chev || null);
+    var cache = null, cacheAt = 0, TTL = 30000;
+    function applyResult(data) {
+      if (data && data.ok && data.result) {
+        var name = data.result.first_name || data.result.username || 'Bot';
+        badge.textContent = '🟢 ' + name;
+        badge.className = 'vailib-tg-badge vailib-tg-online';
+        badge.title = '@' + (data.result.username || '');
+      } else {
+        badge.textContent = '🔴 Invalid token';
+        badge.className = 'vailib-tg-badge vailib-tg-offline';
+      }
+    }
+    function check() {
+      var tok = ta.value.trim();
+      if (!tok || tok.length < 20) {
+        badge.textContent = '⚪ No token';
+        badge.className = 'vailib-tg-badge vailib-tg-disabled';
+        return;
+      }
+      if (cache && (Date.now() - cacheAt) < TTL) { applyResult(cache); return; }
+      badge.textContent = '⟳ Checking…';
+      badge.className = 'vailib-tg-badge vailib-tg-loading';
+      fetch('https://api.telegram.org/bot' + tok + '/getMe')
+        .then(function(r) { return r.json(); })
+        .then(function(d) { cache = d; cacheAt = Date.now(); applyResult(d); })
+        .catch(function() {
+          badge.textContent = '🔴 Offline';
+          badge.className = 'vailib-tg-badge vailib-tg-offline';
+        });
+    }
+    /* Re-check each time the section is expanded */
+    tgHeader.addEventListener('click', function() { setTimeout(check, 400); });
+    /* Re-check when token field is changed */
+    ta.addEventListener('change', function() { cache = null; check(); });
+    /* Initial check (only if token present) */
+    if (ta.value.trim().length > 20) check();
   }
 
 })();
