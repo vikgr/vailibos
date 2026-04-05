@@ -48,15 +48,11 @@ Theme toggle is saved to `localStorage` and persists across sessions.
 
 ---
 
-## 🛠️ Admin UI (Constance Config Page)
+## 🛠️ Admin UI (Constance Config Page) & Frontend Theme Switching
 
-The Django admin at `/admin/constance/config/` has a complete premium dark theme (`static/custom/css/admin_theme.css`) and full JS enhancement suite (`templates/admin/base.html`). All three phases are complete as of 2026-04-04:
-
-| Phase | Features | Status |
-|-------|----------|--------|
-| A (CSS) | Toggle switches, single-line path fields, sticky save bar, section styling | ✅ Done |
-| B (JS Core) | Collapsible sections, jump nav, ext chips, token masking, cron summary, lang preview, search, unsaved warning, modified highlights | ✅ Done |
-| C (Advanced) | Cron presets dropdown, reset confirmation popover, Telegram bot status badge | ✅ Done |
+The Django admin at `/admin/constance/config/` has been **completely rebuilt** using a native template override (`templates/admin/constance/includes/results_list.html`). We threw away the old JS table hacks in favor of a clean, responsive **CSS Grid layout** with modern glass/flat cards, giving it a premium "Vercel" or "Stripe" dashboard feel.
+- Clean typography and native high-contrast `admin_theme.css` styling.
+- Frontend theme toggle in the UI (`sopds_menu.html`) was upgraded from a clunky button to a sleek **Segmented Control** (Premium vs E-Ink).
 
 ---
 
@@ -80,8 +76,9 @@ The Django admin at `/admin/constance/config/` has a complete premium dark theme
 - **Language Choices in Admin**: All 11 SOPDS_LANGUAGE options wired into constance via `patch_settings.py`.
 
 ### Phase 4 (April 2026)
-- **Premium Admin Theme**: Full dark indigo/violet Django admin with `admin_theme.css`.
-- **Settings Page Enhancement — Phase A+B+C**: All 14 features implemented (see table above).
+- **Frontend Theme Segmented Control**: Migrated legacy toggle button to modern premium pill-switch.
+- **Admin UI Overhaul (Vercel-style)**: Replaced Django settings `<table>` structure with native `templates/admin/constance/includes/results_list.html` override.
+- **Admin CSS Pro Theme**: Implemented high-contrast professional GitHub-dark palette in `admin_theme.css`, purging legacy glassmorphism/blurs and JS hacks.
 
 ---
 
