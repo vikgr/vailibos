@@ -5,51 +5,51 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* ── Reset & tokens ── */
+/* ── Reset & tokens (HIGH CONTRAST) ── */
 :root {
-  --bg-page:        #0f1117;
-  --bg-sidebar:     #13161f;
-  --bg-card:        #1a1d2e;
-  --bg-card-alt:    #1e2236;
-  --bg-row-odd:     #1a1d2e;
-  --bg-row-even:    #1e2236;
-  --bg-row-hover:   #252a3f;
-  --bg-input:       #0f1117;
-  --bg-header:      #141728;
+  --bg-page:        #0d1117;
+  --bg-sidebar:     #0d1117;
+  --bg-card:        #161b22;
+  --bg-card-alt:    #21262d;
+  --bg-row-odd:     #0d1117;
+  --bg-row-even:    #161b22;
+  --bg-row-hover:   #21262d;
+  --bg-input:       #010409;
+  --bg-header:      #010409;
 
-  --accent:         #7c6aff;
-  --accent-hover:   #9b8dff;
-  --accent-teal:    #3dd9c0;
-  --accent-danger:  #ff5757;
-  --accent-green:   #3dd996;
-  --accent-yellow:  #ffd166;
+  --accent:         #2f81f7;
+  --accent-hover:   #539bf5;
+  --accent-teal:    #2f81f7; /* fallback to blue */
+  --accent-danger:  #e5534b;
+  --accent-green:   #238636;
+  --accent-yellow:  #d29922;
 
-  --text-primary:   #e8eaf6;
-  --text-secondary: #8b91b5;
-  --text-muted:     #555a7a;
-  --text-link:      #a99eff;
-  --text-link-hover:#c4baff;
+  --text-primary:   #e6edf3;
+  --text-secondary: #848d97;
+  --text-muted:     #7d8590;
+  --text-link:      #2f81f7;
+  --text-link-hover:#539bf5;
 
-  --border:         #252a3d;
-  --border-accent:  #7c6aff44;
-  --border-focus:   #7c6aff;
+  --border:         #30363d;
+  --border-accent:  #30363d; /* no glowing borders */
+  --border-focus:   #2f81f7;
 
   --radius-sm:      6px;
-  --radius-md:      10px;
-  --radius-lg:      14px;
+  --radius-md:      6px;
+  --radius-lg:      6px;
 
-  --shadow-card:    0 4px 20px rgba(0,0,0,0.4);
-  --shadow-glow:    0 0 20px rgba(124,106,255,0.15);
+  --shadow-card:    0 1px 3px rgba(0,0,0,0.3);
+  --shadow-glow:    none;
 
-  --transition:     0.2s cubic-bezier(0.4,0,0.2,1);
+  --transition:     0.15s ease-out;
 }
 
 /* ── Base ── */
 * { box-sizing: border-box; }
 
 html, body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  font-size: 15px; /* Bigger base font for readability */
   line-height: 1.6;
   background: var(--bg-page);
   color: var(--text-primary);
@@ -57,7 +57,7 @@ html, body {
 }
 
 a { color: var(--text-link); text-decoration: none; transition: color var(--transition); }
-a:hover { color: var(--text-link-hover); }
+a:hover { color: var(--text-link-hover); text-decoration: underline; }
 
 /* ── Container ── */
 #container {
@@ -974,9 +974,8 @@ td.action-checkbox { width: 32px !important; }
 }
 
 .vs-toggle input:checked ~ .vs-track {
-  background: var(--accent-teal);
-  border-color: var(--accent-teal);
-  box-shadow: 0 0 0 3px rgba(61,217,192,0.15);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .vs-toggle input:checked ~ .vs-track .vs-thumb {
@@ -990,12 +989,12 @@ td.action-checkbox { width: 32px !important; }
   letter-spacing: 0.4px;
   color: var(--text-muted);
   text-transform: uppercase;
-  transition: color 0.22s;
+  transition: color 0.15s;
   min-width: 50px;
 }
 
 .vs-toggle input:checked ~ .vs-toggle-text {
-  color: var(--accent-teal);
+  color: var(--text-primary);
 }
 
 /* ── Single-line path textareas ── */
@@ -1051,15 +1050,14 @@ textarea.vs-path-input {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(61,217,192,0.05);
-  border: 1px solid rgba(61,217,192,0.18);
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 8px 14px;
   font-size: 12px;
-  color: var(--accent-teal);
+  color: var(--text-secondary);
   font-weight: 500;
   margin-top: 8px;
-  letter-spacing: 0.2px;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1091,16 +1089,15 @@ textarea.vs-path-input {
 }
 
 .vs-lang-card:hover {
-  border-color: var(--accent);
-  background: rgba(124,106,255,0.08);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(124,106,255,0.18);
+  border-color: var(--text-secondary);
+  background: var(--bg-row-hover);
+  transform: translateY(-1px);
 }
 
 .vs-lang-card.vs-lang-active {
   border-color: var(--accent);
-  background: rgba(124,106,255,0.14);
-  box-shadow: 0 0 0 2px rgba(124,106,255,0.25), 0 6px 20px rgba(124,106,255,0.2);
+  background: var(--bg-input);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
 .vs-lang-flag {
@@ -1132,13 +1129,11 @@ textarea.vs-path-input {
   gap: 8px;
   margin-top: 10px;
   padding: 9px 14px;
-  background: rgba(124,106,255,0.05);
-  border: 1px solid rgba(124,106,255,0.15);
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 12px;
-  color: var(--text-secondary);
-  font-style: italic;
-  transition: all 0.25s ease;
+  font-size: 13px;
+  color: var(--text-primary);
   min-height: 38px;
 }
 
