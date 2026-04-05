@@ -89,118 +89,84 @@
 <!-- END Container -->
 
 <script>
-/* ── VAILIB SETTINGS PAGE ENHANCEMENTS (Phase A+B) ─────────── */
-(function() {
+/* ── VAILIB SETTINGS PAGE — Clean Enhancement Suite ──────────── */
+(function () {
   'use strict';
   if (!window.location.pathname.includes('/constance/config/')) return;
 
-  var SECTION_ICONS = ['⚙️','🖥️','🔍','⏰','🤖','🔧','📄'];
-  var EXT_PALETTE = {
-    '.pdf':'#ff6b6b','.epub':'#4ecdc4','.fb2':'#7c6aff',
-    '.djvu':'#ffd166','.mobi':'#f9844a','.zip':'#a8dadc','.cbr':'#ff9f43'
-  };
-  var LANG_PREVIEW = {
-    'en-us':'Catalogs | Books | Authors | Genres | Series',
-    'ru':'Каталоги | Книги | Авторы | Жанры | Серии',
-    'de':'Katalog | Bücher | Autoren | Genres | Serien',
-    'el':'Κατάλογοι | Βιβλία | Συγγραφείς | Είδη | Σειρές',
-    'es':'Catálogos | Libros | Autores | Géneros | Series',
-    'fr':'Catalogues | Livres | Auteurs | Genres | Séries',
-    'ar':'كتالوجات | كتب | مؤلفون | أنواع | سلاسل',
-    'hi':'कैटलॉग | किताबें | लेखक | शैलियाँ | श्रृंखला',
-    'pt':'Catálogos | Livros | Autores | Gêneros | Séries',
-    'zh-hans':'目录 | 图书 | 作者 | 流派 | 系列',
-    'bn':'ক্যাটালগ | বই | লেখক | ধরন | সিরিজ'
-  };
-  /* Sections to collapse by default (0-indexed) */
-  var DEFAULT_COLLAPSED = [3, 4, 5, 6];
+  /* ── Config ── */
+  var DEFAULT_COLLAPSED = [3, 4, 5, 6]; /* 0-indexed sections collapsed by default */
 
-  document.addEventListener('DOMContentLoaded', function() {
+  var LANG_DATA = {
+    'en-us': { flag: '🇬🇧', name: 'English',    sample: 'Catalogs · Books · Authors · Genres · Series' },
+    'ru':    { flag: '🇷🇺', name: 'Русский',    sample: 'Каталоги · Книги · Авторы · Жанры · Серии' },
+    'de':    { flag: '🇩🇪', name: 'Deutsch',    sample: 'Kataloge · Bücher · Autoren · Genres · Serien' },
+    'el':    { flag: '🇬🇷', name: 'Ελληνικά',  sample: 'Κατάλογοι · Βιβλία · Συγγραφείς · Είδη · Σειρές' },
+    'es':    { flag: '🇪🇸', name: 'Español',    sample: 'Catálogos · Libros · Autores · Géneros · Series' },
+    'fr':    { flag: '🇫🇷', name: 'Français',   sample: 'Catalogues · Livres · Auteurs · Genres · Séries' },
+    'ar':    { flag: '🇸🇦', name: 'العربية',    sample: 'كتالوجات · كتب · مؤلفون · أنواع · سلاسل' },
+    'hi':    { flag: '🇮🇳', name: 'हिन्दी',    sample: 'कैटलॉग · किताबें · लेखक · शैलियाँ · श्रृंखला' },
+    'pt':    { flag: '🇧🇷', name: 'Português',  sample: 'Catálogos · Livros · Autores · Gêneros · Séries' },
+    'zh-hans':{ flag: '🇨🇳', name: '中文',      sample: '目录 · 图书 · 作者 · 流派 · 系列' },
+    'bn':    { flag: '🇧🇩', name: 'বাংলা',      sample: 'ক্যাটালগ · বই · লেখক · ধরন · সিরিজ' }
+  };
+
+  document.addEventListener('DOMContentLoaded', function () {
     wrapSections();
     buildStickyBar();
-    buildJumpNav();
     makeToggleSwitches();
-    addExtChips();
+    singleLineTextareas();
     maskToken();
     addCronSummary();
-    addLangPreview();
-    initSearch();
+    upgradeLangSelector();
     initUnsavedWarning();
-    markModifiedRows();
-    addCronPresets();
-    initResetPopovers();
-    initTelegramStatus();
   });
 
-  /* ── 1. WRAP SECTIONS ────────────────────────────────────── */
+  /* ── 1. COLLAPSIBLE SECTIONS ─────────────────────────────── */
   function wrapSections() {
-    /* Constance renders each group as a .module div containing an h2 + table,
-       OR as a <table> with a <caption>. Handle both. */
     var sections = [];
-
-    /* Strategy A: .module wrappers with h2 */
-    document.querySelectorAll('.module').forEach(function(mod) {
+    document.querySelectorAll('.module').forEach(function (mod) {
       var h2 = mod.querySelector(':scope > h2');
-      if (h2 && !h2.classList.contains('vailib-section-header')) {
-        sections.push({ wrapper: mod, header: h2 });
-      }
+      if (h2 && !h2.classList.contains('vs-header')) sections.push({ wrapper: mod, header: h2 });
     });
-    /* Strategy B: tables with caption (fallback) */
     if (sections.length === 0) {
-      document.querySelectorAll('table').forEach(function(tbl) {
+      document.querySelectorAll('table').forEach(function (tbl) {
         var cap = tbl.querySelector('caption');
         if (cap) sections.push({ wrapper: tbl, header: cap });
       });
     }
 
-    sections.forEach(function(sec, i) {
-      var wrapper = sec.wrapper;
-      var header  = sec.header;
+    sections.forEach(function (sec, i) {
+      var wrapper = sec.wrapper, header = sec.header;
+      header.classList.add('vs-header');
 
-      /* Mark header as collapsible */
-      header.classList.add('vailib-section-header');
       var chev = document.createElement('span');
-      chev.className = 'vailib-chevron';
-      chev.textContent = '▼';
+      chev.className = 'vs-chevron';
+      chev.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       header.appendChild(chev);
 
-      /* Wrap body content */
       var body = document.createElement('div');
-      body.className = 'vailib-section-body';
-      /* Move all siblings after header into body */
+      body.className = 'vs-body';
       var next = header.nextSibling;
-      while (next) {
-        var tmp = next.nextSibling;
-        body.appendChild(next);
-        next = tmp;
-      }
+      while (next) { var tmp = next.nextSibling; body.appendChild(next); next = tmp; }
       wrapper.appendChild(body);
 
-      /* Warning note for Log & PID section (last one) */
-      var warn = null;
+      /* "Danger zone" warning for Log & PID section */
       if (i === sections.length - 1) {
-        warn = document.createElement('div');
-        warn.className = 'vailib-section-warning';
-        warn.textContent = '⚠️ Internal system paths — only change if you know what you\'re doing.';
+        var warn = document.createElement('div');
+        warn.className = 'vs-danger-note';
+        warn.innerHTML = '<span>⚠️</span> Internal system paths — only change if you know what you\'re doing.';
         body.insertBefore(warn, body.firstChild);
       }
 
-      /* Restore saved / default state */
-      var key = 'vailib_sec_' + i;
-      var stored = localStorage.getItem(key);
-      var collapsed = stored !== null ? stored === '1' : DEFAULT_COLLAPSED.includes(i);
-      if (collapsed) {
-        wrapper.classList.add('vailib-section-collapsed');
-        if (warn) warn.classList.remove('visible');
-      } else {
-        if (warn) warn.classList.add('visible');
-      }
+      var key = 'vl_sec_' + i;
+      var saved = localStorage.getItem(key);
+      var collapsed = saved !== null ? saved === '1' : DEFAULT_COLLAPSED.includes(i);
+      if (collapsed) wrapper.classList.add('vs-collapsed');
 
-      /* Click handler */
-      header.addEventListener('click', function() {
-        var isNowCollapsed = wrapper.classList.toggle('vailib-section-collapsed');
-        localStorage.setItem(key, isNowCollapsed ? '1' : '0');
-        if (warn) warn.classList.toggle('visible', !isNowCollapsed);
+      header.addEventListener('click', function () {
+        var now = wrapper.classList.toggle('vs-collapsed');
+        localStorage.setItem(key, now ? '1' : '0');
       });
     });
   }
@@ -211,212 +177,168 @@
     if (!form) return;
 
     var bar = document.createElement('div');
-    bar.id = 'vailib-settings-bar';
+    bar.id = 'vs-bar';
     bar.innerHTML =
-      '<span class="vsb-title">⚙️ SOPDS Configuration</span>' +
-      '<div class="vsb-actions">' +
-        '<input type="text" id="vailib-settings-search" placeholder="🔍 Search settings…" autocomplete="off">' +
-        '<span id="vailib-modified-badge"></span>' +
-        '<button type="button" id="vailib-settings-save-btn">💾 Save Settings</button>' +
+      '<div class="vs-bar-left">' +
+        '<span class="vs-bar-icon">⚙️</span>' +
+        '<span class="vs-bar-title">SOPDS Configuration</span>' +
+      '</div>' +
+      '<div class="vs-bar-right">' +
+        '<span id="vs-dirty-badge"></span>' +
+        '<button type="button" id="vs-save-btn">Save Changes</button>' +
       '</div>';
 
     var content = document.getElementById('content');
     if (content) content.insertBefore(bar, content.firstChild);
 
-    document.getElementById('vailib-settings-save-btn').addEventListener('click', function() {
+    document.getElementById('vs-save-btn').addEventListener('click', function () {
       var real = form.querySelector('input[type="submit"], button[type="submit"]');
       if (real) real.click(); else form.submit();
     });
   }
 
-  /* ── 3. JUMP NAV ─────────────────────────────────────────── */
-  function buildJumpNav() {
-    var headers = document.querySelectorAll('.vailib-section-header');
-    if (headers.length < 2) return;
-
-    var nav = document.createElement('div');
-    nav.id = 'vailib-jump-nav';
-
-    headers.forEach(function(h, i) {
-      var raw  = h.childNodes[0] ? h.childNodes[0].textContent.trim() : ('Section ' + (i+1));
-      var text = raw.replace(/^\d+\.\s*/, '').substring(0, 14);
-      var a = document.createElement('a');
-      a.className = 'vailib-jump-item';
-      a.href = '#';
-      a.title = raw.replace(/^\d+\.\s*/, '');
-      a.textContent = (SECTION_ICONS[i] || '•') + ' ' + text;
-      a.addEventListener('click', function(e) {
-        e.preventDefault();
-        h.closest('.module, table').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-      nav.appendChild(a);
-    });
-    document.body.appendChild(nav);
-
-    /* Scroll spy */
-    window.addEventListener('scroll', function() {
-      var items = nav.querySelectorAll('.vailib-jump-item');
-      headers.forEach(function(h, i) {
-        var rect = h.closest('.module, table').getBoundingClientRect();
-        if (rect.top <= 130 && rect.bottom > 130) {
-          items.forEach(function(it) { it.classList.remove('active'); });
-          if (items[i]) items[i].classList.add('active');
-        }
-      });
-    }, { passive: true });
-  }
-
-  /* ── 4. TOGGLE SWITCHES ──────────────────────────────────── */
+  /* ── 3. TOGGLE SWITCHES ──────────────────────────────────── */
   function makeToggleSwitches() {
-    document.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
-      if (cb.closest('.vailib-toggle')) return; /* already done */
+    document.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+      if (cb.closest('.vs-toggle')) return;
       var label = document.createElement('label');
-      label.className = 'vailib-toggle';
-      var slider = document.createElement('span');
-      slider.className = 'vailib-slider';
-      var lbl = document.createElement('span');
-      lbl.className = 'vailib-toggle-label';
-      lbl.textContent = cb.checked ? 'ON' : 'OFF';
-      cb.addEventListener('change', function() {
-        lbl.textContent = cb.checked ? 'ON' : 'OFF';
+      label.className = 'vs-toggle';
+      var track = document.createElement('span');
+      track.className = 'vs-track';
+      var thumb = document.createElement('span');
+      thumb.className = 'vs-thumb';
+      track.appendChild(thumb);
+      var text = document.createElement('span');
+      text.className = 'vs-toggle-text';
+      text.textContent = cb.checked ? 'Enabled' : 'Disabled';
+      cb.addEventListener('change', function () {
+        text.textContent = cb.checked ? 'Enabled' : 'Disabled';
       });
       cb.parentNode.insertBefore(label, cb);
       label.appendChild(cb);
-      label.appendChild(slider);
-      label.appendChild(lbl);
+      label.appendChild(track);
+      label.appendChild(text);
     });
   }
 
-  /* ── 5. EXTENSION CHIPS ──────────────────────────────────── */
-  function addExtChips() {
-    var ta = document.querySelector('textarea[name="SOPDS_BOOK_EXTENSIONS"]');
-    if (!ta) return;
-    var box = document.createElement('div');
-    box.className = 'vailib-ext-chips';
-    ta.parentNode.insertBefore(box, ta.nextSibling);
-    function render() {
-      box.innerHTML = '';
-      (ta.value.trim().split(/\s+/) || []).forEach(function(ext) {
-        if (!ext) return;
-        var chip = document.createElement('span');
-        chip.className = 'vailib-ext-chip';
-        chip.textContent = ext;
-        var color = EXT_PALETTE[ext] || '#7c6aff';
-        chip.style.cssText = 'color:' + color + ';background:' + color + '18;border-color:' + color + '44';
-        box.appendChild(chip);
-      });
-    }
-    render();
-    ta.addEventListener('input', render);
+  /* ── 4. SINGLE-LINE PATH TEXTAREAS ───────────────────────── */
+  function singleLineTextareas() {
+    var PATH_FIELDS = [
+      'SOPDS_ROOT_LIB','SOPDS_NOCOVER_PATH','SOPDS_ZIPCODEPAGE',
+      'SOPDS_FB2TOEPUB','SOPDS_FB2TOMOBI','SOPDS_TEMP_DIR',
+      'SOPDS_SERVER_LOG','SOPDS_SCANNER_LOG','SOPDS_TELEBOT_LOG',
+      'SOPDS_SERVER_PID','SOPDS_SCANNER_PID','SOPDS_TELEBOT_PID'
+    ];
+    PATH_FIELDS.forEach(function (name) {
+      var el = document.querySelector('textarea[name="' + name + '"]');
+      if (el) el.classList.add('vs-path-input');
+    });
   }
 
-  /* ── 6. TOKEN MASKING ────────────────────────────────────── */
+  /* ── 5. TOKEN MASKING ────────────────────────────────────── */
   function maskToken() {
     var ta = document.querySelector('textarea[name="SOPDS_TELEBOT_API_TOKEN"]');
     if (!ta) return;
     var wrap = document.createElement('div');
-    wrap.className = 'vailib-token-wrap';
+    wrap.className = 'vs-token-wrap';
     ta.parentNode.insertBefore(wrap, ta);
     wrap.appendChild(ta);
+    ta.classList.add('vs-token-masked');
+
     var btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'vailib-token-toggle';
-    btn.textContent = '👁 Show';
+    btn.className = 'vs-token-btn';
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Show';
     wrap.appendChild(btn);
-    var masked = true;
-    ta.classList.add('vailib-token-masked');
-    btn.addEventListener('click', function() {
-      masked = !masked;
-      ta.classList.toggle('vailib-token-masked', masked);
-      btn.textContent = masked ? '👁 Show' : '🙈 Hide';
+
+    var shown = false;
+    btn.addEventListener('click', function () {
+      shown = !shown;
+      ta.classList.toggle('vs-token-masked', !shown);
+      btn.innerHTML = shown
+        ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> Hide'
+        : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Show';
     });
   }
 
-  /* ── 7. CRON HUMAN SUMMARY ───────────────────────────────── */
+  /* ── 6. CRON HUMAN SUMMARY ───────────────────────────────── */
   function addCronSummary() {
-    var FIELDS = ['SOPDS_SCAN_SHED_MIN','SOPDS_SCAN_SHED_HOUR','SOPDS_SCAN_SHED_DAY','SOPDS_SCAN_SHED_DOW'];
-    var els = FIELDS.map(function(n) { return document.querySelector('[name="' + n + '"]'); });
+    var NAMES = ['SOPDS_SCAN_SHED_MIN','SOPDS_SCAN_SHED_HOUR','SOPDS_SCAN_SHED_DAY','SOPDS_SCAN_SHED_DOW'];
+    var els = NAMES.map(function (n) { return document.querySelector('[name="' + n + '"]'); });
     if (!els[0]) return;
-    /* Find a good parent: the closest shared ancestor row or section */
-    var lastEl = els[els.length - 1];
-    if (!lastEl) return;
-    var summary = document.createElement('div');
-    summary.className = 'vailib-cron-summary';
-    var anchor = lastEl.closest('tr') || lastEl.parentNode;
-    anchor.parentNode.insertBefore(summary, anchor.nextSibling);
-    function update() {
+    var last = els[els.length - 1];
+    if (!last) return;
+    var box = document.createElement('div');
+    box.className = 'vs-cron-box';
+    var anchor = last.closest('tr') || last.parentNode;
+    anchor.parentNode.insertBefore(box, anchor.nextSibling);
+    function render() {
       var min  = (els[0] && els[0].value) || '*';
       var hour = (els[1] && els[1].value) || '*';
       var day  = (els[2] && els[2].value) || '*';
       var dow  = (els[3] && els[3].value) || '*';
-      var time = (hour === '*' ? 'every hour' : 'at ' + hour + ':' + (min === '*' ? '00' : min.padStart(2,'0')));
-      var dayStr = day === '*' ? 'every day' : 'on day ' + day + ' of the month';
-      var dowMap = {'0':'Sunday','1':'Monday','2':'Tuesday','3':'Wednesday','4':'Thursday','5':'Friday','6':'Saturday','*':'any weekday'};
-      var dowStr = dow === '*' ? '' : ' (' + (dowMap[dow] || 'weekday ' + dow) + ')';
-      summary.textContent = '⏰ Runs ' + time + ', ' + dayStr + dowStr;
+      var dowMap = { '0':'Sunday','1':'Monday','2':'Tuesday','3':'Wednesday','4':'Thursday','5':'Friday','6':'Saturday' };
+      var timeStr = hour === '*' ? 'every hour' : 'at ' + String(hour).padStart(2,'0') + ':' + (min === '*' ? '00' : String(min).padStart(2,'0'));
+      var dayStr  = day === '*' ? '' : ' on day ' + day;
+      var dowStr  = dow === '*' ? '' : ' (' + (dowMap[dow] || 'weekday ' + dow) + ')';
+      box.textContent = '⏰ Runs ' + timeStr + dayStr + dowStr;
     }
-    update();
-    els.forEach(function(el) { if (el) el.addEventListener('input', update); });
+    render();
+    els.forEach(function (el) { if (el) el.addEventListener('input', render); });
   }
 
-  /* ── 8. LANGUAGE PREVIEW ─────────────────────────────────── */
-  function addLangPreview() {
+  /* ── 7. LANGUAGE CARD PICKER ─────────────────────────────── */
+  function upgradeLangSelector() {
     var sel = document.querySelector('select[name="SOPDS_LANGUAGE"]');
     if (!sel) return;
-    var prev = document.createElement('div');
-    prev.id = 'vailib-lang-preview';
-    sel.parentNode.insertBefore(prev, sel.nextSibling);
-    function update() {
-      var lang = sel.value.toLowerCase();
-      var text = LANG_PREVIEW[lang] || LANG_PREVIEW['en-us'];
-      prev.textContent = '🌐 ' + text;
-    }
-    update();
-    sel.addEventListener('change', update);
+
+    /* Hide the native select (keep it — it submits the form) */
+    sel.style.display = 'none';
+
+    var picker = document.createElement('div');
+    picker.className = 'vs-lang-picker';
+
+    Object.keys(LANG_DATA).forEach(function (code) {
+      var data = LANG_DATA[code];
+      var card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'vs-lang-card' + (sel.value === code ? ' vs-lang-active' : '');
+      card.dataset.code = code;
+      card.innerHTML =
+        '<span class="vs-lang-flag">' + data.flag + '</span>' +
+        '<span class="vs-lang-name">' + data.name + '</span>';
+      card.title = data.sample;
+      card.addEventListener('click', function () {
+        sel.value = code;
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+        picker.querySelectorAll('.vs-lang-card').forEach(function (c) { c.classList.remove('vs-lang-active'); });
+        card.classList.add('vs-lang-active');
+        preview.innerHTML = '<span class="vs-lang-preview-flag">' + data.flag + '</span>' + data.sample;
+      });
+      picker.appendChild(card);
+    });
+
+    var preview = document.createElement('div');
+    preview.className = 'vs-lang-preview';
+    var cur = LANG_DATA[sel.value] || LANG_DATA['en-us'];
+    preview.innerHTML = '<span class="vs-lang-preview-flag">' + cur.flag + '</span>' + cur.sample;
+
+    sel.parentNode.insertBefore(picker, sel.nextSibling);
+    sel.parentNode.insertBefore(preview, picker.nextSibling);
   }
 
-  /* ── 9. QUICK SEARCH ─────────────────────────────────────── */
-  function initSearch() {
-    var inp = document.getElementById('vailib-settings-search');
-    if (!inp) return;
-    document.addEventListener('keydown', function(e) {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-        e.preventDefault();
-        inp.focus(); inp.select();
-      }
-      if (e.key === 'Escape' && document.activeElement === inp) {
-        inp.value = ''; filter(''); inp.blur();
-      }
-    });
-    inp.addEventListener('input', function() { filter(this.value.toLowerCase().trim()); });
-  }
-
-  function filter(q) {
-    document.querySelectorAll('.vailib-section-body table tbody tr, .module tbody tr').forEach(function(row) {
-      if (!q) { row.classList.remove('vailib-row-hidden'); return; }
-      var match = row.textContent.toLowerCase().includes(q);
-      row.classList.toggle('vailib-row-hidden', !match);
-    });
-    /* Auto-expand sections that have matches */
-    document.querySelectorAll('.module, table').forEach(function(sec) {
-      if (!q) return;
-      var visible = sec.querySelectorAll('tbody tr:not(.vailib-row-hidden)').length;
-      if (visible > 0) sec.classList.remove('vailib-section-collapsed');
-    });
-  }
-
-  /* ── 10. UNSAVED CHANGES WARNING ─────────────────────────── */
+  /* ── 8. UNSAVED CHANGES WARNING ──────────────────────────── */
   function initUnsavedWarning() {
-    var badge = document.getElementById('vailib-modified-badge');
+    var badge = document.getElementById('vs-dirty-badge');
     var initVals = new Map();
     var dirty = 0;
-    document.querySelectorAll('input:not([type=submit]):not([type=button]), textarea, select').forEach(function(el) {
+    document.querySelectorAll('input:not([type=submit]):not([type=button]), textarea, select').forEach(function (el) {
       if (!el.name) return;
       initVals.set(el.name, el.type === 'checkbox' ? el.checked : el.value);
     });
     function check() {
       dirty = 0;
-      initVals.forEach(function(orig, name) {
+      initVals.forEach(function (orig, name) {
         var el = document.querySelector('[name="' + name + '"]');
         if (!el) return;
         var cur = el.type === 'checkbox' ? el.checked : el.value;
@@ -424,194 +346,22 @@
       });
       if (!badge) return;
       if (dirty > 0) {
-        badge.textContent = '⚠️ ' + dirty + ' unsaved change' + (dirty !== 1 ? 's' : '');
-        badge.className = 'visible unsaved';
+        badge.textContent = dirty + ' unsaved change' + (dirty !== 1 ? 's' : '');
+        badge.className = 'vs-dirty-visible';
       } else {
         badge.textContent = '';
         badge.className = '';
       }
     }
-    document.querySelectorAll('input, textarea, select').forEach(function(el) {
+    document.querySelectorAll('input, textarea, select').forEach(function (el) {
       el.addEventListener('input', check);
       el.addEventListener('change', check);
     });
-    window.addEventListener('beforeunload', function(e) {
+    window.addEventListener('beforeunload', function (e) {
       if (dirty > 0) { e.preventDefault(); e.returnValue = ''; }
     });
     var form = document.querySelector('#content-main form, form[method="post"]');
-    if (form) form.addEventListener('submit', function() { dirty = 0; });
-  }
-
-  /* ── 11. MODIFIED ROW HIGHLIGHTS ─────────────────────────── */
-  function markModifiedRows() {
-    /* The IS MODIFIED column contains a colored icon — img with green/red or an emoji */
-    document.querySelectorAll('tbody tr').forEach(function(row) {
-      var cells = row.querySelectorAll('td');
-      if (cells.length < 1) return;
-      var lastCell = cells[cells.length - 1];
-      /* Green indicator = modified (class, src, or text content) */
-      var isModified = lastCell.querySelector('img[src*="yes"]') ||
-                       lastCell.querySelector('.vmark') ||
-                       (lastCell.innerHTML.indexOf('green') > -1) ||
-                       (lastCell.querySelector('img') &&
-                        lastCell.querySelector('img').src &&
-                        lastCell.querySelector('img').src.indexOf('icon-yes') > -1);
-      if (isModified) {
-        row.classList.add('vailib-row-modified');
-        var nameCell = cells[0];
-        if (nameCell && !nameCell.querySelector('.vailib-mod-pill')) {
-          var pill = document.createElement('span');
-          pill.className = 'vailib-mod-pill';
-          pill.textContent = 'MODIFIED';
-          nameCell.appendChild(pill);
-        }
-      }
-    });
-  }
-
-  /* ── 12. CRON PRESETS DROPDOWN ───────────────────────────── */
-  function addCronPresets() {
-    var FIELDS = ['SOPDS_SCAN_SHED_MIN','SOPDS_SCAN_SHED_HOUR','SOPDS_SCAN_SHED_DAY','SOPDS_SCAN_SHED_DOW'];
-    var els = FIELDS.map(function(n) { return document.querySelector('[name="' + n + '"]'); });
-    if (!els[0]) return;
-    var PRESETS = [
-      { label: '— Select preset —',          values: null },
-      { label: '⏰ Every day at 3 AM',        values: ['0','3','*','*'] },
-      { label: '🌙 Every day at midnight',    values: ['0','0','*','*'] },
-      { label: '📅 Weekly — Monday 3 AM',     values: ['0','3','*','1'] },
-      { label: '📅 Weekly — Sunday midnight', values: ['0','0','*','0'] },
-      { label: '📆 Monthly — 1st day, 3 AM',  values: ['0','3','1','*'] },
-      { label: '🔕 Never (disabled)',          values: ['0','0','31','0'] }
-    ];
-    var wrap = document.createElement('div');
-    wrap.className = 'vailib-cron-presets';
-    var lbl = document.createElement('label');
-    lbl.className = 'vailib-cron-preset-label';
-    lbl.textContent = '⚡ Quick preset:';
-    lbl.htmlFor = 'vailib-cron-preset-sel';
-    var sel = document.createElement('select');
-    sel.id = 'vailib-cron-preset-sel';
-    PRESETS.forEach(function(p, i) {
-      var opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = p.label;
-      sel.appendChild(opt);
-    });
-    wrap.appendChild(lbl);
-    wrap.appendChild(sel);
-    /* Insert before the cron summary (which addCronSummary already created) */
-    var summary = document.querySelector('.vailib-cron-summary');
-    if (summary) summary.parentNode.insertBefore(wrap, summary);
-    sel.addEventListener('change', function() {
-      var preset = PRESETS[parseInt(this.value, 10)];
-      if (!preset || !preset.values) return;
-      els.forEach(function(el, i) {
-        if (el) { el.value = preset.values[i]; el.dispatchEvent(new Event('input', {bubbles:true})); }
-      });
-      setTimeout(function() { sel.value = '0'; }, 120);
-    });
-  }
-
-  /* ── 13. RESET CONFIRMATION POPOVER ─────────────────────── */
-  function initResetPopovers() {
-    var resetLinks = document.querySelectorAll('a[href*="reset"]');
-    if (!resetLinks.length) return;
-    var pop = document.createElement('div');
-    pop.id = 'vailib-reset-popover';
-    pop.innerHTML =
-      '<div class="vrp-title" id="vrp-title">Reset this field?</div>' +
-      '<div class="vrp-default" id="vrp-default"></div>' +
-      '<div class="vrp-buttons">' +
-        '<button type="button" id="vrp-yes" class="vrp-btn vrp-btn-yes">✓ Reset</button>' +
-        '<button type="button" id="vrp-no"  class="vrp-btn vrp-btn-no">✕ Cancel</button>' +
-      '</div>';
-    document.body.appendChild(pop);
-    var pending = null;
-    function show(link, name, def) {
-      pending = link;
-      document.getElementById('vrp-title').textContent = 'Reset ' + name + '?';
-      var defEl = document.getElementById('vrp-default');
-      defEl.innerHTML = def ? 'Restore to: <code>' + def + '</code>' : 'Restore to default value.';
-      var rect = link.getBoundingClientRect();
-      pop.style.top  = (rect.bottom + window.scrollY + 8) + 'px';
-      pop.style.left = Math.min(rect.left + window.scrollX, window.innerWidth - 280) + 'px';
-      pop.classList.add('visible');
-    }
-    function hide() { pop.classList.remove('visible'); pending = null; }
-    document.getElementById('vrp-yes').addEventListener('click', function() {
-      if (pending) { pending._ok = true; pending.click(); }
-      hide();
-    });
-    document.getElementById('vrp-no').addEventListener('click', hide);
-    document.addEventListener('click', function(e) { if (!pop.contains(e.target)) hide(); }, true);
-    resetLinks.forEach(function(a) {
-      a.addEventListener('click', function(e) {
-        if (a._ok) { a._ok = false; return; }
-        e.preventDefault(); e.stopImmediatePropagation();
-        var row = a.closest('tr');
-        var name = '', def = '';
-        if (row) {
-          var cell = row.querySelector('td:first-child');
-          if (cell) name = cell.textContent.trim().split(/\s+/)[0] || 'this field';
-          var defCell = row.querySelector('td:last-child');
-          if (defCell) def = defCell.getAttribute('title') || defCell.textContent.trim().substring(0, 60);
-        }
-        show(a, name, def);
-      });
-    });
-  }
-
-  /* ── 14. TELEGRAM BOT STATUS BADGE ──────────────────────── */
-  function initTelegramStatus() {
-    var tgHeader = null;
-    document.querySelectorAll('.vailib-section-header').forEach(function(h) {
-      if (h.textContent.toLowerCase().indexOf('telegram') > -1) tgHeader = h;
-    });
-    if (!tgHeader) return;
-    var ta = document.querySelector('textarea[name="SOPDS_TELEBOT_API_TOKEN"]');
-    if (!ta) return;
-    var badge = document.createElement('span');
-    badge.id = 'vailib-tg-badge';
-    badge.className = 'vailib-tg-badge vailib-tg-loading';
-    badge.textContent = '⟳ Checking…';
-    var chev = tgHeader.querySelector('.vailib-chevron');
-    tgHeader.insertBefore(badge, chev || null);
-    var cache = null, cacheAt = 0, TTL = 30000;
-    function applyResult(data) {
-      if (data && data.ok && data.result) {
-        var name = data.result.first_name || data.result.username || 'Bot';
-        badge.textContent = '🟢 ' + name;
-        badge.className = 'vailib-tg-badge vailib-tg-online';
-        badge.title = '@' + (data.result.username || '');
-      } else {
-        badge.textContent = '🔴 Invalid token';
-        badge.className = 'vailib-tg-badge vailib-tg-offline';
-      }
-    }
-    function check() {
-      var tok = ta.value.trim();
-      if (!tok || tok.length < 20) {
-        badge.textContent = '⚪ No token';
-        badge.className = 'vailib-tg-badge vailib-tg-disabled';
-        return;
-      }
-      if (cache && (Date.now() - cacheAt) < TTL) { applyResult(cache); return; }
-      badge.textContent = '⟳ Checking…';
-      badge.className = 'vailib-tg-badge vailib-tg-loading';
-      fetch('https://api.telegram.org/bot' + tok + '/getMe')
-        .then(function(r) { return r.json(); })
-        .then(function(d) { cache = d; cacheAt = Date.now(); applyResult(d); })
-        .catch(function() {
-          badge.textContent = '🔴 Offline';
-          badge.className = 'vailib-tg-badge vailib-tg-offline';
-        });
-    }
-    /* Re-check each time the section is expanded */
-    tgHeader.addEventListener('click', function() { setTimeout(check, 400); });
-    /* Re-check when token field is changed */
-    ta.addEventListener('change', function() { cache = null; check(); });
-    /* Initial check (only if token present) */
-    if (ta.value.trim().length > 20) check();
+    if (form) form.addEventListener('submit', function () { dirty = 0; });
   }
 
 })();

@@ -794,40 +794,73 @@ td.action-checkbox { width: 32px !important; }
 
 
 /* ══════════════════════════════════════════════════════════════
-   CONSTANCE CONFIG PAGE — Premium Settings UI Enhancements
+   CONSTANCE CONFIG PAGE — Clean Settings UI
    ══════════════════════════════════════════════════════════════ */
 
 /* ── Sticky save bar ── */
-#vailib-settings-bar {
+#vs-bar {
   position: sticky;
   top: 0;
   z-index: 200;
-  background: var(--bg-header);
-  border-bottom: 2px solid var(--border-accent);
+  background: rgba(19, 22, 31, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-accent);
   padding: 10px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-  backdrop-filter: blur(8px);
+  gap: 12px;
+  box-shadow: 0 2px 24px rgba(0,0,0,0.45);
 }
 
-#vailib-settings-bar .vsb-title {
+.vs-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.vs-bar-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.vs-bar-title {
   font-size: 14px;
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.2px;
-  white-space: nowrap;
 }
 
-#vailib-settings-bar .vsb-actions {
+.vs-bar-right {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-#vailib-settings-save-btn {
+#vs-dirty-badge {
+  display: none;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-yellow);
+  background: rgba(255,209,102,0.1);
+  border: 1px solid rgba(255,209,102,0.25);
+  border-radius: 20px;
+  padding: 3px 12px;
+  letter-spacing: 0.3px;
+  animation: vs-pulse 2s infinite;
+}
+
+#vs-dirty-badge.vs-dirty-visible {
+  display: inline-block;
+}
+
+@keyframes vs-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+#vs-save-btn {
   background: var(--accent) !important;
   color: #fff !important;
   border: none !important;
@@ -837,156 +870,79 @@ td.action-checkbox { width: 32px !important; }
   font-size: 13px !important;
   font-weight: 700 !important;
   cursor: pointer !important;
+  letter-spacing: 0.2px;
   transition: all var(--transition) !important;
-  letter-spacing: 0.3px;
-  white-space: nowrap;
 }
 
-#vailib-settings-save-btn:hover {
+#vs-save-btn:hover {
   background: var(--accent-hover) !important;
   box-shadow: 0 4px 16px rgba(124,106,255,0.35) !important;
   transform: translateY(-1px);
 }
 
-#vailib-modified-badge {
-  background: rgba(255,209,102,0.12);
-  border: 1px solid rgba(255,209,102,0.3);
-  color: var(--accent-yellow);
-  border-radius: 20px;
-  padding: 4px 12px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  display: none;
-  white-space: nowrap;
-}
-
-#vailib-modified-badge.visible {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-#vailib-modified-badge.unsaved {
-  animation: vailib-pulse 2s infinite;
-}
-
-@keyframes vailib-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.55; }
-}
-
-/* ── Quick settings search ── */
-#vailib-settings-search {
-  background: var(--bg-input) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text-primary) !important;
-  border-radius: var(--radius-sm) !important;
-  padding: 6px 12px !important;
-  font-family: inherit !important;
-  font-size: 12px !important;
-  width: 200px !important;
-  transition: all var(--transition) !important;
-  outline: none !important;
-}
-
-#vailib-settings-search:focus {
-  border-color: var(--border-focus) !important;
-  box-shadow: 0 0 0 2px rgba(124,106,255,0.15) !important;
-  width: 260px !important;
-}
-
-#vailib-settings-search::placeholder {
-  color: var(--text-muted) !important;
-}
-
-/* ── Jump navigation sidebar ── */
-#vailib-jump-nav {
-  position: fixed;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 150;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.vailib-jump-item {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 5px 10px;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all var(--transition);
-  text-decoration: none !important;
-  display: block;
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.vailib-jump-item:hover,
-.vailib-jump-item.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff !important;
-  transform: translateX(-2px);
-  box-shadow: 0 0 10px rgba(124,106,255,0.3);
-}
-
-/* ── Section collapsible ── */
-.vailib-section-header {
-  cursor: pointer;
+/* ── Collapsible sections ── */
+.vs-header {
+  cursor: pointer !important;
   user-select: none;
   display: flex !important;
   align-items: center;
   justify-content: space-between;
-  padding-right: 14px !important;
+  padding-right: 16px !important;
+  transition: background var(--transition) !important;
 }
 
-.vailib-section-header:hover {
-  background: rgba(124,106,255,0.05) !important;
+.vs-header:hover {
+  background: rgba(124,106,255,0.06) !important;
 }
 
-.vailib-chevron {
-  font-size: 10px;
-  opacity: 0.5;
-  transition: transform 0.25s;
+.vs-chevron {
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.45;
+  transition: transform 0.25s ease;
   flex-shrink: 0;
+  color: var(--text-secondary);
 }
 
-.vailib-section-collapsed .vailib-chevron {
+.vs-collapsed .vs-chevron {
   transform: rotate(-90deg);
 }
 
-.vailib-section-body {
+.vs-body {
   overflow: hidden;
-  max-height: 4000px;
-  transition: max-height 0.35s ease, opacity 0.25s ease;
+  max-height: 5000px;
   opacity: 1;
+  transition: max-height 0.35s ease, opacity 0.25s ease;
 }
 
-.vailib-section-collapsed .vailib-section-body {
+.vs-collapsed .vs-body {
   max-height: 0 !important;
   opacity: 0;
 }
 
+/* ── Danger note (Log & PID section) ── */
+.vs-danger-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,209,102,0.05);
+  border-left: 3px solid rgba(255,209,102,0.35);
+  padding: 9px 16px;
+  font-size: 12px;
+  color: var(--accent-yellow);
+  line-height: 1.5;
+}
+
 /* ── Toggle switches ── */
-.vailib-toggle {
-  position: relative;
+.vs-toggle {
   display: inline-flex;
   align-items: center;
+  gap: 9px;
   cursor: pointer;
-  gap: 8px;
   margin: 2px 0;
 }
 
-.vailib-toggle input[type="checkbox"] {
+.vs-toggle input[type="checkbox"] {
   opacity: 0 !important;
   width: 0 !important;
   height: 0 !important;
@@ -994,65 +950,56 @@ td.action-checkbox { width: 32px !important; }
   pointer-events: none !important;
 }
 
-.vailib-slider {
+.vs-track {
   position: relative;
-  width: 44px;
+  width: 42px;
   height: 24px;
-  background: var(--border);
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  transition: background 0.25s, box-shadow 0.25s;
   flex-shrink: 0;
+  transition: background 0.22s, border-color 0.22s, box-shadow 0.22s;
 }
 
-.vailib-slider::before {
-  content: '';
+.vs-thumb {
   position: absolute;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
+  background: var(--text-muted);
   border-radius: 50%;
-  background: #fff;
   top: 3px;
   left: 3px;
-  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), background 0.22s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
 }
 
-.vailib-toggle input:checked ~ .vailib-slider {
+.vs-toggle input:checked ~ .vs-track {
   background: var(--accent-teal);
-  box-shadow: 0 0 10px rgba(61,217,192,0.3);
+  border-color: var(--accent-teal);
+  box-shadow: 0 0 0 3px rgba(61,217,192,0.15);
 }
 
-.vailib-toggle input:checked ~ .vailib-slider::before {
-  transform: translateX(20px);
+.vs-toggle input:checked ~ .vs-track .vs-thumb {
+  transform: translateX(18px);
+  background: #fff;
 }
 
-.vailib-toggle-label {
+.vs-toggle-text {
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
   color: var(--text-muted);
   text-transform: uppercase;
-  min-width: 24px;
-  transition: color 0.25s;
+  transition: color 0.22s;
+  min-width: 50px;
 }
 
-.vailib-toggle input:checked ~ .vailib-toggle-label {
+.vs-toggle input:checked ~ .vs-toggle-text {
   color: var(--accent-teal);
 }
 
 /* ── Single-line path textareas ── */
-textarea[name="SOPDS_ROOT_LIB"],
-textarea[name="SOPDS_NOCOVER_PATH"],
-textarea[name="SOPDS_ZIPCODEPAGE"],
-textarea[name="SOPDS_FB2TOEPUB"],
-textarea[name="SOPDS_FB2TOMOBI"],
-textarea[name="SOPDS_TEMP_DIR"],
-textarea[name="SOPDS_SERVER_LOG"],
-textarea[name="SOPDS_SCANNER_LOG"],
-textarea[name="SOPDS_TELEBOT_LOG"],
-textarea[name="SOPDS_SERVER_PID"],
-textarea[name="SOPDS_SCANNER_PID"],
-textarea[name="SOPDS_TELEBOT_PID"] {
+textarea.vs-path-input {
   height: 40px !important;
   resize: none !important;
   overflow: hidden !important;
@@ -1062,283 +1009,141 @@ textarea[name="SOPDS_TELEBOT_PID"] {
   font-size: 12px !important;
 }
 
-/* ── Extension tag chips ── */
-.vailib-ext-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 7px;
-}
-
-.vailib-ext-chip {
-  border-radius: 4px;
-  padding: 2px 8px;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
-  letter-spacing: 0.5px;
-  border: 1px solid transparent;
-  transition: transform 0.15s;
-}
-
-.vailib-ext-chip:hover { transform: scale(1.05); }
-
-/* ── Telegram API token mask ── */
-.vailib-token-wrap {
+/* ── Token masking ── */
+.vs-token-wrap {
   position: relative;
 }
 
-.vailib-token-toggle {
-  position: absolute;
-  right: 8px;
-  top: 8px;
-  background: var(--bg-card-alt);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 3px 9px;
-  font-size: 11px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition);
-  z-index: 5;
-  font-family: inherit;
-}
-
-.vailib-token-toggle:hover {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-}
-
-.vailib-token-masked {
-  color: transparent !important;
-  text-shadow: 0 0 8px var(--text-muted);
-  letter-spacing: 3px;
-}
-
-/* ── Cron human summary ── */
-.vailib-cron-summary {
-  background: rgba(61,217,192,0.06);
-  border: 1px solid rgba(61,217,192,0.2);
-  border-radius: var(--radius-sm);
-  padding: 7px 14px;
-  font-size: 12px;
-  color: var(--accent-teal);
-  margin-top: 6px;
-}
-
-/* ── Modified row highlight ── */
-tr.vailib-row-modified > td:first-child {
-  border-left: 3px solid var(--accent) !important;
-}
-
-.vailib-mod-pill {
-  background: rgba(124,106,255,0.12);
-  border: 1px solid rgba(124,106,255,0.2);
-  color: var(--accent);
-  border-radius: 3px;
-  padding: 1px 5px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  margin-left: 6px;
-  vertical-align: middle;
-}
-
-/* ── Section warning note ── */
-.vailib-section-warning {
-  background: rgba(255,209,102,0.06);
-  border-left: 3px solid rgba(255,209,102,0.4);
-  padding: 8px 16px;
-  font-size: 12px;
-  color: var(--accent-yellow);
-  margin: 0;
-  display: none;
-}
-
-.vailib-section-warning.visible {
-  display: block;
-}
-
-/* ── Language preview ── */
-#vailib-lang-preview {
-  margin-top: 7px;
-  font-size: 11px;
-  color: var(--text-muted);
-  font-style: italic;
-  transition: color 0.3s;
-}
-
-/* ── Search dim hidden rows ── */
-tr.vailib-row-hidden { display: none !important; }
-
-
-/* ══════════════════════════════════════════════════════════════
-   PHASE C — Advanced UX Enhancements
-   ══════════════════════════════════════════════════════════════ */
-
-/* ── Cron preset dropdown ── */
-.vailib-cron-presets {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 8px 0 4px;
-}
-
-.vailib-cron-preset-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
-
-#vailib-cron-preset-sel {
-  background: var(--bg-input) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text-primary) !important;
-  border-radius: var(--radius-sm) !important;
-  padding: 5px 10px !important;
-  font-size: 12px !important;
-  font-family: inherit !important;
-  cursor: pointer;
-  width: auto !important;
-  transition: border-color var(--transition) !important;
-}
-
-#vailib-cron-preset-sel:focus,
-#vailib-cron-preset-sel:hover {
-  border-color: var(--accent) !important;
-  outline: none !important;
-  box-shadow: 0 0 0 2px rgba(124,106,255,0.15) !important;
-}
-
-/* ── Reset confirmation popover ── */
-#vailib-reset-popover {
-  position: absolute;
-  background: var(--bg-card);
-  border: 1px solid var(--border-accent);
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
-  box-shadow: var(--shadow-card), var(--shadow-glow);
-  z-index: 2000;
-  width: 264px;
-  display: none;
-}
-
-#vailib-reset-popover.visible {
-  display: block;
-  animation: vrp-in 0.15s ease;
-}
-
-@keyframes vrp-in {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0);    }
-}
-
-.vrp-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 6px;
-}
-
-.vrp-default {
-  font-size: 11px;
-  color: var(--text-secondary);
-  margin-bottom: 12px;
-  word-break: break-all;
-  line-height: 1.5;
-}
-
-.vrp-default code {
-  background: var(--bg-page);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  padding: 1px 5px;
-  font-size: 11px;
-  color: var(--accent);
-  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-}
-
-.vrp-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.vrp-btn {
-  flex: 1;
-  padding: 6px 10px !important;
-  font-size: 12px !important;
-  font-weight: 700 !important;
-  border-radius: var(--radius-sm) !important;
-  cursor: pointer !important;
-  transition: all var(--transition) !important;
-  font-family: inherit !important;
-  text-align: center;
-}
-
-.vrp-btn-yes {
-  background: rgba(255,87,87,0.1) !important;
-  border: 1px solid rgba(255,87,87,0.3) !important;
-  color: var(--accent-danger) !important;
-}
-
-.vrp-btn-yes:hover {
-  background: rgba(255,87,87,0.22) !important;
-  border-color: rgba(255,87,87,0.5) !important;
-}
-
-.vrp-btn-no {
+.vs-token-btn {
+  position: absolute !important;
+  right: 8px !important;
+  top: 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
   background: var(--bg-card-alt) !important;
   border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 3px 10px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
   color: var(--text-secondary) !important;
+  cursor: pointer !important;
+  transition: all var(--transition) !important;
+  z-index: 5;
+  font-family: inherit !important;
 }
 
-.vrp-btn-no:hover {
-  background: var(--bg-row-hover) !important;
-  color: var(--text-primary) !important;
+.vs-token-btn:hover {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff !important;
 }
 
-/* ── Telegram bot status badge ── */
-.vailib-tg-badge {
-  display: inline-flex;
+.vs-token-masked {
+  color: transparent !important;
+  text-shadow: 0 0 7px var(--text-muted);
+  letter-spacing: 4px;
+}
+
+/* ── Cron summary ── */
+.vs-cron-box {
+  display: flex;
   align-items: center;
-  border-radius: 20px;
-  padding: 2px 10px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  margin-left: auto;    /* push badge to the right, chevron stays last */
-  margin-right: 10px;
-  pointer-events: none; /* don't swallow header click-to-collapse */
+  gap: 8px;
+  background: rgba(61,217,192,0.05);
+  border: 1px solid rgba(61,217,192,0.18);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-size: 12px;
+  color: var(--accent-teal);
+  font-weight: 500;
+  margin-top: 8px;
+  letter-spacing: 0.2px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LANGUAGE CARD PICKER
+   ══════════════════════════════════════════════════════════════ */
+
+.vs-lang-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.vs-lang-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 12px 8px;
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-family: inherit;
+  text-decoration: none;
+  outline: none;
+}
+
+.vs-lang-card:hover {
+  border-color: var(--accent);
+  background: rgba(124,106,255,0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(124,106,255,0.18);
+}
+
+.vs-lang-card.vs-lang-active {
+  border-color: var(--accent);
+  background: rgba(124,106,255,0.14);
+  box-shadow: 0 0 0 2px rgba(124,106,255,0.25), 0 6px 20px rgba(124,106,255,0.2);
+}
+
+.vs-lang-flag {
+  font-size: 22px;
+  line-height: 1;
+  display: block;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.3));
+}
+
+.vs-lang-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
   white-space: nowrap;
-  transition: all 0.35s;
+  letter-spacing: 0.2px;
+  transition: color 0.18s;
+}
+
+.vs-lang-card.vs-lang-active .vs-lang-name,
+.vs-lang-card:hover .vs-lang-name {
+  color: var(--text-primary);
+}
+
+/* Preview strip below picker */
+.vs-lang-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 9px 14px;
+  background: rgba(124,106,255,0.05);
+  border: 1px solid rgba(124,106,255,0.15);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-style: italic;
+  transition: all 0.25s ease;
+  min-height: 38px;
+}
+
+.vs-lang-preview-flag {
+  font-size: 16px;
   flex-shrink: 0;
-}
-
-.vailib-tg-loading {
-  background: rgba(139,145,181,0.08);
-  border: 1px solid rgba(139,145,181,0.2);
-  color: var(--text-muted);
-}
-
-.vailib-tg-online {
-  background: rgba(61,217,150,0.1);
-  border: 1px solid rgba(61,217,150,0.3);
-  color: var(--accent-green);
-  box-shadow: 0 0 8px rgba(61,217,150,0.15);
-}
-
-.vailib-tg-offline {
-  background: rgba(255,87,87,0.1);
-  border: 1px solid rgba(255,87,87,0.3);
-  color: var(--accent-danger);
-}
-
-.vailib-tg-disabled {
-  background: rgba(85,90,122,0.08);
-  border: 1px solid rgba(85,90,122,0.15);
-  color: var(--text-muted);
 }
 
