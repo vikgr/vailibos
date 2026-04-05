@@ -20,6 +20,7 @@ echo '⚙️  Patching settings.py (language choices)...'
 python3 $VAILIB/patch_settings.py
 
 echo '📋 Deploying docker-compose to production...'
+sudo rsync -av $VAILIB/ $SOPDS_CUSTOM/
 sudo cp $VAILIB/sopds-docker-compose.yml $COMPOSE
 
 echo '🔁 Restarting sopds container...'

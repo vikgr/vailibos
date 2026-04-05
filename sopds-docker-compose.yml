@@ -92,6 +92,16 @@ services:
               source: /tmp/sopds_custom/templates/sopds_selectseries.html
               target: /sopds/sopds_web_backend/templates/sopds_selectseries.html
             - type: bind
+              source: /tmp/sopds_custom/templates/admin/base.html
+              target: /sopds/sopds_web_backend/templates/admin/base.html
+              bind:
+                create_host_path: true
+            - type: bind
+              source: /tmp/sopds_custom/templates/admin/constance/includes/results_list.html
+              target: /sopds/sopds_web_backend/templates/admin/constance/includes/results_list.html
+              bind:
+                create_host_path: true
+            - type: bind
               source: /tmp/sopds_custom/views.py
               target: /sopds/sopds_web_backend/views.py
             - type: bind
