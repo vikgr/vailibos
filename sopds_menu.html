@@ -33,11 +33,16 @@
     </li>
     {% endif %}
 
-    <!-- THEME TOGGLE (Visible, large) -->
-    <li class="nav-item" style="margin-top: 15px;">
-        <button id="theme-toggle" class="nav-btn theme-btn" style="width: 100%; border:none; cursor:pointer;">
-            <span class="premium-icon">🌙 OLED THEME</span>
-            <span class="eink-icon" style="display:none;">☀️ E-INK MODE</span>
-        </button>
+    <!-- THEME TOGGLE UI -->
+    <li class="nav-item theme-switcher-container" style="margin-top: 25px;">
+        <div class="theme-label">APPEARANCE</div>
+        <div class="theme-segment">
+            <button class="theme-opt" data-val="premium">
+                <i class="fi-monitor"></i> PREMIUM
+            </button>
+            <button class="theme-opt" data-val="eink">
+                <i class="fi-page"></i> E-INK
+            </button>
+        </div>
     </li>
 </ul>

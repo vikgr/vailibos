@@ -84,17 +84,7 @@
         if (typeof SetSearch === 'function') SetSearch();
 
         window.onload = function () {
-            const btn = document.getElementById("theme-toggle");
-            if (btn) {
-                btn.addEventListener("click", function (e) {
-                    e.preventDefault();
-                    let current = document.documentElement.getAttribute("data-theme");
-                    let nextTheme = current === "premium" ? "eink" : "premium";
-                    document.documentElement.setAttribute("data-theme", nextTheme);
-                    localStorage.setItem("sopds-theme", nextTheme);
-                    console.log("Theme switched to", nextTheme);
-                });
-            }
+            // initialization
         };
 
         Foundation.Abide.defaults.validators['check_search'] = function ($el, required, parent) {
