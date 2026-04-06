@@ -3,7 +3,7 @@ services:
     sopds:
         cpu_shares: 90
         command: []
-        container_name: vailib
+        container_name: sopds
         depends_on:
             sopds-db:
                 condition: service_started
