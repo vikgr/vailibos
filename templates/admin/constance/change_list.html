@@ -1,0 +1,189 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}">
+    <style>
+        /* Extra constance specific injected styles can go here if needed */
+        .vp-sticky-save-bar {
+            position: sticky;
+            top: 58px; /* Below the header */
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 12px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 90;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .vp-sticky-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .vp-unsaved-badge {
+            background: rgba(210, 153, 34, 0.15);
+            color: var(--accent-yellow);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .vp-unsaved-badge.show {
+            opacity: 1;
+        }
+        .vp-save-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        /* Hide default save row */
+        .submit-row { display: none !important; }
+    </style>
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-constance model-config change-list{% endblock %}
+
+{% block coltype %}flex{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="module" id="changelist">
+      
+      <div class="vp-sticky-save-bar">
+          <div class="vp-sticky-title">
+              ⚙️ SOPDS Configuration
+              <span class="vp-unsaved-badge" id="unsaved-badge">0 unsaved changes</span>
+          </div>
+          <div class="vp-save-actions">
+              <span id="bot-status-badge" style="font-size:12px; color:var(--text-muted); margin-right: 15px;">Bot: Checking...</span>
+              <button type="submit" form="changelist-form" class="default">💾 Save Settings</button>
+          </div>
+      </div>
+
+      <form action="" method="post" id="changelist-form">
+          {% csrf_token %}
+          {% include "admin/constance/includes/results_list.html" %}
+          <div class="submit-row" style="display: none;">
+              <input type="submit" name="_save" class="default" value="Save">
+          </div>
+      </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Phase B/C UX Enhancements
+    
+    // 1. Unsaved changes tracking
+    let modifiedFields = new Set();
+    const badge = document.getElementById("unsaved-badge");
+    const updateBadge = () => {
+        if (modifiedFields.size > 0) {
+            badge.textContent = `${modifiedFields.size} unsaved change(s)`;
+            badge.classList.add('show');
+        } else {
+            badge.classList.remove('show');
+        }
+    };
+
+    document.querySelectorAll('#changelist-form input, #changelist-form select, #changelist-form textarea').forEach(el => {
+        el.addEventListener('change', (e) => {
+            modifiedFields.add(e.target.name);
+            e.target.closest('.vp-setting-card')?.classList.add('is-modified');
+            updateBadge();
+        });
+    });
+
+    // 2. Cron presets injection
+    const cronMin = document.querySelector('input[name="SOPDS_SCAN_SHED_MIN"]');
+    const cronHour = document.querySelector('input[name="SOPDS_SCAN_SHED_HOUR"]');
+    const cronDay = document.querySelector('input[name="SOPDS_SCAN_SHED_DAY"]');
+    const cronDow = document.querySelector('input[name="SOPDS_SCAN_SHED_DOW"]');
+    
+    if (cronMin && cronHour) {
+        const cronCardWrapper = cronMin.closest('.vp-setting-card');
+        if (cronCardWrapper) {
+            let container = document.createElement('div');
+            container.innerHTML = `
+                <div style="margin-top: 15px; padding: 10px; background: var(--bg-row-odd); border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Quick Presets</label>
+                    <select id="cron-presets" style="width: 100%; max-width: 300px;">
+                        <option value="">-- Select Preset --</option>
+                        <option value="0|3|*|*">Every day at 3:00 AM</option>
+                        <option value="0|0|*|0">Every Sunday at midnight</option>
+                        <option value="0|12|1|*">First day of the month at 12:00 PM</option>
+                    </select>
+                </div>
+            `;
+            cronCardWrapper.querySelector('.vp-card-body').appendChild(container);
+            
+            document.getElementById('cron-presets').addEventListener('change', function(e) {
+                if(!this.value) return;
+                let parts = this.value.split('|');
+                cronMin.value = parts[0];
+                cronHour.value = parts[1];
+                cronDay.value = parts[2];
+                cronDow.value = parts[3];
+                [cronMin, cronHour, cronDay, cronDow].forEach(el => {
+                    let ev = new Event('change');
+                    el.dispatchEvent(ev);
+                });
+            });
+        }
+    }
+
+    // 3. Reset to default popover
+    document.querySelectorAll('.reset-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            let defVal = this.getAttribute('data-default');
+            let fieldId = this.getAttribute('data-field-id');
+            if (confirm(`Are you sure you want to reset this field to its default value:\n"${defVal}"?`)) {
+                let input = document.getElementById(fieldId);
+                if (input) {
+                    if (input.type === 'checkbox') {
+                        input.checked = (defVal.trim() === 'true');
+                    } else {
+                        input.value = defVal.trim();
+                    }
+                    input.dispatchEvent(new Event('change'));
+                }
+            }
+        });
+    });
+
+    // 4. Token mask toggle
+    const tokenField = document.querySelector('input[name="SOPDS_TELEBOT_API_TOKEN"]');
+    if (tokenField) {
+        tokenField.type = 'password';
+        let toggle = document.createElement('a');
+        toggle.href = '#';
+        toggle.innerText = '👁 Show / Hide';
+        toggle.style = 'margin-left: 10px; font-size: 12px;';
+        toggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            tokenField.type = tokenField.type === 'password' ? 'text' : 'password';
+        });
+        tokenField.parentNode.insertBefore(toggle, tokenField.nextSibling);
+    }
+
+    // Check before turning away
+    window.addEventListener('beforeunload', function (e) {
+        if (modifiedFields.size > 0) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+});
+</script>
+{% endblock %}
