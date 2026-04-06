@@ -1,55 +1,55 @@
 /* ============================================================
-   SOPDS Admin — Premium Dark Theme
-   Color palette: Deep indigo + violet + teal accent
+   SOPDS Admin — Obsidian Velvet Theme
+   Color palette: Deep obsidian + violet accent (Stitch Design)
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* ── Reset & tokens (HIGH CONTRAST) ── */
+/* ── Reset & tokens (OBSIDIAN VELVET) ── */
 :root {
-  --bg-page:        #0d1117;
-  --bg-sidebar:     #0d1117;
-  --bg-card:        #161b22;
-  --bg-card-alt:    #21262d;
-  --bg-row-odd:     #0d1117;
-  --bg-row-even:    #161b22;
-  --bg-row-hover:   #21262d;
-  --bg-input:       #010409;
-  --bg-header:      #010409;
+  --bg-page:        #0e0e10;
+  --bg-sidebar:     #0e0e10;
+  --bg-card:        #1a1a1c;
+  --bg-card-alt:    #222225;
+  --bg-row-odd:     #0e0e10;
+  --bg-row-even:    #1a1a1c;
+  --bg-row-hover:   #222225;
+  --bg-input:       #000000;
+  --bg-header:      #0e0e10;
 
-  --accent:         #2f81f7;
-  --accent-hover:   #539bf5;
-  --accent-teal:    #2f81f7; /* fallback to blue */
-  --accent-danger:  #e5534b;
-  --accent-green:   #238636;
-  --accent-yellow:  #d29922;
+  --accent:         #8a70d6;
+  --accent-hover:   #9c85df;
+  --accent-teal:    #8a70d6; 
+  --accent-danger:  #ff6b6b;
+  --accent-green:   #51cf66;
+  --accent-yellow:  #fcc419;
 
-  --text-primary:   #e6edf3;
-  --text-secondary: #848d97;
-  --text-muted:     #7d8590;
-  --text-link:      #2f81f7;
-  --text-link-hover:#539bf5;
+  --text-primary:   #f8f9fa;
+  --text-secondary: #adb5bd;
+  --text-muted:     #868e96;
+  --text-link:      #8a70d6;
+  --text-link-hover:#9c85df;
 
-  --border:         #30363d;
-  --border-accent:  #30363d; /* no glowing borders */
-  --border-focus:   #2f81f7;
+  --border:         #2b2b2f;
+  --border-accent:  #3a3a40; 
+  --border-focus:   #8a70d6;
 
-  --radius-sm:      6px;
-  --radius-md:      6px;
-  --radius-lg:      6px;
+  --radius-sm:      12px;
+  --radius-md:      16px;
+  --radius-lg:      24px;
 
-  --shadow-card:    0 1px 3px rgba(0,0,0,0.3);
-  --shadow-glow:    none;
+  --shadow-card:    0 8px 30px rgba(0,0,0,0.4);
+  --shadow-glow:    0 0 20px rgba(138, 112, 214, 0.15);
 
-  --transition:     0.15s ease-out;
+  --transition:     0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ── Base ── */
 * { box-sizing: border-box; }
 
 html, body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-  font-size: 15px; /* Bigger base font for readability */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px; 
   line-height: 1.6;
   background: var(--bg-page);
   color: var(--text-primary);
@@ -1148,9 +1148,9 @@ textarea.vs-path-input {
 
 .vp-settings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-  gap: 20px;
-  padding: 10px 0;
+  grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+  gap: 24px;
+  padding: 20px 0 100px 0; /* Extra padding at bottom for the sticky bar */
 }
 
 @media (max-width: 600px) {
@@ -1162,10 +1162,10 @@ textarea.vs-path-input {
 .vp-setting-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
-  transition: box-shadow var(--transition), border-color var(--transition);
+  transition: box-shadow var(--transition), border-color var(--transition), transform var(--transition);
   position: relative;
   overflow: hidden;
 }
@@ -1180,20 +1180,21 @@ textarea.vs-path-input {
 }
 
 .vp-card-header {
-  padding: 20px 24px 10px;
+  padding: 24px 28px 12px;
   border-bottom: 1px solid transparent;
 }
 
 .vp-title {
-  margin: 0 0 6px 0 !important;
-  font-size: 15px !important;
-  font-weight: 700 !important;
+  margin: 0 0 8px 0 !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
   color: var(--text-primary) !important;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   border: none !important;
   padding: 0 !important;
+  letter-spacing: -0.2px;
 }
 
 .vp-modified-dot {
@@ -1229,7 +1230,7 @@ textarea.vs-path-input {
 }
 
 .vp-card-body {
-  padding: 10px 24px 20px;
+  padding: 12px 28px 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -1258,7 +1259,7 @@ textarea.vs-path-input {
 .vp-control-wrap select:focus,
 .vp-control-wrap textarea:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(47, 129, 247, 0.2);
+  box-shadow: var(--shadow-glow);
   outline: none;
 }
 
@@ -1273,11 +1274,11 @@ textarea.vs-path-input {
 .vp-card-footer {
   background: var(--bg-card-alt);
   border-top: 1px solid var(--border);
-  padding: 12px 24px;
+  padding: 14px 28px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .vp-default-val {

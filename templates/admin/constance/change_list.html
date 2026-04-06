@@ -7,18 +7,23 @@
     <style>
         /* Extra constance specific injected styles can go here if needed */
         .vp-sticky-save-bar {
-            position: sticky;
-            top: 58px; /* Below the header */
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 12px 20px;
-            margin-bottom: 24px;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(26, 26, 28, 0.85); /* Slightly transparent card bg */
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(138, 112, 214, 0.3); /* Violet tinted border */
+            border-radius: 40px;
+            padding: 12px 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            z-index: 90;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 999;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 20px rgba(138, 112, 214, 0.15);
+            width: 90%;
+            max-width: 800px;
         }
         .vp-sticky-title {
             font-size: 16px;
