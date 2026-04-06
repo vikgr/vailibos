@@ -1184,14 +1184,7 @@ textarea.vs-path-input {
   background: rgba(138, 112, 214, 0.03);
 }
 
-@media (max-width: 600px) {
-  .vp-setting-row {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 20px;
-    padding: 20px;
-  }
-}
+
 
 .vp-setting-info {
   flex: 1;
@@ -1265,12 +1258,7 @@ textarea.vs-path-input {
   justify-content: flex-end;
 }
 
-@media (max-width: 600px) {
-  .vp-setting-control-area {
-    width: 100%;
-    justify-content: flex-start;
-  }
-}
+
 
 .vp-control-element {
   flex: 1;
