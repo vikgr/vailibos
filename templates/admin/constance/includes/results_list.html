@@ -1,61 +1,62 @@
 {% load admin_list static i18n %}
 
-<div class="vp-settings-grid">
-    {% for item in config_values %}
-    <div class="vp-setting-card {% if item.modified %}is-modified{% endif %}" id="{{ item.name|slugify }}">
-        
-        <div class="vp-card-header">
-            <h3 class="vp-title">
-                {{ item.name }}
-                {% if item.modified %}
-                <span class="vp-modified-dot" title="Modified from default"></span>
+<div class="vp-settings-list-container">
+    <div class="vp-settings-list-card">
+        {% for item in config_values %}
+        <div class="vp-setting-row {% if item.modified %}is-modified{% endif %}" id="{{ item.name|slugify }}">
+            
+            <div class="vp-setting-info">
+                <h3 class="vp-setting-name">
+                    {{ item.name }}
+                    {% if item.modified %}
+                    <span class="vp-modified-dot" title="Modified from default"></span>
+                    {% endif %}
+                    <a class="item-anchor" href="#{{ item.name|slugify }}">#</a>
+                </h3>
+                <p class="vp-setting-desc">{{ item.help_text|linebreaksbr }}</p>
+                {% if not item.is_file %}
+                <div class="vp-setting-default">Default: <span>{{ item.default|truncatechars:40 }}</span></div>
                 {% endif %}
-                <a class="item-anchor" href="#{{ item.name|slugify }}">#</a>
-            </h3>
-            <p class="vp-desc">{{ item.help_text|linebreaksbr }}</p>
-        </div>
-
-        <div class="vp-card-body">
-            {{ item.form_field.errors }}
-
-            {% if item.is_file %}
-                <div class="vp-file">
-                    {% trans "Current file" %}: 
-                    <a href="{% get_media_prefix as MEDIA_URL %}{{ MEDIA_URL }}{{ item.value }}" target="_blank">{{ item.value }}</a>
-                </div>
-            {% endif %}
-
-            <div class="vp-control-wrap {% if item.is_checkbox %}vp-is-checkbox{% endif %}">
-                {{ item.form_field }}
             </div>
-        </div>
 
-        <div class="vp-card-footer">
-            {% if not item.is_file %}
-                <div class="vp-default-val">Default: <span>{{ item.default|truncatechars:40 }}</span></div>
-                <a href="#" class="vp-reset reset-link"
-                   title="Reset to default: {{ item.default }}"
-                   data-field-id="{{ item.form_field.auto_id }}"
-                   data-field-type="{% spaceless %}
-                   {% if item.is_checkbox %}checkbox
-                   {% elif item.is_multi_select %}multi-select
-                   {% elif item.is_datetime %}datetime
-                   {% elif item.is_date %}date
-                   {% endif %}
-                   {% endspaceless %}"
-                   data-default="{% spaceless %}
-                   {% if item.is_checkbox %}{% if item.raw_default %} true {% else %} false {% endif %}
-                   {% elif item.is_multi_select %}{{ item.json_default }}
-                   {% elif item.is_date %}{{ item.raw_default|date:"U" }}
-                   {% elif item.is_datetime %}{{ item.raw_default|date:"U" }}
-                   {% else %}{{ item.default }}
-                   {% endif %}
-                   {% endspaceless %}">
-                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                </a>
-            {% endif %}
-        </div>
+            <div class="vp-setting-control-area">
+                {{ item.form_field.errors }}
 
+                {% if item.is_file %}
+                    <div class="vp-file">
+                        <a href="{% get_media_prefix as MEDIA_URL %}{{ MEDIA_URL }}{{ item.value }}" target="_blank">View Current File ({{ item.value|truncatechars:20 }})</a>
+                    </div>
+                {% endif %}
+
+                <div class="vp-control-element {% if item.is_checkbox %}vp-is-checkbox{% endif %}">
+                    {{ item.form_field }}
+                </div>
+
+                {% if not item.is_file %}
+                    <a href="#" class="vp-reset-btn reset-link"
+                       title="Reset to default: {{ item.default }}"
+                       data-field-id="{{ item.form_field.auto_id }}"
+                       data-field-type="{% spaceless %}
+                       {% if item.is_checkbox %}checkbox
+                       {% elif item.is_multi_select %}multi-select
+                       {% elif item.is_datetime %}datetime
+                       {% elif item.is_date %}date
+                       {% endif %}
+                       {% endspaceless %}"
+                       data-default="{% spaceless %}
+                       {% if item.is_checkbox %}{% if item.raw_default %} true {% else %} false {% endif %}
+                       {% elif item.is_multi_select %}{{ item.json_default }}
+                       {% elif item.is_date %}{{ item.raw_default|date:"U" }}
+                       {% elif item.is_datetime %}{{ item.raw_default|date:"U" }}
+                       {% else %}{{ item.default }}
+                       {% endif %}
+                       {% endspaceless %}">
+                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    </a>
+                {% endif %}
+            </div>
+
+        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
 </div>

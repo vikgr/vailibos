@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", function() {
     document.querySelectorAll('#changelist-form input, #changelist-form select, #changelist-form textarea').forEach(el => {
         el.addEventListener('change', (e) => {
             modifiedFields.add(e.target.name);
-            e.target.closest('.vp-setting-card')?.classList.add('is-modified');
+            e.target.closest('.vp-setting-row')?.classList.add('is-modified');
             updateBadge();
         });
     });
@@ -116,13 +116,13 @@ document.addEventListener("DOMContentLoaded", function() {
     const cronDow = document.querySelector('input[name="SOPDS_SCAN_SHED_DOW"]');
     
     if (cronMin && cronHour) {
-        const cronCardWrapper = cronMin.closest('.vp-setting-card');
-        if (cronCardWrapper) {
+        const cronRowWrapper = cronMin.closest('.vp-setting-row');
+        if (cronRowWrapper) {
             let container = document.createElement('div');
             container.innerHTML = `
-                <div style="margin-top: 15px; padding: 10px; background: var(--bg-row-odd); border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                <div style="margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: var(--radius-sm); border: 1px solid var(--border); width: 100%;">
                     <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Quick Presets</label>
-                    <select id="cron-presets" style="width: 100%; max-width: 300px;">
+                    <select id="cron-presets" style="width: 100%; border: 1px solid var(--border); padding: 8px; border-radius: 6px; background: var(--bg-input); color: var(--text-primary);">
                         <option value="">-- Select Preset --</option>
                         <option value="0|3|*|*">Every day at 3:00 AM</option>
                         <option value="0|0|*|0">Every Sunday at midnight</option>
@@ -130,7 +130,14 @@ document.addEventListener("DOMContentLoaded", function() {
                     </select>
                 </div>
             `;
-            cronCardWrapper.querySelector('.vp-card-body').appendChild(container);
+            // Append it below the existing control area
+            const controlArea = cronRowWrapper.querySelector('.vp-setting-control-area');
+            if(controlArea) {
+               // change the control area to flex wrap so it goes to next line
+               controlArea.style.flexWrap = 'wrap';
+               container.style.flexBasis = '100%';
+               controlArea.appendChild(container);
+            }
             
             document.getElementById('cron-presets').addEventListener('change', function(e) {
                 if(!this.value) return;
