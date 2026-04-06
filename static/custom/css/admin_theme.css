@@ -1169,6 +1169,7 @@ textarea.vs-path-input {
   padding: 24px 32px;
   border-bottom: 1px solid var(--border);
   transition: background var(--transition);
+  background: red !important;
 }
 
 .vp-setting-row:last-child {
@@ -1176,7 +1177,7 @@ textarea.vs-path-input {
 }
 
 .vp-setting-row:hover {
-  background: rgba(255,255,255,0.02);
+  background: rgba(255,255,255,0.02) !important;
 }
 
 .vp-setting-row.is-modified {
@@ -1184,12 +1185,11 @@ textarea.vs-path-input {
   background: rgba(138, 112, 214, 0.03);
 }
 
-
-
 .vp-setting-info {
   flex: 1;
   padding-right: 40px;
   max-width: 500px;
+  background: blue !important;
 }
 
 @media (max-width: 768px) {
@@ -1256,6 +1256,7 @@ textarea.vs-path-input {
   gap: 16px;
   width: 350px;
   justify-content: flex-end;
+  background: green !important;
 }
 
 
