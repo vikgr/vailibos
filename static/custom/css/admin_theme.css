@@ -1161,7 +1161,9 @@ textarea.vs-path-input {
 }
 
 .vp-setting-row {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
   justify-content: space-between;
   align-items: center;
   padding: 24px 32px;
@@ -1182,10 +1184,10 @@ textarea.vs-path-input {
   background: rgba(138, 112, 214, 0.03);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .vp-setting-row {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: column !important;
+    align-items: flex-start !important;
     gap: 20px;
     padding: 20px;
   }
@@ -1256,16 +1258,16 @@ textarea.vs-path-input {
 }
 
 .vp-setting-control-area {
-  display: flex;
+  display: flex !important;
   align-items: center;
   gap: 16px;
-  min-width: 320px;
+  width: 350px;
   justify-content: flex-end;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .vp-setting-control-area {
-    min-width: 100%;
+    width: 100%;
     justify-content: flex-start;
   }
 }
