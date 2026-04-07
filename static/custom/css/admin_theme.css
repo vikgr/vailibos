@@ -1169,7 +1169,6 @@ textarea.vs-path-input {
   padding: 24px 32px;
   border-bottom: 1px solid var(--border);
   transition: background var(--transition);
-  background: red !important;
 }
 
 .vp-setting-row:last-child {
@@ -1189,7 +1188,6 @@ textarea.vs-path-input {
   flex: 1;
   padding-right: 40px;
   max-width: 500px;
-  background: blue !important;
 }
 
 @media (max-width: 768px) {
@@ -1256,7 +1254,6 @@ textarea.vs-path-input {
   gap: 16px;
   width: 350px;
   justify-content: flex-end;
-  background: green !important;
 }
 
 
