@@ -48,16 +48,39 @@ class BasicAuthMiddleware(object):
 class SOPDSLocaleMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
-        lang = config.SOPDS_LANGUAGE
+        # 1. Try cookie (set by our JS flag switcher)
+        # 2. Try session
+        # 3. Fallback to global config
+        lang_cookie = request.COOKIES.get('django_language')
+        
+        # Support short codes mapping for common ones used in JS switcher
+        mapping = {
+            'en': 'en-us',
+            'zh': 'zh-hans',
+            'ru': 'ru',
+            'el': 'el',
+            'de': 'de',
+            'es': 'es',
+            'fr': 'fr',
+            'ar': 'ar',
+            'hi': 'hi',
+            'pt': 'pt',
+        }
+        
+        if lang_cookie in mapping:
+            lang = mapping[lang_cookie]
+        else:
+            lang = lang_cookie or config.SOPDS_LANGUAGE
+
         request.LANG = lang
         translation.activate(lang)
         request.LANGUAGE_CODE = translation.get_language()
-        # Store in session so Django admin and all i18n tags use this language
+        
         if hasattr(request, 'session'):
             request.session[LANGUAGE_SESSION_KEY] = lang
 
     def process_response(self, request, response):
-        lang = config.SOPDS_LANGUAGE
+        lang = getattr(request, 'LANG', config.SOPDS_LANGUAGE)
         translation.activate(lang)
         response['Content-Language'] = translation.get_language()
         return response
