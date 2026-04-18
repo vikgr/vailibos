@@ -840,3 +840,71 @@ body {
     border: 4px solid #000;
     border-radius: 0;
 }
+
+/* Modern placeholder cover */
+.modern-placeholder {
+    width: 100%;
+    height: 100%;
+    display: none; /* Hidden by default, shown by checkEinkCover or similar logic */
+    flex-direction: column;
+    background: #0d1015;
+    position: relative;
+    box-sizing: border-box;
+    border: 2px solid transparent;
+    border-image: linear-gradient(135deg, #9d4edd 0%, #2ac3ff 100%) 1;
+    padding: 20px;
+    text-align: center;
+    justify-content: flex-end; /* Push text to bottom */
+}
+
+.modern-placeholder .triangle-icon {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 0;
+    height: 0;
+    border-left: 45px solid transparent;
+    border-right: 45px solid transparent;
+    border-bottom: 75px solid #9d4edd; /* Primary color for triangle */
+    display: flex;
+    justify-content: center;
+}
+
+.modern-placeholder .triangle-icon::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: -38px;
+    border-left: 38px solid transparent;
+    border-right: 38px solid transparent;
+    border-bottom: 64px solid #0d1015;
+}
+
+.modern-placeholder .m-plt-content {
+    border-top: 1px solid rgba(157, 78, 221, 0.5);
+    padding-top: 15px;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.modern-placeholder .m-plt-title {
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.2;
+}
+
+.modern-placeholder .m-plt-author {
+    color: #2ac3ff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}

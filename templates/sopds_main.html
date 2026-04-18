@@ -14,7 +14,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'foundation-icons/foundation-icons.css' %}">
 
     <!-- Modern & E-Ink Inject -->
-    <link rel="stylesheet" type="text/css" href="{% static 'custom/css/modern.css' %}?v=20">
+    <link rel="stylesheet" type="text/css" href="{% static 'custom/css/modern.css' %}?v=21">
     <script>
         (function () {
             const theme = localStorage.getItem('sopds-theme') || 'premium';
@@ -97,6 +97,27 @@
     <script src="{% static 'custom/js/theme_switcher.js' %}"></script>
 
     <script>
+        // Detects SOPDS 'no cover' image and shows the themed placeholder instead.
+        function checkEinkCover(img) {
+            function process() {
+                // If it's 83x100 exactly, it's the SOPDS nocover image. 
+                // Alternatively, detect nocover by aspect ratio if scaled, or any common fallback.
+                if ((img.naturalWidth === 83 && img.naturalHeight === 100) || 
+                    (Math.abs(img.naturalWidth / img.naturalHeight - 0.83) < 0.05) && img.naturalWidth < 150) {
+                    img.style.display = 'none';
+                    var next = img.nextElementSibling;
+                    if (next && (next.classList.contains('eink-placeholder') || next.classList.contains('modern-placeholder'))) {
+                        next.style.display = 'flex';
+                    }
+                }
+            }
+            if (img.complete) {
+                process();
+            } else {
+                img.onload = process;
+            }
+        }
+
         $(document).foundation();
         if (typeof SetSearch === 'function') SetSearch();
 
