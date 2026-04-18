@@ -1,0 +1,160 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Adjustments for integrated Antigravity dashboard */
+    #content { padding: 0 !important; max-width: 100% !important; margin: 0 !important; }
+    .app-container { height: auto !important; min-height: calc(100vh - 58px); grid-template-columns: 80px 1fr 350px !important; }
+    #content-main { width: 100%; }
+    
+    /* Grid for django apps */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 24px;
+        margin-top: 24px;
+    }
+    .dashboard-app-card {
+        background: var(--bg-glass);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border-glass);
+        border-radius: var(--radius-md);
+        padding: 0;
+        overflow: hidden;
+        transition: var(--transition);
+        box-shadow: var(--shadow-card);
+    }
+    .dashboard-app-card:hover { transform: translateY(-5px); border-color: var(--accent-purple); box-shadow: var(--shadow-card), var(--glow-soft); }
+    .app-card-header {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-glass);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .app-card-header h3 a { font-family: 'Syncopate', sans-serif; font-size: 11px; letter-spacing: 2px; color: var(--accent-mint) !important; text-transform: uppercase; }
+    .app-card-content { padding: 8px 0; }
+    .model-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .model-row:last-child { border-bottom: none; }
+    .model-name { font-weight: 600; font-size: 14px; color: var(--text-primary); }
+    .model-actions { display: flex; gap: 8px; }
+    .model-actions a { font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; }
+    .act-add { color: var(--accent-mint) !important; background: rgba(0, 245, 212, 0.1); }
+    .act-chg { color: var(--accent-purple) !important; background: rgba(157, 80, 187, 0.1); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <!-- Sidebar Navigation -->
+    <nav class="side-nav">
+        <div class="nav-item active"><a href="{% url 'admin:index' %}" style="color:inherit;"><i class="fi-home" style="font-size:24px;"></i></a></div>
+        <div class="nav-item"><a href="/web/" style="color:inherit;"><i class="fi-book" style="font-size:24px;"></i></a></div>
+        <div class="nav-item"><a href="{% url 'admin:auth_user_changelist' %}" style="color:inherit;"><i class="fi-torsos" style="font-size:24px;"></i></a></div>
+        <div class="nav-item"><a href="{% url 'admin:constance_config_changelist' %}" style="color:inherit;"><i class="fi-widget" style="font-size:24px;"></i></a></div>
+        <div class="nav-item"><a href="{% url 'admin:logout' %}" style="color:inherit;"><i class="fi-power" style="font-size:24px;"></i></a></div>
+    </nav>
+    
+    <!-- Main Dashboard View -->
+    <main class="main-content">
+        <!-- Header Welcome Card -->
+        <header class="welcome-card">
+            <div class="logo-container" style="font-family: 'Syncopate', sans-serif; font-size: 40px; font-weight: 800; color: var(--accent-purple); text-shadow: 0 0 20px var(--accent-purple-glow);">
+                VAILIB
+            </div>
+            <div class="welcome-text">
+                <h1>SOPDS MANAGEMENT INTERFACE</h1>
+                <h2>Welcome back, {{ user.username }}</h2>
+                <p>System status is nominal. The production cluster is running <strong>v2.2.0-STITCH</strong>. All library indexes are synchronized.</p>
+            </div>
+        </header>
+        
+        <!-- Statistics Tiles (Dynamic placeholders or hardcoded for now) -->
+        <section class="stats-grid">
+            <div class="stat-tile">
+                <div class="stat-icon"><i class="fi-results-demographics" style="font-size:40px; color:var(--accent-mint);"></i></div>
+                <div class="stat-info">
+                    <div class="stat-label">System</div>
+                    <div class="stat-value glow-mint">Active</div>
+                </div>
+            </div>
+            <div class="stat-tile">
+                <div class="stat-icon"><i class="fi-torsos-all" style="font-size:40px; color:var(--accent-purple);"></i></div>
+                <div class="stat-info">
+                    <div class="stat-label">Users Registered</div>
+                    <div class="stat-value glow-purple">{% if user_count %}{{ user_count }}{% else %}1{% endif %}</div>
+                </div>
+            </div>
+            <div class="stat-tile">
+                <div class="stat-icon"><i class="fi-shield" style="font-size:40px; color:var(--accent-cyan);"></i></div>
+                <div class="stat-info">
+                    <div class="stat-label">Security</div>
+                    <div class="stat-value glow-cyan">Nominal</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- APP LIST GRID -->
+        <div class="dashboard-grid">
+            {% for app in app_list %}
+            <div class="dashboard-app-card">
+                <div class="app-card-header">
+                    <h3><a href="{{ app.app_url }}" class="section" title="{% blocktrans with name=app.name %}Models in the {{ name }} application{% endblocktrans %}">{{ app.name }}</a></h3>
+                </div>
+                <div class="app-card-content">
+                    {% for model in app.models %}
+                    <div class="model-row">
+                        <div class="model-name">
+                            {% if model.admin_url %}
+                                <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                            {% else %}
+                                {{ model.name }}
+                            {% endif %}
+                        </div>
+                        <div class="model-actions">
+                            {% if model.add_url %}<a href="{{ model.add_url }}" class="act-add">{% trans 'Add' %}</a>{% endif %}
+                            {% if model.admin_url %}<a href="{{ model.admin_url }}" class="act-chg">{% trans 'View' %}</a>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+    
+    <!-- Right Sidebar (Recent Actions) -->
+    <aside class="right-sidebar">
+        <h3 class="sidebar-title">Recent Actions Log</h3>
+        <div class="actions-log">
+            {% load log %}
+            {% get_admin_log 10 as admin_log for_user user %}
+            {% if not admin_log %}
+                <p style="color:var(--text-dim); font-size:13px; text-align:center;">{% trans 'None available' %}</p>
+            {% else %}
+                {% for entry in admin_log %}
+                <div class="action-item">
+                    <div class="action-user" style="color:{% if entry.is_addition %}var(--accent-mint){% elif entry.is_change %}var(--accent-cyan){% else %}var(--accent-danger){% endif %};">
+                        {{ entry.user }}
+                    </div>
+                    <div class="action-detail">
+                        {% if entry.is_addition %}<strong>+</strong>{% elif entry.is_change %}<strong>~</strong>{% else %}<strong>-</strong>{% endif %}
+                        {{ entry.object_repr }} ({{ entry.content_type }})
+                    </div>
+                    <span class="time">{{ entry.action_time|timesince }} ago</span>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </aside>
+</div>
+{% endblock %}
