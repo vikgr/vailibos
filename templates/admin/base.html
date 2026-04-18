@@ -25,8 +25,30 @@
     <!-- Header -->
     <div id="header">
         <div id="branding">
-        {% block branding %}{% endblock %}
+        <h1 id="site-name" style="display: flex; align-items: center; gap: 15px;">
+            <a href="{% url 'admin:index' %}">VAILIB | Management Dashboard</a>
+            
+            <div class="admin-lang-switcher" style="display: flex; gap: 4px; margin-left: 20px;">
+                <a href="#" onclick="setVailibLang('ru'); return false;" title="Russian"><img src="https://flagcdn.com/w20/ru.png" width="16" style="border-radius:2px; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'"></a>
+                <a href="#" onclick="setVailibLang('en'); return false;" title="English"><img src="https://flagcdn.com/w20/gb.png" width="16" style="border-radius:2px; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'"></a>
+                <a href="#" onclick="setVailibLang('de'); return false;" title="German"><img src="https://flagcdn.com/w20/de.png" width="16" style="border-radius:2px; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'"></a>
+                <a href="#" onclick="setVailibLang('es'); return false;" title="Spanish"><img src="https://flagcdn.com/w20/es.png" width="16" style="border-radius:2px; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'"></a>
+                <a href="#" onclick="setVailibLang('fr'); return false;" title="French"><img src="https://flagcdn.com/w20/fr.png" width="16" style="border-radius:2px; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'"></a>
+                <a href="#" onclick="setVailibLang('el'); return false;" title="Greek"><img src="https://flagcdn.com/w20/gr.png" width="16" style="border-radius:2px; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'"></a>
+                <a href="#" onclick="setVailibLang('ar'); return false;" title="Arabic"><img src="https://flagcdn.com/w20/sa.png" width="16" style="border-radius:2px; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'"></a>
+                <a href="#" onclick="setVailibLang('hi'); return false;" title="Hindi"><img src="https://flagcdn.com/w20/in.png" width="16" style="border-radius:2px; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'"></a>
+                <a href="#" onclick="setVailibLang('pt'); return false;" title="Portuguese"><img src="https://flagcdn.com/w20/pt.png" width="16" style="border-radius:2px; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'"></a>
+                <a href="#" onclick="setVailibLang('zh'); return false;" title="Chinese"><img src="https://flagcdn.com/w20/cn.png" width="16" style="border-radius:2px; opacity: 0.8; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'"></a>
+            </div>
+        </h1>
         </div>
+        <script>
+            function setVailibLang(lang) {
+                localStorage.setItem('vailib_lang', lang);
+                document.cookie = 'django_language=' + lang + '; path=/; max-age=31536000';
+                location.reload();
+            }
+        </script>
         {% block usertools %}
         {% if has_permission %}
         <div id="user-tools">
