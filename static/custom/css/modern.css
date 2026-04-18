@@ -908,3 +908,47 @@ body {
     font-weight: 600;
     text-transform: uppercase;
 }
+
+/* --- LANG SELECTOR --- */
+.lang-selector-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 25px;
+    padding: 15px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    width: 100%;
+    box-sizing: border-box;
+}
+.color-lang-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--btn-bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.color-lang-btn:hover, .color-lang-btn.active {
+    background: var(--text-main);
+    color: var(--bg-main);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px var(--accent-glow);
+    border-color: var(--accent);
+}
+.color-lang-btn .lang-flag {
+    font-size: 1.2rem;
+}
+.color-lang-btn .lang-code {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
