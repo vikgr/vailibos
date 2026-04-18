@@ -1,0 +1,1712 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Montserrat:wght@800&display=swap');
+
+/* KILL LEGACY SOPDS AND FOUNDATION */
+.top-bar,
+.top-bar-right,
+.top-bar-left,
+.sopdsbg,
+.title-bar,
+.row {
+    max-width: 100% !important;
+}
+
+.top-bar {
+    display: none !important;
+}
+
+/* THEME VARIABLES */
+:root {
+    --bg-main: #0a0c10;
+    --sidebar-bg: rgba(13, 16, 21, 0.8);
+    --card-bg: rgba(20, 24, 32, 0.7);
+    --text-main: #FFFFFF;
+    --text-muted: #8E94B7;
+    --accent: #2ac3ff;
+    --accent-purple: #9d4edd;
+    --accent-glow: 0 0 15px rgba(42, 195, 255, 0.3);
+    --border: rgba(255, 255, 255, 0.08);
+    --btn-bg: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="eink"] {
+    --bg-main: #FFFFFF !important;
+    --sidebar-bg: #FFFFFF !important;
+    --card-bg: #FFFFFF !important;
+    --text-main: #000000 !important;
+    --text-muted: #333333 !important;
+    --accent: #000000 !important;
+    --accent-purple: #000000 !important;
+    --accent-glow: none !important;
+    --border: #000000 !important;
+    --btn-bg: #FFFFFF !important;
+    --search-gradient: none !important;
+}
+
+body {
+    background-color: var(--bg-main) !important;
+    color: var(--text-main) !important;
+    font-family: 'Inter', sans-serif !important;
+    margin: 0;
+    padding: 0;
+}
+
+/* APP LAYOUT */
+.app-wrapper {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: row;
+}
+
+.sidebar-container {
+    width: 280px;
+    background-color: var(--sidebar-bg);
+    backdrop-filter: blur(15px);
+    border-right: 1px solid var(--border);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.main-content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+/* FOOTER REMOVAL */
+.eink-footer,
+.callout.secondary {
+    display: none !important;
+}
+
+/* SIDEBAR STATS */
+.sidebar-stats {
+    margin-top: auto;
+    padding-top: 25px;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.sidebar-stats h5 {
+    font-size: 0.8rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-stats p {
+    margin: 4px 0;
+    line-height: 1.4;
+}
+
+.sidebar-stats b {
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+[data-theme="eink"] .sidebar-stats {
+    display: none !important;
+}
+
+@media (max-width: 800px) {
+    .sidebar-stats {
+        display: none !important;
+    }
+}
+
+/* RESPONSIVE & EINK LAYOUT changes */
+@media (max-width: 800px) {
+    .app-wrapper {
+        flex-direction: column;
+    }
+
+    .sidebar-container {
+        width: 100%;
+        border-right: none;
+        border-bottom: 2px solid var(--border);
+        padding: 15px;
+        box-sizing: border-box;
+    }
+
+    .brand-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 15px !important;
+    }
+
+    .brand-header a {
+        flex: 0 0 120px;
+    }
+
+    .brand-header .auth-box {
+        margin-top: 0;
+        flex: 1;
+    }
+
+    .vailib-nav-menu {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        padding-bottom: 10px;
+        -webkit-overflow-scrolling: touch;
+        gap: 8px !important;
+    }
+
+    .vailib-nav-menu .nav-item {
+        width: auto !important;
+        flex: 0 0 auto !important;
+    }
+
+    .vailib-nav-menu .nav-btn {
+        padding: 8px 12px !important;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+
+    .main-content {
+        padding: 15px;
+    }
+}
+
+[data-theme="eink"] .app-wrapper {
+    flex-direction: column;
+}
+
+[data-theme="eink"] .sidebar-container {
+    width: 100%;
+    border-right: none;
+    border-bottom: 2px solid #000;
+    backdrop-filter: none;
+}
+
+[data-theme="eink"] .main-content {
+    padding: 15px;
+}
+
+/* BRANDING */
+.vailib-brand {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: 2rem;
+    color: var(--accent);
+    text-shadow: var(--accent-glow);
+    margin: 0;
+}
+
+[data-theme="eink"] .vailib-brand {
+    font-size: 2.2rem;
+    border: 3px solid #000;
+    padding: 8px;
+    text-align: center;
+    color: #000;
+    text-shadow: none;
+    background: #fff;
+    margin-bottom: 15px !important;
+    border-radius: 0 !important;
+    display: inline-block;
+}
+
+.auth-box {
+    margin-top: 5px;
+    width: 100%;
+}
+
+.auth-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 10px 15px;
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-main);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+    font-weight: 600;
+    box-sizing: border-box;
+}
+
+.auth-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow);
+    transform: translateY(-2px);
+}
+
+[data-theme="eink"] .auth-box {
+    text-align: center;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+[data-theme="eink"] .auth-btn {
+    border: 3px solid #000 !important;
+    border-radius: 0 !important;
+    color: #000 !important;
+    background: #fff !important;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.1rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+    box-shadow: none !important;
+}
+
+[data-theme="eink"] .auth-btn:hover {
+    background: #000 !important;
+    color: #fff !important;
+    transform: none;
+}
+
+/* SEARCH & TABS */
+.comfort-search-wrapper {
+    background: transparent;
+    padding: 0;
+    margin-top: 10px;
+}
+
+[data-theme="eink"] .comfort-search-wrapper {
+    border: none !important;
+    border-radius: 0;
+    background: transparent !important;
+}
+
+.search-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.search-tab {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 5px;
+}
+
+.search-tab.active {
+    color: var(--text-main);
+    border-bottom: 2px solid var(--accent);
+}
+
+[data-theme="eink"] .search-tab {
+    border: 1px solid #000;
+    padding: 10px 15px;
+    color: #000;
+    font-weight: 800;
+    flex-grow: 1;
+}
+
+[data-theme="eink"] .search-tab.active {
+    background: #000;
+    color: #fff;
+    border-bottom: 3px solid #000;
+}
+
+.modern-search-form {
+    position: relative;
+    border-radius: 30px;
+    padding: 2px;
+    background: var(--search-gradient, linear-gradient(90deg, var(--accent) 0%, var(--accent-purple) 100%));
+    box-shadow: 0 0 15px rgba(157, 78, 221, 0.3);
+}
+
+.modern-search-form .input-group-field {
+    background: var(--bg-main) !important;
+    border: none !important;
+    color: var(--text-main) !important;
+    border-radius: 28px 0 0 28px !important;
+    padding: 20px 25px !important;
+    box-shadow: none !important;
+    height: 100%;
+}
+
+[data-theme="eink"] .modern-search-form .input-group-field {
+    border: 1px solid #000 !important;
+    border-right: none !important;
+    border-radius: 0 !important;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #000 !important;
+    background: #fff !important;
+}
+
+.modern-search-form .search-submit-btn {
+    background: var(--bg-main) !important;
+    color: var(--text-muted) !important;
+    border-radius: 0 28px 28px 0 !important;
+    border: none !important;
+    padding: 0 25px !important;
+}
+
+.modern-search-form .search-submit-btn:hover {
+    color: var(--accent) !important;
+}
+
+[data-theme="eink"] .modern-search-form .search-submit-btn {
+    background: #000 !important;
+    color: #fff !important;
+    border: 1px solid #000 !important;
+    border-radius: 0 !important;
+    font-size: 1.1rem;
+}
+
+/* SIDEBAR MENU */
+.vailib-nav-menu {
+    list-style: none;
+    margin: 20px 0 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+[data-theme="eink"] .vailib-nav-menu {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    margin-top: 0;
+}
+
+.nav-item {
+    width: 100%;
+}
+
+[data-theme="eink"] .nav-item {
+    width: auto;
+    flex: 1 1 auto;
+}
+
+.nav-btn {
+    display: block;
+    padding: 12px 15px;
+    border-radius: 8px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+
+.nav-item .active,
+.nav-btn:hover {
+    background: var(--btn-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+}
+
+[data-theme="eink"] .nav-btn {
+    border: 2px solid #000 !important;
+    border-radius: 0 !important;
+    color: #000 !important;
+    text-transform: uppercase;
+    font-size: 1.2rem;
+    text-align: center;
+    background: #fff;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    line-height: 1.3 !important;
+    margin-bottom: 5px;
+}
+
+[data-theme="eink"] .nav-item .active,
+[data-theme="eink"] .nav-btn:hover {
+    background: #000 !important;
+    color: #fff !important;
+}
+
+[data-theme="eink"] .nav-links {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    margin: 15px 0 !important;
+}
+
+[data-theme="eink"] .nav-links a {
+    border: 2px solid #000 !important;
+    background: #fff !important;
+    color: #000 !important;
+    padding: 8px 12px !important;
+    text-decoration: none !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    font-size: 0.9rem !important;
+    margin: 0 !important;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    line-height: 1.4 !important;
+}
+
+[data-theme="eink"] .nav-links a:hover {
+    background: #000 !important;
+    color: #fff !important;
+}
+
+[data-theme="eink"] .eink-breadcrumbs {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    padding: 8px 0 !important;
+    border-bottom: none !important;
+    margin-bottom: 15px !important;
+    font-size: 0.85rem !important;
+}
+
+[data-theme="eink"] .eink-breadcrumbs .crumb a {
+    display: inline-block !important;
+    border: 2px solid #000 !important;
+    background: #fff !important;
+    color: #000 !important;
+    padding: 8px 12px !important;
+    text-decoration: none !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    font-size: 0.9rem !important;
+    margin: 0 !important;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    line-height: 1.4 !important;
+}
+
+[data-theme="eink"] .eink-breadcrumbs .crumb a:hover {
+    background: #000 !important;
+    color: #fff !important;
+}
+
+[data-theme="eink"] .eink-breadcrumbs .crumb span {
+    display: inline-block !important;
+    border: 2px solid #000 !important;
+    background: #eee !important;
+    color: #000 !important;
+    padding: 8px 12px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    font-size: 0.9rem !important;
+    margin: 0 !important;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    line-height: 1.4 !important;
+}
+
+[data-theme="eink"] .eink-breadcrumbs .separator {
+    display: none !important;
+}
+
+/* THEME SWITCHER SEGMENTED UI */
+.theme-switcher-container {
+    padding: 0 5px;
+}
+.theme-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+    text-align: center;
+}
+.theme-segment {
+    display: flex;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 4px;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+.theme-opt {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 8px 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.theme-opt i {
+    font-size: 1.1rem;
+}
+.theme-opt:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+}
+.theme-opt.active {
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+[data-theme="eink"] .theme-label {
+    color: #000;
+    font-weight: 900;
+}
+[data-theme="eink"] .theme-segment {
+    background: #fff;
+    border: 3px solid #000;
+    border-radius: 0;
+    box-shadow: 3px 3px 0 #000;
+    padding: 2px;
+}
+[data-theme="eink"] .theme-opt {
+    color: #000;
+    font-weight: 800;
+    border-radius: 0;
+    border: 2px solid transparent;
+}
+[data-theme="eink"] .theme-opt.active {
+    background: #000;
+    color: #fff;
+    box-shadow: none;
+    border: 2px solid #000;
+}
+
+/* --- RECENT BOOKS GRID --- */
+.recent-books-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 25px;
+    padding-bottom: 40px;
+}
+
+[data-theme="eink"] .recent-books-grid {
+    display: block;
+    text-align: center;
+}
+
+/* BOOK CARD PREMIUM STYLING */
+.book-card {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 16px !important;
+    padding: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.book-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--accent) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 225, 255, 0.2);
+}
+
+.cover-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 2.5;
+    overflow: hidden;
+    margin-bottom: 0px;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.book-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.book-card:hover .book-cover {
+    transform: scale(1.05);
+}
+
+/* Modern placeholder cover */
+.modern-placeholder {
+    width: 100%;
+    height: 100%;
+    display: none; /* Hidden by default, shown by checkEinkCover or similar logic */
+    flex-direction: column;
+    background: #0d1015;
+    position: relative;
+    box-sizing: border-box;
+    border: 2px solid transparent;
+    border-image: linear-gradient(135deg, #9d4edd 0%, #2ac3ff 100%) 1;
+    padding: 20px;
+    text-align: center;
+    justify-content: flex-end; /* Push text to bottom */
+}
+
+.modern-placeholder .triangle-icon {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 0;
+    height: 0;
+    border-left: 45px solid transparent;
+    border-right: 45px solid transparent;
+    border-bottom: 75px solid #9d4edd; /* Primary color for triangle */
+    display: flex;
+    justify-content: center;
+}
+
+.modern-placeholder .triangle-icon::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: -38px;
+    border-left: 38px solid transparent;
+    border-right: 38px solid transparent;
+    border-bottom: 64px solid #0d1015;
+}
+
+.modern-placeholder .m-plt-content {
+    border-top: 1px solid rgba(157, 78, 221, 0.5);
+    padding-top: 15px;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.modern-placeholder .m-plt-title {
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.2;
+}
+
+.modern-placeholder .m-plt-author {
+    color: #2ac3ff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.book-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 15px;
+}
+
+.book-title {
+    margin: 0 !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    color: var(--text-main) !important;
+}
+
+.book-author {
+    margin: 6px 0 0 0 !important;
+    font-size: 0.9rem !important;
+    color: var(--text-muted) !important;
+    font-weight: 400 !important;
+}
+
+/* Task 4: Reduced border weights for faster rendering on older E-Ink devices */
+[data-theme="eink"] .book-card {
+    display: inline-block;
+    vertical-align: top;
+    text-align: left;
+    width: 200px;
+    margin: 10px;
+    border: 2px solid #000 !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+/* Swap all generic fallback covers to the white e-ink cover in eink mode */
+[data-theme="eink"] img[src^="/static/images/cover"] {
+    content: url("/static/images/cover2.jpg");
+}
+
+/* Task 2: Universal grayscale for ALL images in E-Ink mode */
+[data-theme="eink"] img {
+    filter: grayscale(1) contrast(1.15) !important;
+}
+
+/* Task 3: Folder cover background — must be white, not dark grey */
+[data-theme="eink"] .cover-wrapper {
+    background: #fff !important;
+}
+
+@media (max-width: 600px) {
+    .recent-books-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 15px;
+    }
+}
+
+/* Index Lists (Letters & Alphabets) */
+.index-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    padding-bottom: 30px;
+}
+
+.index-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: var(--text-main);
+}
+
+.index-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), var(--accent-glow);
+}
+
+.index-letter {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 10px;
+}
+
+.index-count {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* E-Ink Overrides for Index/Genre Cards */
+[data-theme="eink"] .index-grid {
+    display: block;
+    text-align: center;
+}
+
+[data-theme="eink"] .index-card {
+    display: inline-block;
+    vertical-align: top;
+    width: 200px;
+    margin: 10px;
+    border: 3px solid #000 !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+    padding: 20px 15px;
+    height: auto;
+    min-height: 110px;
+    box-shadow: none;
+}
+
+[data-theme="eink"] .index-card:hover {
+    background: #000 !important;
+    color: #fff !important;
+    transform: none;
+    box-shadow: none !important;
+}
+
+[data-theme="eink"] .index-letter {
+    color: inherit !important;
+    font-weight: 800;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+[data-theme="eink"] .index-card:hover .index-letter {
+    color: #fff !important;
+}
+
+[data-theme="eink"] .index-count {
+    color: inherit !important;
+    font-weight: 600;
+    margin-top: auto;
+    padding-top: 10px;
+}
+
+/* Catalog List View */
+.catalog-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+    padding-bottom: 30px;
+}
+
+[data-theme="eink"] .catalog-list {
+    display: block;
+    text-align: left;
+}
+
+.catalog-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    min-height: 100px;
+}
+
+[data-theme="eink"] .catalog-item {
+    display: inline-block;
+    vertical-align: top;
+    text-align: left;
+    width: 200px;
+    margin: 10px;
+    border: 3px solid #000 !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+    box-sizing: border-box;
+}
+
+[data-theme="eink"] .catalog-item:hover {
+    background: #000 !important;
+    color: #fff !important;
+    transform: none;
+    box-shadow: none !important;
+}
+
+.catalog-item:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), var(--accent-glow);
+}
+
+.catalog-icon {
+    margin-right: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+}
+
+.catalog-icon img {
+    width: 32px;
+    height: auto;
+}
+
+.catalog-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.catalog-title {
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 1.05rem;
+}
+
+.catalog-authors {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
+.catalog-format {
+    background: var(--accent);
+    color: var(--bg-main);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-left: 15px;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    list-style: none;
+    gap: 10px;
+    justify-content: center;
+    padding: 20px 0;
+    margin: 0;
+}
+
+.pagination li a,
+.pagination li.current {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 8px 15px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.pagination li a:hover {
+    border-color: var(--accent);
+    box-shadow: var(--accent-glow);
+}
+
+.pagination li.current {
+    background: var(--accent);
+    color: var(--bg-main);
+    border-color: var(--accent);
+    font-weight: 800;
+}
+
+.pagination li.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+[data-theme="eink"] .pagination li a,
+[data-theme="eink"] .pagination li.current {
+    background: #fff;
+    color: #000;
+    border: 3px solid #000;
+    border-radius: 0;
+}
+
+[data-theme="eink"] .pagination li.current {
+    background: #000;
+    color: #fff;
+}
+
+/* Breadcrumbs */
+.modern-breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    background: var(--card-bg);
+    padding: 15px 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.modern-breadcrumbs .crumb {
+    color: var(--text-main);
+}
+
+.modern-breadcrumbs a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.modern-breadcrumbs .separator {
+    color: var(--text-muted);
+    margin: 0 10px;
+}
+
+[data-theme="eink"] .modern-breadcrumbs {
+    background: #fff;
+    border: 4px solid #000;
+    border-radius: 0;
+    color: #000;
+}
+
+[data-theme="eink"] .modern-breadcrumbs a {
+    color: #000;
+    text-decoration: underline;
+}
+
+/* Book Item (List) */
+.modern-book-item {
+    flex-direction: row;
+    gap: 20px;
+    padding: 20px !important;
+    margin-bottom: 15px;
+}
+
+.modern-book-item .book-cover {
+    width: 120px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    aspect-ratio: 2 / 3;
+    background: var(--bg-main);
+}
+
+.modern-book-item .book-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.modern-book-item .book-info {
+    padding: 0;
+    justify-content: flex-start;
+}
+
+.modern-book-item .book-title {
+    font-size: 1.3rem !important;
+    margin-bottom: 10px !important;
+}
+
+.modern-book-item .book-meta p {
+    margin: 4px 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.modern-book-item .book-meta p a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.modern-book-item .book-meta strong {
+    color: var(--text-main);
+}
+
+.modern-book-item .book-actions {
+    margin-top: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.modern-book-item .action-btn {
+    background: var(--btn-bg);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.modern-book-item .action-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.modern-book-item .read-btn {
+    background: var(--accent);
+    color: var(--bg-main);
+    border-color: var(--accent);
+    font-weight: 800;
+}
+
+.modern-book-item .read-btn:hover {
+    background: transparent;
+    color: var(--accent);
+    box-shadow: var(--accent-glow);
+}
+
+.modern-book-item .book-annotation {
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    border-top: 1px dashed var(--border);
+    padding-top: 15px;
+}
+
+[data-theme="eink"] .modern-book-item {
+    border: 4px solid #000 !important;
+}
+
+[data-theme="eink"] .modern-book-item .action-btn {
+    border: 2px solid #000;
+    border-radius: 0;
+    color: #000;
+    background: #fff;
+}
+
+[data-theme="eink"] .modern-book-item .read-btn {
+    background: #000;
+    color: #fff;
+}
+
+[data-theme="eink"] .modern-book-item .book-meta strong {
+    color: #000;
+}
+
+/* Auth Card */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.modern-auth-card {
+    width: 100%;
+    max-width: 400px;
+    padding: 40px !important;
+}
+
+.modern-auth-card .auth-title {
+    text-align: center;
+    color: var(--accent);
+    margin-bottom: 30px;
+    font-size: 1.8rem;
+    text-shadow: var(--accent-glow);
+    font-weight: 800;
+}
+
+.modern-auth-card .form-group {
+    margin-bottom: 20px;
+}
+
+.modern-auth-card label {
+    display: block;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.modern-auth-card .modern-input {
+    width: 100%;
+    background: var(--bg-main) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-main) !important;
+    padding: 12px 15px !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.modern-auth-card .modern-input:focus {
+    border-color: var(--accent) !important;
+    box-shadow: var(--accent-glow) !important;
+    outline: none;
+}
+
+.modern-auth-card .modern-btn {
+    width: 100%;
+    background: var(--accent);
+    color: var(--bg-main);
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.modern-auth-card .modern-btn:hover {
+    box-shadow: 0 0 20px rgba(42, 195, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+[data-theme="eink"] .modern-auth-card {
+    border: 4px solid #000 !important;
+    background: #fff !important;
+    padding: 30px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 500px !important;
+}
+
+[data-theme="eink"] .modern-auth-card .auth-title {
+    color: #000 !important;
+    text-shadow: none !important;
+    font-size: 2.2rem !important;
+    margin-bottom: 40px !important;
+    text-align: center !important;
+}
+
+[data-theme="eink"] .modern-auth-card .form-group {
+    margin-bottom: 35px !important;
+    width: 100% !important;
+}
+
+[data-theme="eink"] .modern-auth-card label {
+    display: block !important;
+    font-size: 1.5rem !important;
+    color: #000 !important;
+    margin-bottom: 15px !important;
+    font-weight: 800 !important;
+    text-align: left !important;
+}
+
+[data-theme="eink"] .modern-auth-card .modern-input {
+    background: #fff !important;
+    border: 3px solid #000 !important;
+    color: #000 !important;
+    border-radius: 0 !important;
+    padding: 18px 20px !important;
+    font-size: 1.5rem !important;
+    width: 100% !important;
+    height: auto !important;
+    box-sizing: border-box !important;
+}
+
+[data-theme="eink"] .modern-auth-card .modern-btn {
+    background: #000 !important;
+    color: #fff !important;
+    border: 1px solid #000 !important;
+    border-radius: 0 !important;
+    padding: 22px !important;
+    font-size: 1.6rem !important;
+    font-weight: 900 !important;
+    width: 100% !important;
+    text-transform: uppercase !important;
+}
+
+/* ===== WELCOME SCREEN (guest landing) ===== */
+.welcome-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 40px 20px;
+}
+
+.welcome-card {
+    text-align: center;
+    max-width: 520px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 60px 50px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 30px rgba(42, 195, 255, 0.08);
+}
+
+.welcome-logo {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.welcome-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 0 0 15px 0;
+    line-height: 1.2;
+}
+
+.welcome-subtitle {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin: 0 0 35px 0;
+    line-height: 1.6;
+}
+
+.welcome-login-btn {
+    display: inline-block;
+    background: var(--accent);
+    color: var(--bg-main);
+    font-weight: 800;
+    font-size: 1rem;
+    padding: 15px 35px;
+    border-radius: 50px;
+    text-decoration: none;
+    box-shadow: 0 0 20px rgba(42, 195, 255, 0.35);
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+}
+
+.welcome-login-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 35px rgba(42, 195, 255, 0.55);
+    color: var(--bg-main);
+}
+
+/* E-Ink welcome */
+[data-theme="eink"] .welcome-card {
+    border: 3px solid #000;
+    border-radius: 0;
+    background: #fff;
+    box-shadow: 6px 6px 0 #000;
+}
+
+[data-theme="eink"] .welcome-title {
+    color: #000;
+}
+
+[data-theme="eink"] .welcome-subtitle {
+    color: #000;
+}
+
+[data-theme="eink"] .welcome-login-btn {
+    background: #fff !important;
+    color: #000 !important;
+    border: 1px solid #000 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 15px 35px;
+    font-weight: 900 !important;
+}
+
+[data-theme="eink"] .welcome-login-btn:hover {
+    background: #333;
+    box-shadow: 2px 2px 0 #555;
+    transform: none;
+}
+
+html[data-theme="eink"]::before,
+html[data-theme="eink"]::after,
+html[data-theme="eink"] body::before,
+html[data-theme="eink"] body::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* Kill ALL box-shadows and filters - absolute nuclear move */
+html[data-theme="eink"],
+html[data-theme="eink"] body,
+html[data-theme="eink"] *,
+html[data-theme="eink"] *::before,
+html[data-theme="eink"] *::after,
+html[data-theme="eink"] body::before,
+html[data-theme="eink"] body::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transition: none !important;
+    animation: none !important;
+    background-image: none !important;
+    outline: none !important;
+}
+
+/* Specific hardcoded shadow overrides */
+html[data-theme="eink"] .modern-search-form,
+html[data-theme="eink"] .book-card,
+html[data-theme="eink"] .book-card:hover,
+html[data-theme="eink"] .index-card,
+html[data-theme="eink"] .index-card:hover,
+html[data-theme="eink"] .welcome-card,
+html[data-theme="eink"] .modern-auth-card,
+html[data-theme="eink"] .modern-btn,
+html[data-theme="eink"] .modern-btn:hover,
+html[data-theme="eink"] .welcome-login-btn,
+html[data-theme="eink"] .welcome-login-btn:hover {
+    box-shadow: none !important;
+    background-image: none !important;
+    filter: none !important;
+    transform: none !important;
+    background: #fff !important;
+}
+
+/* Keep grayscale on images and symbols - MUST come after the nuclear override */
+html[data-theme="eink"] img,
+html[data-theme="eink"] .welcome-logo,
+html[data-theme="eink"] .welcome-card {
+    filter: grayscale(1) contrast(1.15) !important;
+}
+
+/* Force pure black/white on ALL text */
+html[data-theme="eink"],
+html[data-theme="eink"] body {
+    color: #000 !important;
+    background-color: #fff !important;
+    background-image: none !important;
+}
+
+html[data-theme="eink"] a {
+    color: #000 !important;
+    text-decoration: underline;
+}
+html[data-theme="eink"] a:visited {
+    color: #555 !important;
+}
+
+/* Disable Hover for E-Ink (Touch-friendly) */
+html[data-theme="eink"] .book-card:hover,
+html[data-theme="eink"] .index-card:hover,
+html[data-theme="eink"] .catalog-item:hover,
+html[data-theme="eink"] .nav-btn:hover,
+html[data-theme="eink"] .welcome-login-btn:hover {
+    transform: none !important;
+    background: #fff !important;
+    color: #000 !important;
+}
+
+/* BUT keep color change if it is selected (active state) */
+html[data-theme="eink"] .nav-item .active,
+html[data-theme="eink"] .nav-btn.active,
+html[data-theme="eink"] .active {
+    background: #000 !important;
+    color: #fff !important;
+}
+
+/* Simplify Search Section — remove outer container square */
+html[data-theme="eink"] .comfort-search-wrapper {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+}
+
+html[data-theme="eink"] .modern-search-form {
+    border: 1px solid #000 !important;
+    background: #fff !important;
+    border-radius: 0 !important;
+}
+
+/* Breadcrumbs */
+html[data-theme="eink"] .modern-breadcrumbs {
+    border: 1px solid #000 !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+}
+
+/* Pagination — minimal */
+html[data-theme="eink"] .pagination li a,
+html[data-theme="eink"] .pagination li.current {
+    border: 1px solid #000 !important;
+}
+
+/* Welcome card — plain box */
+html[data-theme="eink"] .welcome-card {
+    border: 2px solid #000 !important;
+    background: #fff !important;
+}
+
+/* Welcome login button — white bg style */
+html[data-theme="eink"] .welcome-login-btn {
+    background: #fff !important;
+    color: #000 !important;
+    border: 1px solid #000 !important;
+}
+
+/* Book card — thin border */
+html[data-theme="eink"] .book-card {
+    border: 1px solid #000 !important;
+    background: #fff !important;
+    padding: 10px !important;
+}
+
+/* Cover wrapper background */
+html[data-theme="eink"] .cover-wrapper {
+    background: #fff !important;
+}
+
+/* Theme button in eink mode */
+html[data-theme="eink"] .theme-btn {
+    background: #fff !important;
+    color: #000 !important;
+    border: 1px solid #000 !important;
+    font-weight: 900;
+    padding: 12px !important;
+}
+
+/* Nav buttons in eink mode - Align consistently */
+html[data-theme="eink"] .vailib-nav-menu {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    justify-content: center !important;
+    margin-top: 5px !important;
+}
+
+html[data-theme="eink"] .nav-item {
+    margin-top: 0 !important;
+    flex: 0 1 auto !important;
+}
+
+html[data-theme="eink"] .nav-btn {
+    background: #fff !important;
+    color: #000 !important;
+    border: 1px solid #000 !important;
+    font-weight: normal !important;
+    padding: 10px 15px !important;
+    height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+}
+
+html[data-theme="eink"] .nav-item .active,
+html[data-theme="eink"] .nav-btn.active {
+    background: #000 !important;
+    color: #fff !important;
+}
+
+/* Brand */
+html[data-theme="eink"] .vailib-brand {
+    border: 1px solid #000 !important;
+}
+
+/* Auth form */
+html[data-theme="eink"] .modern-auth-card {
+    border: 1px solid #000 !important;
+    background: #fff !important;
+}
+
+/* Remove fancy fonts in eink - use system serif for better legibility */
+/* --- DEFINITIVE E-INK MONOCHROMATIC ULTIMATE OVERRIDE --- */
+html[data-theme="eink"],
+html[data-theme="eink"] body,
+html[data-theme="eink"] .app-wrapper,
+html[data-theme="eink"] .sidebar-container,
+html[data-theme="eink"] .main-content {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    background-image: none !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    filter: none !important;
+    font-family: Georgia, 'Times New Roman', serif !important;
+    border: none !important;
+}
+
+/* Kill ALL vignettes, glows, and pseudo-decorations globally */
+html[data-theme="eink"] *,
+html[data-theme="eink"] *:before,
+html[data-theme="eink"] *:after,
+html[data-theme="eink"]:before,
+html[data-theme="eink"]:after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+    background: none !important;
+    background-image: none !important;
+    background-color: transparent;
+    border-color: #000 !important;
+    transition: none !important;
+    animation: none !important;
+}
+
+/* Specific elements that need re-enforcement of white background */
+html[data-theme="eink"] body,
+html[data-theme="eink"] .app-wrapper,
+html[data-theme="eink"] .main-content,
+html[data-theme="eink"] .sidebar-container,
+html[data-theme="eink"] .content-wrapper {
+    background: #fff !important;
+}
+
+/* Final search squaring & gradient kill */
+html[data-theme="eink"] .modern-search-form {
+    background: #fff !important;
+    box-shadow: none !important;
+    border: 1px solid #000 !important;
+    padding: 0 !important;
+}
+
+html[data-theme="eink"] .modern-search-form .input-group-field,
+html[data-theme="eink"] .modern-search-form .search-submit-btn {
+    border-radius: 0 !important;
+    border: 1px solid #000 !important;
+}
+
+/* Specific button style reinforcement */
+html[data-theme="eink"] .nav-btn,
+html[data-theme="eink"] .theme-btn,
+html[data-theme="eink"] .modern-btn {
+    background: #fff !important;
+    color: #000 !important;
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+}
+
+html[data-theme="eink"] .nav-btn.active,
+html[data-theme="eink"] .search-tab.active {
+    background: #000 !important;
+    color: #fff !important;
+}
+
+/* --- LANG SELECTOR --- */
+.lang-selector-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 25px;
+    padding: 15px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    width: 100%;
+    box-sizing: border-box;
+}
+.color-lang-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--btn-bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.color-lang-btn:hover, .color-lang-btn.active {
+    background: var(--text-main);
+    color: var(--bg-main);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px var(--accent-glow);
+    border-color: var(--accent);
+}
+.color-lang-btn .lang-flag {
+    font-size: 1.2rem;
+}
+.color-lang-btn .lang-code {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* E-INK LANG SELECTOR */
+[data-theme="eink"] .lang-selector-container {
+    display: flex !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    margin-bottom: 15px !important;
+    border: none !important;
+    border-bottom: 2px solid #000 !important;
+    padding: 0 0 15px 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+.eink-lang-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 44px !important;
+    height: 44px !important;
+    border: 2px solid #000 !important;
+    background: #fff !important;
+    color: #000 !important;
+    font-weight: 800 !important;
+    text-decoration: none !important;
+    font-size: 14px !important;
+    box-sizing: border-box !important;
+    text-transform: uppercase !important;
+}
+.eink-lang-btn.active, .eink-lang-btn:hover {
+    background: #000 !important;
+    color: #fff !important;
+}
+
