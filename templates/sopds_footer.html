@@ -19,20 +19,8 @@
            </div>
         {% endfor %}
         </div>
-        {% else %}
-        <p style="font-size: 0.8rem;">{% blocktrans %}Bookshelf is available only SimpleOPDS Catalog mode with activated user authorization.{% endblocktrans %}</p>
         {% endif %}
     </div>
-    
-    <div class="large-6 columns" style="margin-top:1rem; text-align: left;">
-        <h5 style="border-bottom: 1px solid #000; padding-bottom: 3px;" data-trans="stat">{% trans "STATISTICS" %}</h5>
-        <p style="font-size:0.9rem; line-height: 1.2;">
-            <b data-trans="cat_con">{% trans "This сatalog contains:" %}</b><br>
-            {{ stats.allbooks }} <span data-trans="bk_c">{% trans "books," %}</span> {{ stats.allauthors }} <span data-trans="aut_c">{% trans "authors," %}</span> {{ stats.allgenres }} <span data-trans="gen_c">{% trans "genres and" %}</span> {{ stats.allseries }} <span data-trans="t_ser">{% trans "series." %}</span>
-        </p>
-        <p style="font-size:0.8rem;">
-            <b data-trans="l_scan">{% trans "Last collection scan:" %}</b> {{ stats.lastscan_date|default:"Never" }}
-        </p>
     </div>
 </div>
 {% endif %}

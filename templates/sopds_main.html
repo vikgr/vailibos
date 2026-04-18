@@ -45,6 +45,22 @@
             <!-- Navigation System -->
             {% include "sopds_menu.html" %}
 
+            <!-- Statistics -->
+            <div class="sidebar-stats" style="margin-top: auto; padding-top: 15px;">
+                <h5 data-trans="stat" style="font-size: 0.8rem; text-transform: uppercase;">{% trans "STATISTICS" %}</h5>
+                <p style="font-size: 0.8rem; line-height: 1.3;">
+                    <b data-trans="cat_con">{% trans "This сatalog contains:" %}</b><br>
+                    {{ stats.allbooks }} <span data-trans="bk_c">{% trans "books," %}</span><br>
+                    {{ stats.allauthors }} <span data-trans="aut_c">{% trans "authors," %}</span><br>
+                    {{ stats.allgenres }} <span data-trans="gen_c">{% trans "genres and" %}</span><br>
+                    {{ stats.allseries }} <span data-trans="t_ser">{% trans "series." %}</span>
+                </p>
+                <p style="font-size: 0.75rem; margin-top: 10px;">
+                    <b data-trans="l_scan">{% trans "Last collection scan:" %}</b><br>
+                    {{ stats.lastscan_date|default:"Never" }}
+                </p>
+            </div>
+
         </aside>
 
         <!-- MAIN BODY -->
