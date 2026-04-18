@@ -1351,3 +1351,37 @@ textarea.vs-path-input {
   .vp-setting-control-area { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
   .vp-control-element { max-width: 100%; }
 }
+
+/* === DJANGO NATIVE ADMIN OVERRIDES === */
+#changelist, #changelist-form { background: var(--bg-card) !important; border-radius: var(--radius-md); box-shadow: var(--shadow-card); overflow: hidden; }
+#changelist table, .module table, .results { width: 100% !important; background: transparent !important; color: var(--text-primary) !important; border:none !important;}
+#changelist th, .module th, .results th, .results td, .module td { background: transparent !important; color: var(--text-primary) !important; border-bottom: 1px solid var(--border) !important; padding: 12px 15px !important; font-size: 14px !important;}
+#changelist thead th { background: var(--bg-card-alt) !important; color: var(--text-muted) !important; text-transform: uppercase; font-size: 11px !important; letter-spacing: 1px; border:none !important;}
+.row1, .row2 { background: var(--bg-card) !important; color: var(--text-primary) !important; transition: all 0.2s; }
+#changelist tr.row1:hover td, #changelist tr.row2:hover td { background: var(--bg-row-hover) !important; }
+#changelist-filter { background: var(--bg-card) !important; border-left: 1px solid var(--border) !important; color: var(--text-primary) !important; box-shadow: none !important;}
+#changelist-filter h2 { background: var(--bg-card-alt) !important; color: var(--text-primary) !important; border-bottom: 1px solid var(--border) !important;}
+#changelist-filter li { color: var(--text-muted) !important; }
+#changelist-filter a { color: var(--text-muted) !important; }
+#changelist-filter a:hover, #changelist-filter a.selected { color: var(--accent) !important; }
+.actions { background: var(--bg-card-alt) !important; color: var(--text-primary) !important; border-top: 1px solid var(--border) !important; border-bottom: 1px solid var(--border) !important; }
+.paginator { background: var(--bg-card) !important; color: var(--text-primary) !important; border-top: 1px solid var(--border) !important; padding-top: 15px; padding-bottom: 15px;}
+#changelist-search input[type="text"], .actions select { background: var(--bg-input) !important; color: var(--text-primary) !important; border: 1px solid var(--border) !important; padding: 6px 12px !important; border-radius: var(--radius-sm) !important; height: auto !important;}
+#changelist-search input[type="text"]:focus, .actions select:focus { border-color: var(--accent) !important; outline: none; box-shadow: 0 0 0 2px rgba(138, 112, 214, 0.2) !important;}
+/* Buttons */
+.button, input[type="submit"], input[type="button"], .submit-row input, a.button { background: var(--accent) !important; color: #fff !important; border: none !important; padding: 8px 16px !important; border-radius: var(--radius-sm) !important; font-family: inherit !important; font-weight: 600 !important; cursor: pointer !important; transition: all 0.2s !important;}
+.button:hover, input[type="submit"]:hover { background: var(--accent-hover) !important; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(138, 112, 214, 0.3) !important;}
+/* Forms & Fields */
+form .aligned label { color: var(--text-muted) !important; font-weight: 500;}
+input, select, textarea { background: var(--bg-input) !important; color: var(--text-primary) !important; border: 1px solid var(--border) !important; padding: 8px 12px !important; border-radius: var(--radius-sm) !important; transition: border 0.2s;}
+input:focus, select:focus, textarea:focus { border-color: var(--accent) !important; outline: none; }
+.add-row a { color: var(--accent-green) !important; font-weight: 600;}
+.delete-row a { color: var(--accent-danger) !important; font-weight: 600;}
+/* Toolbars */
+.object-tools a.addlink { background: var(--accent-green) !important; color: #000 !important; font-weight: 700 !important; border: none !important;}
+.object-tools a.addlink:hover { background: #69d97c !important; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(81, 207, 102, 0.3) !important;}
+/* Form row backgrounds */
+form .form-row { border-bottom: 1px solid var(--border) !important; }
+/* Override a attributes link */
+#changelist td a { color: var(--text-primary); font-weight: 600; text-decoration: none;}
+#changelist td a:hover { color: var(--accent); }
