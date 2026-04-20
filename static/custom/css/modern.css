@@ -933,6 +933,89 @@ body {
     font-weight: 600;
 }
 
+/* --- THEME SEGMENTED CONTROL --- */
+.theme-switcher-container {
+    width: 100%;
+}
+
+.theme-segment {
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 3px;
+    gap: 2px;
+}
+
+.theme-opt {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 10px 5px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    cursor: pointer;
+    border-radius: 9px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-transform: uppercase;
+}
+
+.theme-opt i {
+    font-size: 0.9rem;
+}
+
+.theme-opt:hover {
+    color: var(--text-main);
+}
+
+.theme-opt.active {
+    background: var(--accent);
+    color: var(--bg-main) !important;
+    box-shadow: 0 4px 15px rgba(42, 195, 255, 0.3);
+}
+
+/* E-INK THEME OVERRIDES */
+[data-theme="eink"] .theme-segment {
+    background: #fff;
+    border: 1px solid #000;
+    border-radius: 0;
+    padding: 2px;
+    gap: 0;
+}
+
+[data-theme="eink"] .theme-opt {
+    border-radius: 0;
+    font-size: 0.8rem;
+    color: #000;
+    border: 1px solid transparent;
+}
+
+[data-theme="eink"] .theme-opt.active {
+    background: #000;
+    color: #fff !important;
+    box-shadow: none;
+}
+
+[data-theme="eink"] .theme-switcher-container {
+    margin-top: 0px !important;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-left: 1px solid #000;
+    padding-left: 15px;
+}
+
+[data-theme="eink"] .theme-label {
+    margin-bottom: 0 !important;
+    white-space: nowrap;
+}
+
 /* --- LANG SELECTOR --- */
 .lang-selector-container {
     display: flex;

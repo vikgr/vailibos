@@ -42,9 +42,6 @@
                     {% endif %}
                 </div>
 
-                <button id="theme-toggle" class="nav-btn theme-btn" style="width: 100%; border:none; cursor:pointer; margin-top: 15px; background: transparent; color: var(--text-main); font-weight: bold; border: 1px solid var(--border); border-radius: 8px; padding: 8px;">
-                    <i class="fi-paint-bucket"></i> <span data-trans="eink_theme">🖤 E-INK THEME</span>
-                </button>
                 
                 <div class="lang-selector-container" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; background: transparent; border: none; box-shadow: none; padding: 0; margin: 15px 0 0 0;">
                     <a href="#" onclick="setVailibLang('ru'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/ru.png" width="15" alt="RU" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">RU</span></a>
@@ -147,7 +144,8 @@
                 welc_btn: 'Войти в библиотеку →', s_book: 'Поиск по названию', s_auth: 'Поиск по автору', s_ser: 'Поиск по серии', s_gen: 'Поиск по жанру', eink_theme: '🖤 E-INK THEME', color_theme: 'ЦВЕТНАЯ ТЕМА',
                 stat: 'СТАТИСТИКА', cat_con: 'Этот каталог содержит:', bk_c: 'книг,', aut_c: 'авторов,', gen_c: 'жанров и', t_tot: 'Всего:', t_aut: 'авторов.', t_bk: 'книг.', t_ser: 'серий.', l_scan: 'Последнее сканирование:',
                 read: 'Читать', prev: 'Назад', next: 'Вперед', bk_l: 'Книг:', home: 'НАЧАЛО', s_p: 'Поиск...', s_b: 'Найти',
-                root: 'ROOT', search: 'Поиск', select: 'Выбор', bshelf: 'Книжная полка', show_all: 'ПОКАЗАТЬ ВСЕ', doubles: 'Дубликаты книги'
+                root: 'ROOT', search: 'Поиск', select: 'Выбор', bshelf: 'Книжная полка', show_all: 'ПОКАЗАТЬ ВСЕ', doubles: 'Дубликаты книги',
+                appearance: 'ОФОРМЛЕНИЕ', premium: 'ЦВЕТНАЯ', eink: 'E-INK'
             },
             'en': {
                 cat: 'Catalogs', book: 'Books', auth: 'Authors', gen: 'Genres', ser: 'Series', set: 'Settings',
@@ -157,7 +155,8 @@
                 welc_btn: 'Enter Library →', s_book: 'Search by title', s_auth: 'Search by author', s_ser: 'Search by series', s_gen: 'Search by genre', eink_theme: '🖤 E-INK THEME', color_theme: 'COLOR THEME',
                 stat: 'STATISTICS', cat_con: 'This catalog contains:', bk_c: 'books,', aut_c: 'authors,', gen_c: 'genres and', t_tot: 'Total:', t_aut: 'authors.', t_bk: 'books.', t_ser: 'series.', l_scan: 'Last collection scan:',
                 read: 'Read', prev: 'Previous', next: 'Next', bk_l: 'Books:', home: 'HOME', s_p: 'Search...', s_b: 'Find',
-                root: 'ROOT', search: 'Search', select: 'Select', bshelf: 'Bookshelf', show_all: 'SHOW ALL', doubles: 'Doubles for book'
+                root: 'ROOT', search: 'Search', select: 'Select', bshelf: 'Bookshelf', show_all: 'SHOW ALL', doubles: 'Doubles for book',
+                appearance: 'APPEARANCE', premium: 'PREMIUM', eink: 'E-INK'
             },
             'de': {
                 cat: 'Katalog', book: 'Bücher', auth: 'Autoren', gen: 'Genres', ser: 'Serien', set: 'Einstellungen',
@@ -320,19 +319,8 @@
         $(document).foundation();
         if (typeof SetSearch === 'function') SetSearch();
 
-        window.onload = function () {
-            const btn = document.getElementById("theme-toggle");
-            if (btn) {
-                btn.addEventListener("click", function (e) {
-                    e.preventDefault();
-                    let current = document.documentElement.getAttribute("data-theme");
-                    let nextTheme = current === "premium" ? "eink" : "premium";
-                    document.documentElement.setAttribute("data-theme", nextTheme);
-                    localStorage.setItem("sopds-theme", nextTheme);
-                    console.log("Theme switched to", nextTheme);
-                });
-            }
-        };
+        $(document).foundation();
+        if (typeof SetSearch === 'function') SetSearch();
 
         Foundation.Abide.defaults.validators['check_search'] = function ($el, required, parent) {
             const box = document.getElementById('main_searchbox');
