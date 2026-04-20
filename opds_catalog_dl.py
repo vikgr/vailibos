@@ -234,6 +234,7 @@ def Download(request, book_id, zip_flag):
     return response
 
 # Новая версия (0.42) процедуры извлечения обложек из файлов книг fb2, epub, mobi
+@cache_page(60*60*24) # Cache for 24 hours
 def Cover(request, book_id, thumbnail=False):
     """ Загрузка обложки """
     book = Book.objects.get(id=book_id)
@@ -270,9 +271,11 @@ def Cover(request, book_id, thumbnail=False):
         response["Content-Type"] = 'image/jpeg'
         if thumbnail:
             thumb = Image.open(io.BytesIO(image)).convert('RGB')
-            thumb.thumbnail((settings.THUMB_SIZE, settings.THUMB_SIZE), Image.LANCZOS)
+            # Use smaller fixed size and fast resampling
+            thumb.thumbnail((180, 250), Image.BILINEAR)
             tfile = io.BytesIO()
-            thumb.save(tfile, 'JPEG')
+            # Advanced compression settings
+            thumb.save(tfile, 'JPEG', quality=40, optimize=True, progressive=True)
             image = tfile.getvalue()
         response.write(image)
 
