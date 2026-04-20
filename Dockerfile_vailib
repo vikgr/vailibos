@@ -8,6 +8,7 @@ FROM zveronline/sopds:latest
 COPY models.py /sopds/opds_catalog/models.py
 COPY opdsdb.py /sopds/opds_catalog/opdsdb.py
 COPY opds_catalog_dl.py /sopds/opds_catalog/dl.py
+COPY middleware.py /sopds/opds_catalog/middleware.py
 COPY opds_catalog_utils.py /sopds/opds_catalog/utils.py
 COPY views.py /sopds/sopds_web_backend/views.py
 
