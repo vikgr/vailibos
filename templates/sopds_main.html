@@ -117,10 +117,13 @@
         // Detects SOPDS 'no cover' image and shows the themed placeholder instead.
         function checkEinkCover(img) {
             function process() {
-                // If it's 83x100 exactly, it's the SOPDS nocover image. 
-                // Alternatively, detect nocover by aspect ratio if scaled, or any common fallback.
-                if ((img.naturalWidth === 83 && img.naturalHeight === 100) || 
-                    (Math.abs(img.naturalWidth / img.naturalHeight - 0.83) < 0.05) && img.naturalWidth < 150) {
+                // Determine if this is a placeholder image in any way (dimensions, aspect ratio, or specific fallback URL)
+                const isPlaceholder = 
+                    (img.naturalWidth === 83 && img.naturalHeight === 100) || 
+                    (Math.abs(img.naturalWidth / img.naturalHeight - 0.83) < 0.05 && img.naturalWidth < 150) ||
+                    (img.src.indexOf('covertmpl.jpg') !== -1);
+
+                if (isPlaceholder) {
                     img.style.display = 'none';
                     var next = img.nextElementSibling;
                     if (next && (next.classList.contains('eink-placeholder') || next.classList.contains('modern-placeholder'))) {

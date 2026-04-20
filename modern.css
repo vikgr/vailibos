@@ -419,10 +419,6 @@ body {
 }
 
 /* Swap all generic fallback covers to the white e-ink cover in eink mode */
-[data-theme="eink"] img[src^="/static/images/cover"] {
-    content: url("/static/images/cover2.jpg");
-}
-
 [data-theme="eink"] .book-cover img {
     filter: grayscale(100%) contrast(1.1);
 }

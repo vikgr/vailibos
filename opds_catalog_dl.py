@@ -234,7 +234,6 @@ def Download(request, book_id, zip_flag):
     return response
 
 # Новая версия (0.42) процедуры извлечения обложек из файлов книг fb2, epub, mobi
-@cache_page(config.SOPDS_CACHE_TIME)
 def Cover(request, book_id, thumbnail=False):
     """ Загрузка обложки """
     book = Book.objects.get(id=book_id)
