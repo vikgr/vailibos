@@ -278,13 +278,7 @@ def Cover(request, book_id, thumbnail=False):
         response.write(image)
 
     if not image:
-        if os.path.exists(config.SOPDS_NOCOVER_PATH):
-            response["Content-Type"] = 'image/jpeg'
-            f = open(config.SOPDS_NOCOVER_PATH, "rb")
-            response.write(f.read())
-            f.close()
-        else:
-            raise Http404
+        raise Http404
 
     return response
 
