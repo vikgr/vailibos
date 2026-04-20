@@ -21,5 +21,10 @@ COPY sopds_footer.html /sopds/sopds_web_backend/templates/sopds_footer.html
 # Apply static web assets
 COPY static/custom/ /sopds/static/custom/
 
+# Add scanner watcher and patch entrypoint
+COPY scanner_watcher.sh /scanner_watcher.sh
+RUN chmod +x /scanner_watcher.sh && \
+    sed -i 's/python3 manage.py sopds_scanner start/python3 manage.py sopds_scanner start \& \/scanner_watcher.sh/g' /start.sh
+
 # The application executes exactly as the base SOPDS container.
 # All customizations are now baked into the image.

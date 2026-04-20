@@ -17,36 +17,51 @@ set_status() {
     echo -e "$1" > "$STATUS_FILE"
 }
 
-# The single file requested by the user
-TEST_FILE="Ching Francis D. K. - Architecture. Form, Space, and Order. Fifth Edition - 2023"
-PDF_FILE="${TEST_FILE}.pdf"
-FB2_FILE="${TEST_FILE}.fb2"
+# The conversion loop
+QUEUE_FILE="/tmp/convert_queue"
+[ -f "$QUEUE_FILE" ] || touch "$QUEUE_FILE"
 
-cd /library || exit 1
+echo "CONVERTER WORKER STARTED (v12)"
+send_tg "🤖 <b>Converter Worker Online</b>
+Watching for PDF/DjVu uploads..."
 
-echo "CONVERTER TEST MODE ACTIVE (v12)"
-send_tg "🧪 Testing specific book conversion (Fixed Path): ${PDF_FILE}"
-
-if [ ! -f "${PDF_FILE}" ]; then
-    send_tg "❌ Error: File not found in /library!"
-    exit 1
-fi
-
-set_status "🔄 <b>Test Conversion (Fixed)</b>
-📄 File: ${PDF_FILE}
+while true; do
+    if [ -s "$QUEUE_FILE" ]; then
+        # Take the first line
+        TARGET_FILE=$(head -n 1 "$QUEUE_FILE")
+        # Remove it from queue
+        sed -i '1d' "$QUEUE_FILE"
+        
+        if [ ! -f "$TARGET_FILE" ]; then
+            send_tg "⚠️ Queue error: File not found: ${TARGET_FILE}"
+            continue
+        fi
+        
+        PDF_FILE="$TARGET_FILE"
+        FB2_FILE="${TARGET_FILE%.*}.fb2"
+        
+        echo "🔄 Converting: $PDF_FILE"
+        send_tg "🔄 <b>Converting:</b> <code>$(basename "$PDF_FILE")</code>"
+        set_status "🔄 <b>Processing</b>
+📄 $(basename "$PDF_FILE")
 🕒 Started: $(date '+%H:%M:%S')"
 
-# Running from within /library to avoid path creation errors
-if ebook-convert "${PDF_FILE}" "${FB2_FILE}" > /tmp/converter.log 2>&1; then
-    send_tg "✅ Test conversion SUCCESSFUL: ${PDF_FILE}\n\nResult: .fb2 file created."
-    set_status "✅ <b>Test Complete</b>
-📄 ${PDF_FILE} -> SUCCESS"
-else
-    LOG_TAIL=$(tail -n 15 /tmp/converter.log)
-    send_tg "❌ Test conversion FAILED: ${PDF_FILE}\n\nLog tail:\n$LOG_TAIL"
-    set_status "❌ <b>Test Failed</b>
-📄 ${PDF_FILE} -> FAILED"
-fi
-
-echo "Test finished. Keeping container alive..."
-while true; do sleep 3600; done
+        if ebook-convert "$PDF_FILE" "$FB2_FILE" > /tmp/converter.log 2>&1; then
+            send_tg "✅ <b>Conversion Success!</b>
+📄 <code>$(basename "$FB2_FILE")</code> created.
+🔎 <i>Triggering re-scan...</i>"
+            set_status "✅ <b>Success</b>
+📄 $(basename "$FB2_FILE")"
+            touch "/library/.trigger_scan"
+        else
+            LOG_TAIL=$(tail -n 15 /tmp/converter.log)
+            send_tg "❌ <b>Conversion Failed!</b>
+📄 <code>$(basename "$PDF_FILE")</code>
+Log tail:
+<pre>$LOG_TAIL</pre>"
+            set_status "❌ <b>Failed</b>
+📄 $(basename "$PDF_FILE")"
+        fi
+    fi
+    sleep 2
+done

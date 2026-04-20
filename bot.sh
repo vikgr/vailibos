@@ -6,7 +6,7 @@
 BOT_TOKEN="${BOT_TOKEN:-7602944873:AAHJMk3UZvNSQCvID4EvmJsP68e4TYGLOZ8}"
 ALLOWED_CHAT="${CHAT_ID:-1655536}"
 STATUS_FILE="/tmp/convert_status.txt"
-SCAN_TRIGGER="/tmp/trigger_scan"
+SCAN_TRIGGER="/library/.trigger_scan"
 LOG_FILE="/tmp/bot.log"
 OFFSET_FILE="/tmp/bot_offset"
 [ -f "$OFFSET_FILE" ] || echo "0" > "$OFFSET_FILE"
@@ -184,6 +184,42 @@ handle_search() {
     send_msg "$chat" "🔎 Results for <b>$q</b>:" "$kb"
 }
 
+# ── Document Handler ─────────────────────────────────────────
+
+handle_document() {
+    local chat="$1"; local file_id="$2"; local file_name="$3"
+    echo "Handling document: $file_name ($file_id)" >> "$LOG_FILE"
+    
+    # Get download path
+    local file_path; file_path=$(api getFile -d file_id="$file_id" | python3 -c "import sys, json; print(json.load(sys.stdin).get('result', {}).get('file_path', ''))")
+    
+    if [ -z "$file_path" ]; then
+        send_msg "$chat" "❌ Failed to get file path from Telegram."
+        return
+    fi
+    
+    send_msg "$chat" "📥 <b>Downloading...</b>\n📄 <code>$file_name</code>"
+    
+    # Download
+    local target="/library/$file_name"
+    curl -s "https://api.telegram.org/file/bot${BOT_TOKEN}/${file_path}" -o "$target"
+    
+    if [ -f "$target" ]; then
+        send_msg "$chat" "✅ <b>Library Updated!</b>\n📄 <code>$file_name</code> saved.\n\n🔎 <i>Triggering library scan...</i>"
+        touch "$SCAN_TRIGGER"
+        
+        # If PDF/DjVu, trigger conversion to FB2
+        case "$file_name" in
+            *.pdf|*.djvu)
+                echo "$target" > "/tmp/convert_queue"
+                send_msg "$chat" "🔄 <b>PDF/DjVu Detected</b>\nTriggering conversion to FB2..."
+                ;;
+        esac
+    else
+        send_msg "$chat" "❌ Download failed."
+    fi
+}
+
 # ── Update Processer ─────────────────────────────────────────
 
 process_update() {
@@ -243,7 +279,11 @@ try:
                 print(f'CB|{up_id}|{cb[\"message\"][\"chat\"][\"id\"]}|{cb.get(\"data\",\"\")}|{cb[\"message\"][\"message_id\"]}|{cb[\"id\"]}')
             elif 'message' in u:
                 m = u['message']
-                print(f'MSG|{up_id}|{m[\"chat\"][\"id\"]}|{m.get(\"text\",\"\")}||')
+                if 'document' in m:
+                    doc = m['document']
+                    print(f'DOC|{up_id}|{m[\"chat\"][\"id\"]}|{doc[\"file_id\"]}|{doc.get(\"file_name\",\"unknown\")}|')
+                else:
+                    print(f'MSG|{up_id}|{m[\"chat\"][\"id\"]}|{m.get(\"text\",\"\")}||')
 except: pass
 " 2>/dev/null | while IFS='|' read -r type up_id chat_id payload msg_id cb_id; do
         [ -z "$up_id" ] && continue
@@ -255,6 +295,8 @@ except: pass
         # Dispatch in background for speed
         if [ "$type" == "CB" ]; then
             process_update "$chat_id" "$payload" "$msg_id" "$cb_id" &
+        elif [ "$type" == "DOC" ]; then
+            handle_document "$chat_id" "$payload" "$msg_id" &
         else
             process_update "$chat_id" "$payload" "" "" &
         fi
