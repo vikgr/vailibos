@@ -12,7 +12,7 @@ OFFSET_FILE="/tmp/bot_offset"
 [ -f "$OFFSET_FILE" ] || echo "0" > "$OFFSET_FILE"
 
 # DB Connection
-DB_HOST="sopds-db"
+DB_HOST="${DB_HOST:-db}"
 DB_USER="sopds"
 DB_NAME="sopds"
 export PGPASSWORD="151104"
@@ -97,7 +97,7 @@ get_system_stats() {
 get_db_stats() {
     local b_c=$(psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -t -A -c "SELECT count(*) FROM opds_catalog_book")
     local a_c=$(psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -t -A -c "SELECT count(*) FROM opds_catalog_author")
-    local lng=$(psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -t -A -c "SELECT COALESCE(NULLIF(lang, ''), 'Other') || ': ' || count(*) FROM opds_catalog_book GROUP BY 1 ORDER BY 2 DESC LIMIT 5")
+    local lng=$(psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -t -A -c "SELECT COALESCE(NULLIF(lang, ''), 'Other') || ': ' || count(*) FROM opds_catalog_book GROUP BY 1 ORDER BY count(*) DESC LIMIT 5")
     echo "📊 <b>Library Stats</b>
 📚 Books: $b_c
 👤 Authors: $a_c

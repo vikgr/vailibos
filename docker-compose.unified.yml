@@ -17,7 +17,9 @@ services:
     # ── SOPDS Web & OPDS ──────────────────────────────────
     sopds:
         container_name: vailib
-        image: zveronline/sopds:latest
+        build:
+            context: .
+            dockerfile: Dockerfile_vailib
         restart: unless-stopped
         depends_on:
             - db
@@ -35,22 +37,7 @@ services:
         volumes:
             - ${SOPDS_DATA_PATH:-./data/sopds}:/var/lib/sopds
             - ${BOOKS_PATH:-./data/books}:/library:ro
-            - ./sopds_main.html:/sopds/sopds_web_backend/templates/sopds_main.html
-            - ./sopds_hello.html:/sopds/sopds_web_backend/templates/sopds_hello.html
-            - ./sopds_logo.html:/sopds/sopds_web_backend/templates/sopds_logo.html
-            - ./sopds_menu.html:/sopds/sopds_web_backend/templates/sopds_menu.html
-            - ./sopds_footer.html:/sopds/sopds_web_backend/templates/sopds_footer.html
-            - ./templates:/sopds/sopds_web_backend/templates
-            - ./modern.css:/sopds/static/custom/css/modern.css
-            - type: bind
-              source: /tmp/sopds_custom/models.py
-              target: /sopds/opds_catalog/models.py
-            - type: bind
-              source: /tmp/sopds_custom/opdsdb.py
-              target: /sopds/opds_catalog/opdsdb.py
-            - type: bind
-              source: /tmp/sopds_custom/utils.py
-              target: /sopds/opds_catalog/utils.py
+
         networks:
             - library-net
 

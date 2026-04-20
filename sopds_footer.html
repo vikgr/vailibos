@@ -9,20 +9,16 @@
 			{% trans "STATISTICS" %}</h5>
 		<p style="font-size:90%; color: var(--text-muted);">
 			<b style="color: var(--text-main);">{% trans "This сatalog contains:" %}</b>
-			<span class="label" style="background: var(--btn-bg); color: var(--text-main); border-radius:4px;">{{
-				stats.allbooks }}</span> {% trans "books," %}
-			<span class="label" style="background: var(--btn-bg); color: var(--text-main); border-radius:4px;">{{
-				stats.allauthors }}</span> {% trans "authors," %}
-			<span class="label" style="background: var(--btn-bg); color: var(--text-main); border-radius:4px;">{{
-				stats.allgenres }}</span> {% trans "genres and" %}
-			<span class="label" style="background: var(--btn-bg); color: var(--text-main); border-radius:4px;">{{
-				stats.allseries }}</span> {% trans "series." %}
+			<span class="label" style="background: var(--btn-bg); color: var(--text-main); border-radius:4px;">{{ stats.allbooks }}</span> {% trans "books," %}
+			<span class="label" style="background: var(--btn-bg); color: var(--text-main); border-radius:4px;">{{ stats.allauthors }}</span> {% trans "authors," %}
+			<span class="label" style="background: var(--btn-bg); color: var(--text-main); border-radius:4px;">{{ stats.allgenres }}</span> {% trans "genres and" %}
+			<span class="label" style="background: var(--btn-bg); color: var(--text-main); border-radius:4px;">{{ stats.allseries }}</span> {% trans "series." %}
 		</p>
 		<p style="font-size:90%; color: var(--text-muted);">
 			<b style="color: var(--text-main);">{% trans "Last collection scan date:" %}</b>
-			<span class="label" style="background: var(--btn-bg); color: var(--text-main); border-radius:4px;"> {% if
-				stats.lastscan_date %}{{ stats.lastscan_date }}{% else %}{% trans "Never" %}{% endif %}</span>
+			<span class="label" style="background: var(--btn-bg); color: var(--text-main); border-radius:4px;"> {% if stats.lastscan_date %}{{ stats.lastscan_date }}{% else %}{% trans "Never" %}{% endif %}</span>
 		</p>
+
 	</div>
 </div>
 {% endif %}
