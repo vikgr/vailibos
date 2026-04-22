@@ -23,8 +23,8 @@ echo '📋 Deploying docker-compose to production...'
 sudo rsync -av $VAILIB/ $SOPDS_CUSTOM/
 sudo cp $VAILIB/sopds-docker-compose.yml $COMPOSE
 
-echo '🔁 Restarting sopds container...'
-sudo docker restart sopds
+echo '🔁 Restarting vailib container...'
+sudo docker restart vailib
 
 echo ''
 echo '✅ Deploy complete! Site: http://opds.workzilla.nl/web/'
