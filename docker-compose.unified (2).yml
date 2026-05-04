@@ -2,15 +2,15 @@ name: vailib
 services:
     # ── Database ───────────────────────────────────────────
     db:
-        container_name: library-db
+        container_name: vailib-db
         image: postgres:13-alpine
         restart: unless-stopped
         environment:
             POSTGRES_DB: ${POSTGRES_DB:-sopds}
             POSTGRES_USER: ${POSTGRES_USER:-sopds}
-            POSTGRES_PASSWORD: "${DB_PASSWORD:-changeme}"
+            POSTGRES_PASSWORD: "${DB_PASSWORD:-151104}"
         volumes:
-            - ${DB_DATA_PATH:-./data/postgres}:/var/lib/postgresql/data
+            - ${DB_DATA_PATH:-/DATA/AppData/sopds/postgres}:/var/lib/postgresql/data
         networks:
             - library-net
 

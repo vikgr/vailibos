@@ -62,7 +62,7 @@ The Django admin at `/admin/constance/config/` has been **completely rebuilt** u
 
 ## 📋 NEXT SESSION PRIORITIES
 
-1. **Container Merger**: Build the `vailib:latest` Docker image (from `Dockerfile_vailib`) that compiles everything natively — eliminating all bind-mounts entirely.
+1. **[IN PROGRESS] Container Merger**: Build the `vailib:latest` Docker image (from `Dockerfile_vailib`) that compiles everything natively — eliminating all bind-mounts entirely.
 2. **Converter Bot Integration**: Verify the Telegram bot drops files into `/library` and triggers a re-scan.
 3. **Auto-Scan Hook**: Trigger `sopds_scanner` whenever the bot finishes a conversion.
 4. **Kindle Stress Test**: Verify absolute 1-bit rendering on a physical Kindle/Kobo.

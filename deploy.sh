@@ -19,12 +19,15 @@ python3 $VAILIB/write_middleware.py
 echo '⚙️  Patching settings.py (language choices)...'
 python3 $VAILIB/patch_settings.py
 
+echo '🐳 Building vailib:latest native container...'
+sudo docker build -t vailib:latest -f Dockerfile_vailib .
+
 echo '📋 Deploying docker-compose to production...'
-sudo rsync -av $VAILIB/ $SOPDS_CUSTOM/
 sudo cp $VAILIB/sopds-docker-compose.yml $COMPOSE
 
-echo '🔁 Restarting vailib container...'
-sudo docker restart vailib
+echo '🔁 Recreating and starting vailib container...'
+cd /DATA/AppData/sopds
+sudo docker-compose up -d
 
 echo ''
 echo '✅ Deploy complete! Site: http://opds.workzilla.nl/web/'
