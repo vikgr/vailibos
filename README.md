@@ -97,7 +97,7 @@ volumes:
 | `deploy.sh` | One-command deployment script (git pull + docker restart) |
 | `patch_settings.py` | Injects SOPDS_LANGUAGE choices into Django settings at deploy time |
 | `write_middleware.py` | Regenerates custom auth middleware at deploy time |
-| `sopds-docker-compose.yml` | Production compose file with bind-mounts from `/home/vik/vailib/` |
+| `sopds-docker-compose.yml` | Production compose file for running the container |
 
 ---
 

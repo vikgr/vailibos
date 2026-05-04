@@ -1,13 +1,12 @@
 #!/bin/bash
 # ╔══════════════════════════════════════════════════════╗
 # ║  VAILIB DEPLOY SCRIPT                               ║
-# ║  Usage: bash /home/vik/vailib/deploy.sh             ║
-# ║  Run on: hproliant (192.168.31.115)                 ║
+# ║  Usage: bash /opt/vailib/deploy.sh                  ║
+# ║  Run on: your_production_server                     ║
 # ╚══════════════════════════════════════════════════════╝
 set -e
-VAILIB=/home/vik/vailib
-SOPDS_CUSTOM=/tmp/sopds_custom
-COMPOSE=/DATA/AppData/sopds/docker-compose.yml
+VAILIB="${VAILIB_DIR:-/opt/vailib}"
+COMPOSE="${COMPOSE_FILE:-/opt/sopds/docker-compose.yml}"
 
 echo '🔄 Pulling latest from GitHub...'
 cd $VAILIB
@@ -26,8 +25,8 @@ echo '📋 Deploying docker-compose to production...'
 sudo cp $VAILIB/sopds-docker-compose.yml $COMPOSE
 
 echo '🔁 Recreating and starting vailib container...'
-cd /DATA/AppData/sopds
+cd "$(dirname "$COMPOSE")"
 sudo docker compose up -d
 
 echo ''
-echo '✅ Deploy complete! Site: http://opds.workzilla.nl/web/'
+echo '✅ Deploy complete! Check your local instance!'

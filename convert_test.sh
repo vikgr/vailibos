@@ -1,6 +1,6 @@
 #!/bin/bash
-BOT_TOKEN="${BOT_TOKEN:-7602944873:AAHJMk3UZvNSQCvID4EvmJsP68e4TYGLOZ8}"
-CHAT_ID="${CHAT_ID:-1655536}"
+BOT_TOKEN="${BOT_TOKEN:-YOUR_TELEGRAM_BOT_TOKEN}"
+CHAT_ID="${CHAT_ID:-YOUR_TELEGRAM_CHAT_ID}"
 
 send_tg() {
     curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \

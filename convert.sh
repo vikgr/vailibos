@@ -3,8 +3,8 @@
 #  Converter Script (v12 - RELIABLE)
 # ============================================================
 
-BOT_TOKEN="${BOT_TOKEN:-7602944873:AAHJMk3UZvNSQCvID4EvmJsP68e4TYGLOZ8}"
-CHAT_ID="${CHAT_ID:-1655536}"
+BOT_TOKEN="${BOT_TOKEN:-YOUR_TELEGRAM_BOT_TOKEN}"
+CHAT_ID="${CHAT_ID:-YOUR_TELEGRAM_CHAT_ID}"
 STATUS_FILE="/tmp/convert_status.txt"
 
 send_tg() {

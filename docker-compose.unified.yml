@@ -27,7 +27,7 @@ services:
             DB_HOST: db
             DB_NAME: ${POSTGRES_DB:-sopds}
             DB_USER: ${POSTGRES_USER:-sopds}
-            DB_PASS: "${DB_PASSWORD:-151104}"
+            DB_PASS: "${DB_PASSWORD:-changeme}"
             DB_PORT: "5432"
             SOPDS_ROOT_LIB: /library
             SOPDS_TMBOT_ENABLE: "False"
@@ -51,12 +51,12 @@ services:
         depends_on:
             - db
         environment:
-            BOT_TOKEN: "${BOT_TOKEN:-7602944873:AAHJMk3UZvNSQCvID4EvmJsP68e4TYGLOZ8}"
-            CHAT_ID: "${CHAT_ID:-1655536}"
+            BOT_TOKEN: "${BOT_TOKEN:-YOUR_TELEGRAM_BOT_TOKEN}"
+            CHAT_ID: "${CHAT_ID:-YOUR_TELEGRAM_CHAT_ID}"
             DB_HOST: db
             DB_USER: ${POSTGRES_USER:-sopds}
             DB_NAME: ${POSTGRES_DB:-sopds}
-            PGPASSWORD: "${DB_PASSWORD:-151104}"
+            PGPASSWORD: "${DB_PASSWORD:-changeme}"
         volumes:
             - ${BOOKS_PATH:-/DATA/Downloads/books}:/library # RW for conversion
         networks:

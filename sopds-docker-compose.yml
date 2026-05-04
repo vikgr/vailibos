@@ -15,7 +15,7 @@ services:
         environment:
             DB_HOST: sopds-db
             DB_NAME: sopds
-            DB_PASS: "151104"
+            DB_PASS: "${DB_PASSWORD:-changeme}"
             DB_PORT: "5432"
             DB_USER: sopds
             PGID: "0"
@@ -23,11 +23,11 @@ services:
             TIME_ZONE: Europe/Madrid
             SOPDS_TMBOT_ENABLE: "False"
             SOPDS_TELEBOT_AUTH: "True"
-            SOPDS_TMBOT_TOKEN: "7602944873:AAHJMk3UZvNSQCvID4EvmJsP68e4TYGLOZ8"
+            SOPDS_TMBOT_TOKEN: "${BOT_TOKEN:-YOUR_TELEGRAM_BOT_TOKEN}"
         hostname: vailib
         image: vailib:latest
         labels:
-            icon: https://opds.workzilla.nl/static/images/Mejnkun.jpeg
+            icon: ${SOPDS_ICON_URL:-https://example.com/icon.jpeg}
         networks:
             default: null
         ports:
@@ -57,12 +57,12 @@ services:
                     memory: "16736321536"
         environment:
             POSTGRES_DB: sopds
-            POSTGRES_PASSWORD: "151104"
+            POSTGRES_PASSWORD: "${DB_PASSWORD:-changeme}"
             POSTGRES_USER: sopds
         hostname: sopds-db
         image: postgres:13-alpine
         labels:
-            icon: https://opds.workzilla.nl/static/images/Mejnkun.jpeg
+            icon: ${SOPDS_ICON_URL:-https://example.com/icon.jpeg}
         networks:
             default: null
         restart: unless-stopped
@@ -78,8 +78,8 @@ networks:
 x-casaos:
     author: self
     category: self
-    hostname: opds.workzilla.nl
-    icon: https://opds.workzilla.nl/static/images/Mejnkun.jpeg
+    hostname: ${SOPDS_HOSTNAME:-example.com}
+    icon: ${SOPDS_ICON_URL:-https://example.com/icon.jpeg}
     index: /
     is_uncontrolled: false
     port_map: ""

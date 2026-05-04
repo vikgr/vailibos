@@ -3,8 +3,8 @@
 #  Unified Library Bot — Premium Experience (v12 - RELIABLE)
 # ============================================================
 
-BOT_TOKEN="${BOT_TOKEN:-7602944873:AAHJMk3UZvNSQCvID4EvmJsP68e4TYGLOZ8}"
-ALLOWED_CHAT="${CHAT_ID:-1655536}"
+BOT_TOKEN="${BOT_TOKEN:-YOUR_TELEGRAM_BOT_TOKEN}"
+ALLOWED_CHAT="${CHAT_ID:-YOUR_TELEGRAM_CHAT_ID}"
 STATUS_FILE="/tmp/convert_status.txt"
 SCAN_TRIGGER="/library/.trigger_scan"
 LOG_FILE="/tmp/bot.log"
@@ -15,7 +15,7 @@ OFFSET_FILE="/tmp/bot_offset"
 DB_HOST="${DB_HOST:-db}"
 DB_USER="sopds"
 DB_NAME="sopds"
-export PGPASSWORD="151104"
+export PGPASSWORD="${DB_PASSWORD:-changeme}"
 
 # ── Helpers ─────────────────────────────────────────────────
 
@@ -229,7 +229,7 @@ process_update() {
     if [ -z "$cb_id" ]; then
         # Message handling
         case "$payload" in
-            /start*) send_msg "$chat_id" "📚 <b>HProliant Dashboard</b>" "$(kb_main)" ;;
+            /start*) send_msg "$chat_id" "📚 <b>Vailib Dashboard</b>" "$(kb_main)" ;;
             /status*) send_msg "$chat_id" "$(get_system_stats)" ;;
             /stats*)  send_msg "$chat_id" "$(get_db_stats)" ;;
             *)        handle_search "$chat_id" "$payload" ;;
@@ -238,7 +238,7 @@ process_update() {
         # Callback query
         api answerCallbackQuery -d callback_query_id="$cb_id" >/dev/null 2>&1
         case "$payload" in
-            main_menu)      edit_msg "$chat_id" "$msg_id" "📚 <b>HProliant Dashboard</b>" "$(kb_main)" ;;
+            main_menu)      edit_msg "$chat_id" "$msg_id" "📚 <b>Vailib Dashboard</b>" "$(kb_main)" ;;
             stats_db)       edit_msg "$chat_id" "$msg_id" "$(get_db_stats)" "$(kb_main)" ;;
             status_cmd)     edit_msg "$chat_id" "$msg_id" "$(get_system_stats)" "$(kb_main)" ;;
             browse_authors) edit_msg "$chat_id" "$msg_id" "👤 Select author letter:" "$(kb_letter_grid 'abc_auth_')" ;;
