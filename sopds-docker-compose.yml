@@ -45,7 +45,6 @@ services:
             - type: bind
               source: /DATA/Downloads/books
               target: /library
-              read_only: true
               bind:
                 create_host_path: true
     sopds-db:
