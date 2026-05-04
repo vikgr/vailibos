@@ -27,7 +27,7 @@ sudo cp $VAILIB/sopds-docker-compose.yml $COMPOSE
 
 echo '🔁 Recreating and starting vailib container...'
 cd /DATA/AppData/sopds
-sudo docker-compose up -d
+sudo docker compose up -d
 
 echo ''
 echo '✅ Deploy complete! Site: http://opds.workzilla.nl/web/'
