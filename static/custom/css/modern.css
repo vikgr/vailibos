@@ -40,6 +40,16 @@
     --btn-bg: #FFFFFF !important;
 }
 
+/* HIGH-PERFORMANCE E-INK OVERRIDE */
+[data-theme="eink"] * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+    transform: none !important;
+}
+
 [data-theme="eink"] * {
     transition: none !important;
     box-shadow: none !important;
@@ -201,6 +211,12 @@ body {
     box-shadow: 0 0 15px rgba(157, 78, 221, 0.3);
 }
 
+[data-theme="eink"] .modern-search-form {
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
 .modern-search-form .input-group-field {
     background: var(--bg-main) !important;
     border: none !important;
@@ -256,6 +272,7 @@ body {
     flex-wrap: wrap;
     width: 100%;
     margin-top: 0;
+    gap: 15px;
     align-items: center;
 }
 
@@ -913,6 +930,29 @@ body {
     text-transform: uppercase;
 }
 
+[data-theme="eink"] .modern-placeholder {
+    background: #fff;
+    border: 2px solid #000;
+    border-image: none;
+}
+
+[data-theme="eink"] .modern-placeholder .triangle-icon {
+    border-bottom-color: #000;
+}
+
+[data-theme="eink"] .modern-placeholder .triangle-icon::after {
+    border-bottom-color: #fff;
+}
+
+[data-theme="eink"] .modern-placeholder .m-plt-content {
+    border-top: 1px solid #000;
+}
+
+[data-theme="eink"] .modern-placeholder .m-plt-title,
+[data-theme="eink"] .modern-placeholder .m-plt-author {
+    color: #000;
+}
+
 /* E-Ink placeholder cover */
 .eink-placeholder {
     width: 100%;
@@ -1065,6 +1105,21 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 4px 10px var(--accent-glow);
     border-color: var(--accent);
+}
+
+[data-theme="eink"] .color-lang-btn {
+    border: 1px solid #000 !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+}
+
+[data-theme="eink"] .color-lang-btn:hover,
+[data-theme="eink"] .color-lang-btn.active {
+    background: #000 !important;
+    color: #fff !important;
+    transform: none !important;
 }
 .color-lang-btn .lang-flag {
     font-size: 1.2rem;
