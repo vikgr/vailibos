@@ -320,6 +320,10 @@ body {
     padding: 0 15px;
 }
 
+[data-theme="eink"] .nav-btn i {
+    display: none !important;
+}
+
 [data-theme="eink"] .nav-item .active,
 [data-theme="eink"] .nav-btn:hover {
     background: #000 !important;
@@ -1121,6 +1125,11 @@ body {
     color: #fff !important;
     transform: none !important;
 }
+
+[data-theme="eink"] .color-lang-btn img {
+    display: none !important;
+}
+
 .color-lang-btn .lang-flag {
     font-size: 1.2rem;
 }
