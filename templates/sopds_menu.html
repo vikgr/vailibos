@@ -1,5 +1,6 @@
 {% load i18n %}
 <ul class="vailib-nav-menu">
+{% if user.is_authenticated %}
     <li class="nav-item">
         <a href="/web/catalog/" class="nav-btn {% if current == 'catalog' %}active{% endif %}">
             <i class="fi-folder"></i> <span class="nav-text" data-trans="cat">{% trans "Catalogs" %}</span>
@@ -25,6 +26,7 @@
             <i class="fi-list-thumbnails"></i> <span class="nav-text" data-trans="ser">{% trans "Series" %}</span>
         </a>
     </li>
+{% endif %}
 
     {% if user.is_superuser %}
     <li class="nav-item" style="margin-top: 15px;">
