@@ -36,9 +36,9 @@
                 </a>
                 <div class="auth-box" style="margin-top: 5px;">
                     {% if user.is_authenticated %}
-                    <a href="/web/logout/"><i class="fi-torso"></i> {{ user.username }}</a>
+                    <a href="/web/logout/"><i class="fi-torso"></i> {{ user.username }} <span data-trans="logout" style="font-size: 0.8rem; margin-left: 5px;">(Выйти)</span></a>
                     {% else %}
-                    <a href="/web/login/"><i class="fi-torso"></i> Войти</a>
+                    <a href="/web/login/"><i class="fi-torso"></i> <span data-trans="login">Войти</span></a>
                     {% endif %}
                 </div>
 

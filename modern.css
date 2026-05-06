@@ -736,9 +736,20 @@ body {
     background: #fff;
 }
 
+[data-theme="eink"] .modern-book-item .action-btn:hover {
+    background: #000 !important;
+    color: #fff !important;
+}
+
 [data-theme="eink"] .modern-book-item .read-btn {
     background: #000;
     color: #fff;
+}
+
+[data-theme="eink"] .modern-book-item .read-btn:hover {
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
 }
 
 [data-theme="eink"] .modern-book-item .book-meta strong {
@@ -837,4 +848,19 @@ body {
     color: #fff;
     border: 4px solid #000;
     border-radius: 0;
+}
+
+[data-theme="eink"] .modern-auth-card .modern-btn:hover {
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+[data-theme="eink"] .modern-auth-card .modern-input:focus,
+[data-theme="eink"] .modern-search-form .input-group-field:focus {
+    outline: 2px dashed #000 !important;
+    outline-offset: 4px !important;
+    border-color: #000 !important;
+    box-shadow: none !important;
 }
