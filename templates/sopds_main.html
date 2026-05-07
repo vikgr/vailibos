@@ -72,7 +72,7 @@
                 </p>
                 <p style="font-size: 0.75rem; margin-top: 10px;">
                     <b data-trans="l_scan">{% trans "Last collection scan:" %}</b><br>
-                    {{ stats.lastscan_date|default:"Never" }}
+                    {{ stats.lastscan_date|date:"Y-m-d H:i"|default:"Never" }}
                 </p>
             </div>
 

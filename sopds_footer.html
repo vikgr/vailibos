@@ -16,7 +16,7 @@
 		</p>
 		<p style="font-size:90%; color: var(--text-muted);">
 			<b style="color: var(--text-main);">{% trans "Last collection scan date:" %}</b>
-			<span class="label" style="background: var(--btn-bg); color: var(--text-main); border-radius:4px;"> {% if stats.lastscan_date %}{{ stats.lastscan_date }}{% else %}{% trans "Never" %}{% endif %}</span>
+			<span class="label" style="background: var(--btn-bg); color: var(--text-main); border-radius:4px;"> {% if stats.lastscan_date %}{{ stats.lastscan_date|date:"Y-m-d H:i" }}{% else %}{% trans "Never" %}{% endif %}</span>
 		</p>
 
 	</div>
