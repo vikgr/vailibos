@@ -1739,4 +1739,380 @@ html[data-theme="eink"] img {
 .eink-book-card .b-author {
     font-size: 0.9rem;
     color: #000;
-}
+}
+
+/* =======================================================
+   PHASE 3: DISCOVERY HOMEPAGE — PREMIUM THEME ONLY
+   ======================================================= */
+
+/* ---- Hero Banner ---- */
+[data-theme="premium"] .hero-banner {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 40px;
+    min-height: 320px;
+    display: flex;
+    align-items: stretch;
+}
+
+[data-theme="premium"] .hero-blur-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    filter: blur(50px) brightness(0.35) saturate(1.4);
+    transform: scale(1.15);
+    z-index: 0;
+}
+
+[data-theme="premium"] .hero-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    padding: 40px;
+    width: 100%;
+    align-items: center;
+}
+
+[data-theme="premium"] .hero-cover-wrap {
+    flex: 0 0 180px;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.7));
+    transition: transform 0.4s ease;
+}
+
+[data-theme="premium"] .hero-cover-wrap:hover {
+    transform: translateY(-6px) scale(1.02);
+}
+
+[data-theme="premium"] .hero-cover-img {
+    width: 180px;
+    border-radius: 12px;
+    display: block;
+}
+
+[data-theme="premium"] .hero-meta {
+    flex: 1;
+    min-width: 220px;
+    color: #fff;
+}
+
+[data-theme="premium"] .hero-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+}
+
+[data-theme="premium"] .hero-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin: 0 0 12px 0;
+    color: #fff;
+}
+
+[data-theme="premium"] .hero-author {
+    font-size: 1.05rem;
+    margin: 0 0 12px 0;
+    opacity: 0.75;
+}
+
+[data-theme="premium"] .hero-author-link {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+[data-theme="premium"] .hero-author-link:hover {
+    text-decoration: underline;
+}
+
+[data-theme="premium"] .hero-desc {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    opacity: 0.7;
+    margin: 0 0 24px 0;
+    max-width: 540px;
+}
+
+[data-theme="premium"] .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+[data-theme="premium"] .hero-btn-primary {
+    background: var(--accent);
+    color: #000;
+    padding: 12px 28px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 0.95rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(42,195,255,0.35);
+}
+
+[data-theme="premium"] .hero-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(42,195,255,0.5);
+}
+
+[data-theme="premium"] .hero-btn-secondary {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    padding: 12px 28px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(8px);
+    transition: background 0.2s;
+}
+
+[data-theme="premium"] .hero-btn-secondary:hover {
+    background: rgba(255,255,255,0.22);
+}
+
+@media (max-width: 640px) {
+    [data-theme="premium"] .hero-content { padding: 24px; gap: 20px; }
+    [data-theme="premium"] .hero-title { font-size: 1.5rem; }
+    [data-theme="premium"] .hero-cover-wrap { flex: 0 0 120px; }
+    [data-theme="premium"] .hero-cover-img { width: 120px; }
+}
+
+/* ---- Stat Chips Bar ---- */
+[data-theme="premium"] .stat-chips-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 40px;
+}
+
+[data-theme="premium"] .stat-chip {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 100px;
+    flex: 1;
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+[data-theme="premium"] .stat-chip:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+}
+
+[data-theme="premium"] .stat-chip-num {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+[data-theme="premium"] .stat-chip-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+/* ---- Swimlane Section ---- */
+[data-theme="premium"] .swimlane-section {
+    margin-bottom: 40px;
+}
+
+[data-theme="premium"] .swimlane-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+[data-theme="premium"] .swimlane-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    margin: 0;
+    color: var(--text-main);
+}
+
+[data-theme="premium"] .swimlane-see-all {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: opacity 0.2s;
+}
+
+[data-theme="premium"] .swimlane-see-all:hover { opacity: 0.7; }
+
+[data-theme="premium"] .swimlane-track {
+    display: flex;
+    gap: 18px;
+    overflow-x: auto;
+    padding-bottom: 14px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+
+[data-theme="premium"] .swimlane-track::-webkit-scrollbar {
+    height: 4px;
+}
+
+[data-theme="premium"] .swimlane-track::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+[data-theme="premium"] .swimlane-card {
+    flex: 0 0 160px;
+    scroll-snap-align: start;
+    cursor: pointer;
+    /* scroll-reveal start state */
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.4s ease, transform 0.4s ease, box-shadow 0.3s;
+}
+
+[data-theme="premium"] .swimlane-card.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+[data-theme="premium"] .swimlane-card:hover {
+    transform: translateY(-5px);
+}
+
+[data-theme="premium"] .swimlane-cover-wrap {
+    position: relative;
+    width: 160px;
+    height: 210px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.05);
+    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+
+[data-theme="premium"] .swimlane-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+[data-theme="premium"] .swimlane-card:hover .swimlane-cover {
+    transform: scale(1.05);
+}
+
+[data-theme="premium"] .swimlane-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 5;
+    font-size: 0.65rem;
+    font-weight: 800;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    padding: 3px 7px;
+    border-radius: 10px;
+    pointer-events: none;
+}
+
+[data-theme="premium"] .swimlane-info {
+    padding: 0 2px;
+}
+
+[data-theme="premium"] .swimlane-book-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1.3;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+[data-theme="premium"] .swimlane-book-author {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---- Browse Category Chips ---- */
+[data-theme="premium"] .browse-chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+[data-theme="premium"] .browse-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    padding: 12px 22px;
+    text-decoration: none;
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.25s ease;
+}
+
+[data-theme="premium"] .browse-chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+/* ---- Skeleton Loader (Phase 5) ---- */
+@keyframes shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+
+[data-theme="premium"] .skeleton {
+    background: linear-gradient(90deg, var(--card-bg) 25%, rgba(255,255,255,0.06) 50%, var(--card-bg) 75%);
+    background-size: 800px 100%;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: 8px;
+}
+
+/* ---- E-Ink: hide all discovery homepage elements ---- */
+html[data-theme="eink"] .hero-banner,
+html[data-theme="eink"] .stat-chips-bar,
+html[data-theme="eink"] .swimlane-section,
+html[data-theme="eink"] .browse-chips-row,
+html[data-theme="eink"] .swimlane-track,
+html[data-theme="eink"] .swimlane-card,
+html[data-theme="eink"] .browse-chip {
+    display: none !important;
+}
+

@@ -33,63 +33,125 @@
     {% endif %}
 {% else %}
 {% if user.is_authenticated %}
-{# ===== LOGGED IN: show recent books grid ===== #}
-<div class="hello-dashboard">
-    <h2 class="dashboard-title" data-trans="new_c"
-        style="margin-top: 0; margin-bottom: 20px; font-weight: 800; text-transform: uppercase;">Новые Поступления</h2>
+{# ===== LOGGED IN: Discovery Homepage ===== #}
 
-    <div class="recent-books-grid">
+{% if random_book %}
+{# --- HERO BANNER --- #}
+<div class="hero-banner" id="hero-banner">
+    <div class="hero-blur-bg" style="background-image: url('{% url 'opds_catalog:thumb' random_book.id %}');"></div>
+    <div class="hero-content">
+        <div class="hero-cover-wrap">
+            <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{ random_book.id }}">
+                <img src="{% url 'opds_catalog:thumb' random_book.id %}" class="hero-cover-img" alt="Featured Book"
+                    onerror="this.closest('.hero-cover-wrap').style.display='none';">
+            </a>
+        </div>
+        <div class="hero-meta">
+            <div class="hero-label" data-trans="new_c">НОВЫЕ ПОСТУПЛЕНИЯ</div>
+            <h1 class="hero-title">
+                <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{ random_book.id }}" style="color:inherit;text-decoration:none;">
+                    {{ random_book.title }}
+                </a>
+            </h1>
+            <p class="hero-author">
+                {% for author in random_book.authors.all %}
+                <a href="{% url 'web:searchbooks' %}?searchtype=a&searchterms={{ author.id }}" class="hero-author-link">
+                    {{ author.full_name }}
+                </a>{% if not forloop.last %}, {% endif %}
+                {% empty %}<span data-trans="un_auth">Unknown Author</span>
+                {% endfor %}
+            </p>
+            {% if random_book.annotation and random_book.annotation != 'NotYet' and random_book.annotation != '' %}
+            <p class="hero-desc">{{ random_book.annotation|truncatechars:200 }}</p>
+            {% endif %}
+            <div class="hero-actions">
+                <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{ random_book.id }}" class="hero-btn-primary">
+                    View Book
+                </a>
+                <a href="{% url 'web:catalog' %}" class="hero-btn-secondary" data-trans="cat">
+                    Browse Library
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# --- STAT CHIPS BAR --- #}
+<div class="stat-chips-bar">
+    <div class="stat-chip">
+        <span class="stat-chip-num" data-count="{{ stats.allbooks }}">{{ stats.allbooks }}</span>
+        <span class="stat-chip-label" data-trans="bk_c">books</span>
+    </div>
+    <div class="stat-chip">
+        <span class="stat-chip-num" data-count="{{ stats.allauthors }}">{{ stats.allauthors }}</span>
+        <span class="stat-chip-label" data-trans="aut_c">authors</span>
+    </div>
+    <div class="stat-chip">
+        <span class="stat-chip-num" data-count="{{ stats.allgenres }}">{{ stats.allgenres }}</span>
+        <span class="stat-chip-label" data-trans="gen_c">genres</span>
+    </div>
+    <div class="stat-chip">
+        <span class="stat-chip-num" data-count="{{ stats.allseries }}">{{ stats.allseries }}</span>
+        <span class="stat-chip-label" data-trans="t_ser">series</span>
+    </div>
+</div>
+
+{# --- RECENTLY ADDED SWIMLANE --- #}
+<section class="swimlane-section">
+    <div class="swimlane-header">
+        <h2 class="swimlane-title" data-trans="new_c">Новые Поступления</h2>
+        <a href="{% url 'web:catalog' %}" class="swimlane-see-all" data-trans="show_all">ПОКАЗАТЬ ВСЕ →</a>
+    </div>
+    <div class="swimlane-track" id="recentSwimLane">
         {% for book in recent_books %}
-        <div class="book-card book-item">
-            <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{ book.id }}"
-                style="text-decoration: none; color: inherit;">
-                <div class="cover-wrapper">
-                    {% if book.id %}
-                    <img src="{% url 'opds_catalog:thumb' book.id %}" class="book-cover" alt="Обложка"
-                        onload="checkEinkCover(this)" onerror="this.style.setProperty('display', 'none', 'important'); if(this.nextElementSibling) this.nextElementSibling.style.setProperty('display', 'flex', 'important');">
+        <div class="swimlane-card scroll-reveal">
+            <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{ book.id }}" style="text-decoration:none; color:inherit; display:block;">
+                <div class="swimlane-cover-wrap">
+                    {# Format badge #}
+                    <span class="swimlane-badge">{{ book.format|upper }}</span>
+                    <img src="{% url 'opds_catalog:thumb' book.id %}" class="swimlane-cover" alt="Cover"
+                        onload="checkEinkCover(this)"
+                        onerror="this.style.setProperty('display','none','important'); if(this.nextElementSibling) this.nextElementSibling.style.setProperty('display','flex','important');">
                     <div class="modern-placeholder">
                         <div class="triangle-icon"></div>
                         <div class="m-plt-content">
                             <div class="m-plt-title">{{ book.title }}</div>
-                            <div class="m-plt-author">{% for author in book.authors.all %}{{ author.full_name }}{% if not forloop.last %}, {% endif %}{% empty %}<span data-trans="un_auth">Unknown Author</span>{% endfor %}</div>
+                            <div class="m-plt-author">{% for a in book.authors.all %}{{ a.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>
                         </div>
                     </div>
-                    {% else %}
-                    <div class="modern-placeholder" style="display: flex;">
-                        <div class="triangle-icon"></div>
-                        <div class="m-plt-content">
-                            <div class="m-plt-title">{{ book.title }}</div>
-                            <div class="m-plt-author">{% for author in book.authors.all %}{{ author.full_name }}{% if not forloop.last %}, {% endif %}{% empty %}<span data-trans="un_auth">Unknown Author</span>{% endfor %}</div>
-                        </div>
-                    </div>
-                    {% endif %}
                 </div>
-                <div class="book-info">
-                    <h5 class="book-title">{{ book.title|truncatechars:40 }}</h5>
-                    <p class="book-author">
-                        {% for author in book.authors.all %}
-                        {{ author.full_name }}{% if not forloop.last %}, {% endif %}
-                        {% empty %}
-                        <span data-trans="un_auth">Неизвестный автор</span>
-                        {% endfor %}
-                    </p>
-                    <div class="card-footer"
-                        style="display:flex; justify-content:flex-end; align-items:center; margin-top:10px;">
-                        <div class="actions" style="color:var(--text-muted); font-size:1.1rem; gap:10px; display:flex;">
-                            <i class="fi-book"></i> <i class="fi-bookmark"></i>
-                        </div>
+                <div class="swimlane-info">
+                    <div class="swimlane-book-title">{{ book.title|truncatechars:38 }}</div>
+                    <div class="swimlane-book-author">
+                        {% for a in book.authors.all %}{{ a.full_name|truncatechars:30 }}{% if not forloop.last %}, {% endif %}{% empty %}<span data-trans="un_auth">Unknown</span>{% endfor %}
                     </div>
                 </div>
             </a>
         </div>
         {% empty %}
-        <div class="callout" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-            <h3 data-trans="empty">Библиотека пуста</h3>
-            <p data-trans="scan">Выполните сканирование директории.</p>
+        <div style="padding: 40px; color: var(--text-muted); text-align:center; width:100%;">
+            <p data-trans="empty">Library is empty</p>
+            <p data-trans="scan">Run a directory scan.</p>
         </div>
         {% endfor %}
     </div>
-</div>
+</section>
+
+{# --- BROWSE CATEGORIES ROW --- #}
+<section class="swimlane-section" style="margin-top: 40px;">
+    <div class="swimlane-header">
+        <h2 class="swimlane-title" data-trans="cat">Browse Catalogs</h2>
+        <a href="{% url 'web:catalog' %}" class="swimlane-see-all">→</a>
+    </div>
+    <div class="browse-chips-row">
+        <a href="{% url 'web:searchbooks' %}?searchtype=m&searchterms=" class="browse-chip"><span>📖</span> <span data-trans="book">Books</span></a>
+        <a href="{% url 'web:searchauthors' %}?searchtype=b&searchterms=" class="browse-chip"><span>✍️</span> <span data-trans="auth">Authors</span></a>
+        <a href="{% url 'web:searchseries' %}?searchtype=b&searchterms=" class="browse-chip"><span>📚</span> <span data-trans="ser">Series</span></a>
+        <a href="{% url 'web:genre' %}" class="browse-chip"><span>🏷️</span> <span data-trans="gen">Genres</span></a>
+        <a href="{% url 'web:catalog' %}" class="browse-chip"><span>📁</span> <span data-trans="cat">Catalogs</span></a>
+    </div>
+</section>
 
 {% else %}
 {# ===== GUEST: show welcome screen ===== #}
@@ -104,4 +166,45 @@
 </div>
 {% endif %}
 {% endif %}
+
+{% block block-js %}
+<script>
+/* ---- Scroll-reveal for swimlane cards ---- */
+(function() {
+    var cards = document.querySelectorAll('.scroll-reveal');
+    if (!cards.length) return;
+    if ('IntersectionObserver' in window) {
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(e, i) {
+                if (e.isIntersecting) {
+                    e.target.style.transitionDelay = (i * 40) + 'ms';
+                    e.target.classList.add('revealed');
+                    observer.unobserve(e.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        cards.forEach(function(c) { observer.observe(c); });
+    } else {
+        cards.forEach(function(c) { c.classList.add('revealed'); });
+    }
+})();
+
+/* ---- Animated count-up for stat chips ---- */
+(function() {
+    function countUp(el) {
+        var target = parseInt(el.getAttribute('data-count') || el.innerText, 10);
+        if (!target || target < 2) return;
+        var duration = 1200, steps = 40;
+        var step = 0, interval = duration / steps;
+        var timer = setInterval(function() {
+            step++;
+            var val = Math.round(target * (step / steps));
+            el.innerText = val.toLocaleString();
+            if (step >= steps) { el.innerText = target.toLocaleString(); clearInterval(timer); }
+        }, interval);
+    }
+    document.querySelectorAll('.stat-chip-num').forEach(countUp);
+})();
+</script>
+{% endblock %}
 {% endblock %}

@@ -48,6 +48,51 @@
   {% endfor %}
 </div>
 {% else %}
+  {% if books|length == 1 %}
+    {% with b=books.0 %}
+    <div class="immersive-detail-page" style="position: relative; border-radius: 16px; overflow: hidden; margin-top: 20px; background: var(--card-bg); display: flex; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <!-- Blurred Background -->
+        <div style="position: absolute; top:0; left:0; right:0; bottom:0; background-image: url('{% url 'opds_catalog:thumb' b.id %}'); background-size: cover; background-position: center; filter: blur(60px) brightness(0.3); z-index: 0; transform: scale(1.2);"></div>
+        
+        <div style="position: relative; z-index: 1; display: flex; flex-wrap: wrap; padding: 40px; gap: 40px; width: 100%; align-items: flex-start;">
+            <div style="flex: 0 0 250px; position: relative;">
+                <img src="{% url 'opds_catalog:thumb' b.id %}" style="width: 100%; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.6);" onload="checkEinkCover(this)" onerror="this.style.setProperty('display', 'none', 'important'); if(this.nextElementSibling) this.nextElementSibling.style.setProperty('display', 'flex', 'important');" />
+                <div class="modern-placeholder" style="border-radius: 12px;">
+                    <div class="triangle-icon"></div>
+                    <div class="m-plt-content">
+                        <div class="m-plt-title">{{ b.title }}</div>
+                        <div class="m-plt-author">{% for a in b.authors %}{{ a.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+                    </div>
+                </div>
+            </div>
+            <div style="flex: 1; min-width: 300px; color: #fff;">
+                <h1 style="margin: 0 0 10px 0; font-size: 2.5rem; font-weight: 800; line-height: 1.2;">{{ b.title }}</h1>
+                <p style="font-size: 1.2rem; opacity: 0.8; margin-bottom: 20px;">
+                    {% for a in b.authors %}
+                    <a href="{% url 'web:searchbooks' %}?searchtype=a&searchterms={{a.id}}" style="color: #fff; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3);">{{ a.full_name }}</a>{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                    <span data-trans="un_auth">Unknown Author</span>
+                    {% endfor %}
+                </p>
+                <div style="margin-top: 30px; margin-bottom: 10px; font-weight: 800; text-transform: uppercase; font-size: 0.85rem; opacity: 0.6; letter-spacing: 1px;">Formats Available:</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+                    {% if all_formats %}
+                        {% for fmt in all_formats %}
+                        <a href="{% url 'opds_catalog:download' fmt.id 0 %}" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: #fff; padding: 12px 25px; border-radius: 30px; text-decoration: none; font-weight: 800; font-size: 1rem; transition: all 0.3s;" onmouseover="this.style.background='var(--accent)'; this.style.color='#000';" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='#fff';">
+                            {{ fmt.format|upper }}
+                        </a>
+                        {% endfor %}
+                    {% else %}
+                        <a href="{% url 'opds_catalog:download' b.id 0 %}" style="background: var(--accent); color: #000; padding: 15px 30px; border-radius: 30px; text-decoration: none; font-weight: 800; font-size: 1.1rem; transition: transform 0.2s;">
+                            Download {{ b.format|upper }}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endwith %}
+  {% else %}
 <div class="recent-books-grid" style="padding-top: 20px;">
   {% for b in books %}
   <div class="book-card book-item"
@@ -65,7 +110,7 @@
         style="display: block; width: 100%; height: 100%;">
         <img src="{% url 'opds_catalog:thumb' b.id %}" class="book-cover" alt="Cover"
           style="width: 100%; height: 100%; object-fit: cover;"
-          onload="checkEinkCover(this)" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+          onload="checkEinkCover(this)" onerror="this.style.setProperty('display', 'none', 'important'); if(this.nextElementSibling) this.nextElementSibling.style.setProperty('display', 'flex', 'important');">
         <div class="modern-placeholder">
           <div class="triangle-icon"></div>
           <div class="m-plt-content">
@@ -94,6 +139,7 @@
   </div>
   {% endfor %}
 </div>
+  {% endif %}
 {% endif %}
 
 <script>
