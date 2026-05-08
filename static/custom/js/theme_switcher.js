@@ -1,8 +1,13 @@
 /* Theme Switcher Script for SOPDS */
 
+function setThemeCookie(theme) {
+    document.cookie = 'vailib_theme=' + theme + '; path=/; max-age=31536000; SameSite=Lax';
+}
+
 (function() {
     const theme = localStorage.getItem('sopds-theme') || 'premium';
     document.documentElement.setAttribute('data-theme', theme);
+    setThemeCookie(theme);
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -32,8 +37,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const targetTheme = opt.getAttribute('data-val');
                 document.documentElement.setAttribute('data-theme', targetTheme);
                 localStorage.setItem('sopds-theme', targetTheme);
+                setThemeCookie(targetTheme);
                 updateUI(targetTheme);
                 console.log("Theme switched to", targetTheme);
+                // Reload so Django serves the correct template branch
+                window.location.reload();
             });
         });
     }
