@@ -60,8 +60,8 @@ def sopds_processor(request):
     if theme_cookie in ['eink', 'premium']:
         args['vailib_theme'] = theme_cookie
     else:
-        # Default to eink for everyone, unless they choose premium manually
-        args['vailib_theme'] = 'eink'
+        # Default to premium for all users. E-Ink users opt-in via the theme switcher.
+        args['vailib_theme'] = 'premium'
             
     args['app_title']=settings.TITLE
     args['sopds_auth']=config.SOPDS_AUTH

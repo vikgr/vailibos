@@ -15,6 +15,9 @@ COPY views.py /sopds/sopds_web_backend/views.py
 # Apply template theme overrides (includes admin dashboard and mobile/e-ink templates)
 COPY templates/ /sopds/sopds_web_backend/templates/
 
+# Apply custom template tag library (title cleaning, format color utilities)
+COPY templatetags/ /sopds/sopds_web_backend/templatetags/
+
 # Apply static web assets
 COPY static/custom/ /sopds/static/custom/
 

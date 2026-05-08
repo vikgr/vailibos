@@ -1,5 +1,6 @@
 {% extends "sopds_main.html" %}
 {% load i18n %}
+{% load vailib_extras %}
 
 {% block body %}
 <script>
@@ -10,6 +11,7 @@
 <!-- Bookshelf modals and clear buttons removed by user request -->
 
 {% if vailib_theme != 'premium' %}
+{# ===== E-INK THEME ===== #}
 <div class="eink-book-grid" style="margin-top: 15px; {% if books|length == 1 %}justify-content: center !important;{% endif %}">
   {% for b in books %}
   <div class="eink-book-card">
@@ -18,12 +20,12 @@
               <img src="{% url 'opds_catalog:thumb' b.id %}" class="book-cover" alt="Обложка"
                   onload="checkEinkCover(this)" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
               <div class="eink-placeholder" style="display:none;">
-                  <div class="plt-title-box"><span class="plt-title">{{ b.title|truncatechars:150 }}</span></div>
+                  <div class="plt-title-box"><span class="plt-title">{{ b.title|clean_title|truncatechars:150 }}</span></div>
                   <div class="plt-author-box"><span class="plt-author">{% for a in b.authors %}{{ a.full_name|truncatechars:100 }}{% if not forloop.last %}, {% endif %}{% empty %}Noname{% endfor %}</span></div>
               </div>
           </div>
           <div class="book-details">
-              <div class="b-title">{{ b.title|truncatechars:150 }}</div>
+              <div class="b-title">{{ b.title|clean_title|truncatechars:150 }}</div>
               <div class="b-author">
                   {% for a in b.authors %}{{ a.full_name|truncatechars:100 }}{% if not forloop.last %}, {% endif %}{% empty %}<span data-trans="un_auth">Unknown Author</span>{% endfor %}
               </div>
@@ -47,99 +49,102 @@
   </div>
   {% endfor %}
 </div>
-{% else %}
-  {% if books|length == 1 %}
-    {% with b=books.0 %}
-    <div class="immersive-detail-page" style="position: relative; border-radius: 16px; overflow: hidden; margin-top: 20px; background: var(--card-bg); display: flex; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-        <!-- Blurred Background -->
-        <div style="position: absolute; top:0; left:0; right:0; bottom:0; background-image: url('{% url 'opds_catalog:thumb' b.id %}'); background-size: cover; background-position: center; filter: blur(60px) brightness(0.3); z-index: 0; transform: scale(1.2);"></div>
-        
-        <div style="position: relative; z-index: 1; display: flex; flex-wrap: wrap; padding: 40px; gap: 40px; width: 100%; align-items: flex-start;">
-            <div style="flex: 0 0 250px; position: relative;">
-                <img src="{% url 'opds_catalog:thumb' b.id %}" style="width: 100%; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.6);" onload="checkEinkCover(this)" onerror="this.style.setProperty('display', 'none', 'important'); if(this.nextElementSibling) this.nextElementSibling.style.setProperty('display', 'flex', 'important');" />
-                <div class="modern-placeholder" style="border-radius: 12px;">
-                    <div class="triangle-icon"></div>
-                    <div class="m-plt-content">
-                        <div class="m-plt-title">{{ b.title }}</div>
-                        <div class="m-plt-author">{% for a in b.authors %}{{ a.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>
-                    </div>
-                </div>
-            </div>
-            <div style="flex: 1; min-width: 300px; color: #fff;">
-                <h1 style="margin: 0 0 10px 0; font-size: 2.5rem; font-weight: 800; line-height: 1.2;">{{ b.title }}</h1>
-                <p style="font-size: 1.2rem; opacity: 0.8; margin-bottom: 20px;">
-                    {% for a in b.authors %}
-                    <a href="{% url 'web:searchbooks' %}?searchtype=a&searchterms={{a.id}}" style="color: #fff; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3);">{{ a.full_name }}</a>{% if not forloop.last %}, {% endif %}
-                    {% empty %}
-                    <span data-trans="un_auth">Unknown Author</span>
-                    {% endfor %}
-                </p>
-                <div style="margin-top: 30px; margin-bottom: 10px; font-weight: 800; text-transform: uppercase; font-size: 0.85rem; opacity: 0.6; letter-spacing: 1px;">Formats Available:</div>
-                <div style="display: flex; flex-wrap: wrap; gap: 15px;">
-                    {% if all_formats %}
-                        {% for fmt in all_formats %}
-                        <a href="{% url 'opds_catalog:download' fmt.id 0 %}" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: #fff; padding: 12px 25px; border-radius: 30px; text-decoration: none; font-weight: 800; font-size: 1rem; transition: all 0.3s;" onmouseover="this.style.background='var(--accent)'; this.style.color='#000';" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='#fff';">
-                            {{ fmt.format|upper }}
-                        </a>
-                        {% endfor %}
-                    {% else %}
-                        <a href="{% url 'opds_catalog:download' b.id 0 %}" style="background: var(--accent); color: #000; padding: 15px 30px; border-radius: 30px; text-decoration: none; font-weight: 800; font-size: 1.1rem; transition: transform 0.2s;">
-                            Download {{ b.format|upper }}
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endwith %}
-  {% else %}
-<div class="recent-books-grid" style="padding-top: 20px;">
-  {% for b in books %}
-  <div class="book-card book-item"
-    style="border-radius: 12px; border: 1px solid var(--border); overflow: hidden; background: var(--card-bg); transition: transform 0.3s; display: flex; flex-direction: column;">
-    <div class="cover-wrapper"
-      style="aspect-ratio: 2/2.5; width: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; overflow: hidden; justify-content: center; position: relative;">
-      
-      <!-- Premium Glassmorphic Format Badge -->
-      <a href="{% url 'opds_catalog:download' b.id 0 %}"
-         style="position: absolute; top: 10px; right: 10px; z-index: 10; font-size: 0.70rem; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.2); color: var(--text-main); padding: 4px 8px; border-radius: 12px; font-weight: 800; text-decoration: none; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-        {{b.format|upper}}
-      </a>
 
-      <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{b.id}}"
-        style="display: block; width: 100%; height: 100%;">
-        <img src="{% url 'opds_catalog:thumb' b.id %}" class="book-cover" alt="Cover"
-          style="width: 100%; height: 100%; object-fit: cover;"
-          onload="checkEinkCover(this)" onerror="this.style.setProperty('display', 'none', 'important'); if(this.nextElementSibling) this.nextElementSibling.style.setProperty('display', 'flex', 'important');">
-        <div class="modern-placeholder">
-          <div class="triangle-icon"></div>
-          <div class="m-plt-content">
-            <div class="m-plt-title">{{ b.title }}</div>
-            <div class="m-plt-author">{% for a in b.authors %}{{ a.full_name }}{% if not forloop.last %}, {% endif %}{% empty %}Noname{% endfor %}</div>
-          </div>
+{% else %}
+{# ===== PREMIUM THEME ===== #}
+
+{% if books|length == 1 %}
+{# --- IMMERSIVE SINGLE BOOK DETAIL --- #}
+{% with b=books.0 %}
+<div class="vl-detail-page">
+    <div class="vl-detail-bg" style="background-image: url('{% url 'opds_catalog:thumb' b.id %}');"></div>
+    <div class="vl-detail-fallback-bg" style="background: {{ b.format|format_bg }}; display:none;"></div>
+    <div class="vl-detail-content">
+        <div class="vl-detail-cover-col">
+            <img src="{% url 'opds_catalog:thumb' b.id %}" class="vl-detail-cover-img"
+                alt="{{ b.title|clean_title }}"
+                onerror="this.style.display='none'; this.closest('.vl-detail-page').querySelector('.vl-detail-bg').style.display='none'; this.closest('.vl-detail-page').querySelector('.vl-detail-fallback-bg').style.display='block'; this.nextElementSibling.style.display='flex';">
+            <div class="vl-fmt-placeholder" style="display:none; background: {{ b.format|format_bg }};">
+                <span class="vl-fmt-icon">{{ b.format|format_icon }}</span>
+                <span class="vl-fmt-label">{{ b.format|upper }}</span>
+                <span class="vl-fmt-title">{{ b.title|clean_title|truncatechars:60 }}</span>
+            </div>
+        </div>
+        <div class="vl-detail-meta">
+            <div class="vl-detail-format-label {{ b.format|format_badge_class }}">{{ b.format|upper }}</div>
+            <h1 class="vl-detail-title">{{ b.title|clean_title }}</h1>
+            <p class="vl-detail-author">
+                {% for a in b.authors %}
+                <a href="{% url 'web:searchbooks' %}?searchtype=a&searchterms={{a.id}}" class="vl-detail-author-link">{{ a.full_name }}</a>{% if not forloop.last %}, {% endif %}
+                {% empty %}<span data-trans="un_auth">Unknown Author</span>
+                {% endfor %}
+            </p>
+            {% if b.annotation and b.annotation != 'NotYet' %}
+            <p class="vl-detail-desc">{{ b.annotation|truncatechars:280 }}</p>
+            {% endif %}
+            <div class="vl-detail-actions-label">Download:</div>
+            <div class="vl-detail-actions">
+                {% if all_formats %}
+                    {% for fmt in all_formats %}
+                    <a href="{% url 'opds_catalog:download' fmt.id 0 %}" class="vl-download-btn {{ fmt.format|format_badge_class }}">
+                        ↓ {{ fmt.format|upper }}
+                    </a>
+                    {% endfor %}
+                {% else %}
+                    <a href="{% url 'opds_catalog:download' b.id 0 %}" class="vl-download-btn {{ b.format|format_badge_class }}">
+                        ↓ {{ b.format|upper }}
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endwith %}
+
+{% else %}
+{# --- BOOK GRID --- #}
+<div class="vl-book-grid">
+  {% for b in books %}
+  <div class="vl-card">
+    <div class="vl-card-cover">
+      {# Format badge — always visible #}
+      <span class="vl-badge {{ b.format|format_badge_class }}">{{ b.format|upper }}</span>
+
+      <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{b.id}}" class="vl-card-cover-link">
+        {# Real cover image #}
+        <img src="{% url 'opds_catalog:thumb' b.id %}" class="vl-card-img" alt="{{ b.title|clean_title }}"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        {# Phase 3: Format-specific gradient placeholder — shown when cover fails #}
+        <div class="vl-fmt-placeholder" style="display:none; background: {{ b.format|format_bg }};">
+            <span class="vl-fmt-icon">{{ b.format|format_icon }}</span>
+            <span class="vl-fmt-label" style="color: {{ b.format|format_accent }};">{{ b.format|upper }}</span>
+            <span class="vl-fmt-title">{{ b.title|clean_title|truncatechars:50 }}</span>
         </div>
       </a>
     </div>
-    <div class="book-info" style="padding: 15px; display: flex; flex-direction: column; flex: 1;">
-      <div style="flex: 1;">
-        <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{b.id}}"
-          style="text-decoration: none; color: inherit;">
-          <h5 class="book-title" style="margin: 0; font-size: 1.05rem; font-weight: 700;">{{ b.title|truncatechars:45 }}</h5>
-        </a>
-        <p class="book-author" style="margin: 6px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">
-          {% for a in b.authors %}
-          <a href="{% url 'web:searchbooks' %}?searchtype=a&searchterms={{a.id}}"
-            style="color: inherit; text-decoration: none;">{{ a.full_name }}</a>{% if not forloop.last %}, {% endif %}
-          {% empty %}
-          <span data-trans="un_auth">Unknown Author</span>
-          {% endfor %}
-        </p>
-      </div>
+
+    <div class="vl-card-body">
+      <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{b.id}}" class="vl-card-title-link">
+        <h5 class="vl-card-title">{{ b.title|clean_title|truncatechars:48 }}</h5>
+      </a>
+      <p class="vl-card-author">
+        {% for a in b.authors %}
+        <a href="{% url 'web:searchbooks' %}?searchtype=a&searchterms={{a.id}}" class="vl-card-author-link">{{ a.full_name }}</a>{% if not forloop.last %}, {% endif %}
+        {% empty %}<span class="vl-card-unknown" data-trans="un_auth">Unknown Author</span>
+        {% endfor %}
+      </p>
     </div>
+  </div>
+  {% empty %}
+  <div class="vl-empty-state">
+      <div class="vl-empty-icon">📭</div>
+      <h3 data-trans="empty">No books found</h3>
+      <p data-trans="scan">Try a different search or browse the catalog.</p>
   </div>
   {% endfor %}
 </div>
-  {% endif %}
+{% endif %}
+
 {% endif %}
 
 <script>
