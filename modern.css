@@ -2912,7 +2912,7 @@ html[data-theme="eink"] .eink-lang-btn .lang-native {
     font-size: 0.65rem !important;
     font-weight: 700 !important;
     line-height: 1 !important;
-    color: #444 !important;
+    color: #000 !important;
 }
 
 /* Active / selected language */
