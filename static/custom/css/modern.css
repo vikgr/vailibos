@@ -2978,3 +2978,11 @@ html[data-theme="eink"] .theme-opt.active {
     background: #000 !important;
     color: #fff !important;
 }
+
+/* SUPPRESS ALL INTERACTIVE MOVEMENTS (HOVER TRANSFORMS) FOR E-INK DEVICES */
+html[data-theme="eink"] *,
+html[data-theme="eink"] *:hover {
+    transform: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+}
