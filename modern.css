@@ -2908,3 +2908,11 @@ html[data-theme="eink"] .eink-lang-btn[style*="opacity: 1"] .lang-native {
 html[data-theme="eink"] .eink-lang-btn:hover {
     background: #f8f8f8 !important;
 }
+/* FINAL RESTORATION FOR PREMIUM THEME (UNDOING E-INK OVERFLOW) */
+html[data-theme="premium"] .vl-lang-grid { margin-top: 15px !important; display: grid !important; grid-template-columns: repeat(5, 1fr) !important; }
+html[data-theme="premium"] .color-lang-btn { display: inline-block !important; border: none !important; background: transparent !important; border-radius: 6px !important; padding: 4px 2px !important; transition: background 0.2s !important; }
+html[data-theme="premium"] .color-lang-btn:hover { background: rgba(255,255,255,0.1) !important; }
+html[data-theme="premium"] .lang-flag-img { display: block !important; border-radius: 2px !important; margin: 0 auto !important; }
+html[data-theme="premium"] .lang-code { display: block !important; font-size: 0.75rem !important; font-weight: 800 !important; color: #a0a0a0 !important; margin-top: 2px !important; }
+html[data-theme="premium"] .lang-native { display: none !important; }
+html[data-theme="premium"] .color-lang-btn.active .lang-code { color: #00e5ff !important; }
