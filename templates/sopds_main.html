@@ -24,6 +24,8 @@
 </head>
 
 <body>
+    <!-- Scroll Progress Bar -->
+    <div id="vl-scroll-bar"></div>
     <div class="app-wrapper">
 
         <!-- SIDEBAR FOR PREMIUM / TOP HEADER FOR E-INK -->
@@ -327,6 +329,57 @@
             if (box && box.value.length < 3) return false;
             return true;
         };
+
+        // --- Scroll Progress Bar ---
+        (function() {
+            var bar = document.getElementById('vl-scroll-bar');
+            if (!bar) return;
+            function updateBar() {
+                var scrollTop = window.scrollY || document.documentElement.scrollTop;
+                var docH = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                var pct = docH > 0 ? (scrollTop / docH * 100) : 0;
+                bar.style.width = pct + '%';
+            }
+            window.addEventListener('scroll', updateBar, { passive: true });
+            updateBar();
+        })();
+
+        // --- Search Clear Button ---
+        (function() {
+            var box = document.getElementById('main_searchbox');
+            if (!box) return;
+            var wrap = box.closest('form') || box.parentElement;
+            if (!wrap) return;
+            wrap.style.position = 'relative';
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'vl-search-clear';
+            btn.innerHTML = '&times;';
+            btn.setAttribute('aria-label', 'Clear search');
+            wrap.appendChild(btn);
+            box.addEventListener('input', function() {
+                btn.classList.toggle('visible', this.value.length > 0);
+            });
+            btn.addEventListener('click', function() {
+                box.value = '';
+                btn.classList.remove('visible');
+                box.focus();
+            });
+        })();
+
+        // --- Auto-detect active nav link ---
+        (function() {
+            var path = window.location.pathname;
+            document.querySelectorAll('.sidebar-container nav a, .sidebar-container .menu a').forEach(function(a) {
+                if (a.href && a.href !== window.location.origin + '/') {
+                    var url = new URL(a.href);
+                    if (path.startsWith(url.pathname) && url.pathname !== '/') {
+                        a.classList.add('active');
+                    }
+                }
+            });
+        })();
+
     </script>
     {% block block-js %}{% endblock %}
 </body>

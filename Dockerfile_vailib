@@ -18,6 +18,9 @@ COPY templates/ /sopds/sopds_web_backend/templates/
 # Apply custom template tag library (title cleaning, format color utilities)
 COPY templatetags/ /sopds/sopds_web_backend/templatetags/
 
+# Apply Django management commands (fetch_covers, etc.)
+COPY management/ /sopds/sopds_web_backend/management/
+
 # Apply static web assets
 COPY static/custom/ /sopds/static/custom/
 

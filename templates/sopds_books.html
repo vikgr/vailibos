@@ -103,9 +103,19 @@
 
 {% else %}
 {# --- BOOK GRID --- #}
-<div class="vl-book-grid">
+{# Format filter chips — only show when there are multiple formats #}
+<div class="filter-chips-bar" id="vl-filter-bar">
+  <span class="filter-chip active" data-fmt="all" id="chip-all">ALL</span>
+  <span class="filter-chip" data-fmt="djvu" id="chip-djvu">📘 DJVU</span>
+  <span class="filter-chip" data-fmt="pdf" id="chip-pdf">📋 PDF</span>
+  <span class="filter-chip" data-fmt="epub" id="chip-epub">📗 EPUB</span>
+  <span class="filter-chip" data-fmt="fb2" id="chip-fb2">📙 FB2</span>
+  <span class="filter-count" id="vl-filter-count"></span>
+</div>
+
+<div class="vl-book-grid" id="vl-books-grid">
   {% for b in books %}
-  <div class="vl-card">
+  <div class="vl-card" data-format="{{ b.format|lower }}" id="book-{{b.id}}">
     <div class="vl-card-cover">
       {# Format badge — always visible #}
       <span class="vl-badge {{ b.format|format_badge_class }}">{{ b.format|upper }}</span>
@@ -143,6 +153,52 @@
   </div>
   {% endfor %}
 </div>
+
+{% block block-js %}
+<script>
+(function() {
+  var chips = document.querySelectorAll('.filter-chip');
+  var cards = document.querySelectorAll('#vl-books-grid .vl-card');
+  var countEl = document.getElementById('vl-filter-count');
+  var bar = document.getElementById('vl-filter-bar');
+
+  // Hide chips if only 1 format present
+  var formats = new Set();
+  cards.forEach(function(c) { formats.add(c.dataset.format); });
+  if (formats.size <= 1 && bar) { bar.style.display = 'none'; }
+
+  function updateCount(visible) {
+    if (countEl) countEl.textContent = visible + ' / ' + cards.length + ' books';
+  }
+
+  updateCount(cards.length);
+
+  chips.forEach(function(chip) {
+    chip.addEventListener('click', function() {
+      var fmt = this.dataset.fmt;
+      // Update active states
+      chips.forEach(function(c) {
+        c.classList.remove('active', 'active-djvu', 'active-pdf', 'active-epub', 'active-fb2');
+      });
+      this.classList.add('active');
+      if (fmt !== 'all') this.classList.add('active-' + fmt);
+
+      // Filter cards
+      var visible = 0;
+      cards.forEach(function(card) {
+        if (fmt === 'all' || card.dataset.format === fmt) {
+          card.classList.remove('filter-hidden');
+          visible++;
+        } else {
+          card.classList.add('filter-hidden');
+        }
+      });
+      updateCount(visible);
+    });
+  });
+})();
+</script>
+{% endblock %}
 {% endif %}
 
 {% endif %}

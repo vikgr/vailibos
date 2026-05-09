@@ -1,9 +1,11 @@
 {% extends "sopds_main.html" %}
 {% load staticfiles %}
 {% load i18n %}
+{% load vailib_extras %}
 
 {% block body %}
 {% if vailib_theme != 'premium' %}
+{# ===== E-INK THEME ===== #}
 <div class="eink-book-grid" style="margin-top: 15px;">
    {% for b in items %}
        {% if b.is_catalog == 1 %}
@@ -17,12 +19,12 @@
            <div class="cover-container">
                 <img src="{% url 'opds_catalog:thumb' b.id %}" alt="C" style="width:100%; height:100%; object-fit: cover;" onload="checkEinkCover(this)" onerror="this.style.setProperty('display', 'none', 'important'); if(this.nextElementSibling) this.nextElementSibling.style.setProperty('display', 'flex', 'important');">
                 <div class="eink-placeholder" style="display:none;">
-                    <div class="plt-title-box"><span class="plt-title">{{ b.title|truncatechars:150 }}</span></div>
+                    <div class="plt-title-box"><span class="plt-title">{{ b.title|clean_title|truncatechars:150 }}</span></div>
                     <div class="plt-author-box"><span class="plt-author">{% for a in b.authors %}{{ a.full_name|truncatechars:100 }}{% if not forloop.last %}, {% endif %}{% endfor %}</span></div>
                 </div>
            </div>
            <div class="book-details">
-               <div class="b-title">{{ b.title|truncatechars:150 }}</div>
+               <div class="b-title">{{ b.title|clean_title|truncatechars:150 }}</div>
                <div class="b-author">
                    {% for a in b.authors %}{{ a.full_name|truncatechars:100 }}{% if not forloop.last %}, {% endif %}{% empty %}<span data-trans="un_auth">Unknown Author</span>{% endfor %}
                </div>
@@ -32,80 +34,44 @@
        {% endif %}
    {% endfor %}
 </div>
+
 {% else %}
-<div class="recent-books-grid" style="padding-top: 20px;">
+{# ===== PREMIUM THEME ===== #}
+<div class="vl-catalog-grid" id="catalog-grid" style="padding-top: 20px;">
    {% for b in items %}
    {% if b.is_catalog == 1 %}
-   <!-- Catalog Folder Thumbnail -->
-   <div class="book-card book-item"
-      style="border-radius: 12px; border: 1px solid var(--border); overflow: hidden; background: var(--card-bg); transition: transform 0.3s; display: flex; flex-direction: column;">
-      <div class="cover-wrapper"
-         style="aspect-ratio: 2/2.5; width: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; overflow: hidden; justify-content: center;">
-         <a href="{% url 'web:catalog' %}?cat={{b.id}}"
-            style="display: block; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-            <i class="fi-folder" style="font-size: 5rem; color: var(--accent);"></i>
-         </a>
-      </div>
-      <div class="book-info" style="padding: 15px; display: flex; flex-direction: column; flex: 1;">
-         <div style="flex: 1; text-align: center;">
-            <a href="{% url 'web:catalog' %}?cat={{b.id}}" style="text-decoration: none; color: inherit;">
-               <h5 class="book-title" style="margin: 0; font-size: 1.05rem; font-weight: 700;">{{ b.title }}</h5>
-            </a>
-            <p class="book-author" style="margin: 6px 0 0 0; font-size: 0.85rem; color: var(--text-muted);" data-trans="cat">{% trans "Catalogs" %}</p>
-         </div>
-      </div>
-   </div>
+   {# --- Catalog Folder Card with letter-based gradient --- #}
+   <a href="{% url 'web:catalog' %}?cat={{b.id}}" class="vl-cat-card" id="cat-{{b.id}}"
+      style="background: {% with letter=b.title|slice:':1' %}{% if letter == 'А' or letter == 'A' %}linear-gradient(135deg,#0d1b3e,#1a3560){% elif letter == 'Б' or letter == 'B' %}linear-gradient(135deg,#1a0d3e,#3a1060){% elif letter == 'В' or letter == 'C' %}linear-gradient(135deg,#0d3e1a,#1a6e2f){% elif letter == 'Г' or letter == 'D' %}linear-gradient(135deg,#3e1a00,#6e3000){% elif letter == 'Д' or letter == 'E' %}linear-gradient(135deg,#3e0d0d,#6e1a1a){% elif letter == 'Е' or letter == 'F' %}linear-gradient(135deg,#003e3e,#006e6e){% elif letter == 'Ж' or letter == 'G' %}linear-gradient(135deg,#1a3e00,#2e6e00){% elif letter == 'З' or letter == 'H' %}linear-gradient(135deg,#3e3e00,#6e6e00){% else %}linear-gradient(135deg,#1a1a2e,#16213e){% endif %}{% endwith %}; color: #fff;">
+      <span class="vl-cat-letter">{{ b.title|slice:":1"|upper }}</span>
+      <span class="vl-cat-count">{{ b.title|truncatechars:30 }}</span>
+   </a>
    {% else %}
-   <!-- Book Thumbnail -->
-   <div class="book-card book-item"
-      style="border-radius: 12px; border: 1px solid var(--border); overflow: hidden; background: var(--card-bg); transition: transform 0.3s; display: flex; flex-direction: column;">
-      <div class="cover-wrapper"
-         style="aspect-ratio: 2/2.5; width: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; overflow: hidden; justify-content: center; position: relative;">
-         
-         <!-- Premium Glassmorphic Format Badge -->
-         <a href="{% url 'opds_catalog:download' b.id 0 %}"
-            style="position: absolute; top: 10px; right: 10px; z-index: 10; font-size: 0.70rem; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.2); color: var(--text-main); padding: 4px 8px; border-radius: 12px; font-weight: 800; text-decoration: none; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-            {{b.format|upper}}
-         </a>
-
-         <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{b.id}}"
-            style="display: block; width: 100%; height: 100%;">
-            <img src="{% url 'opds_catalog:thumb' b.id %}" class="book-cover" alt="Cover"
-               style="width: 100%; height: 100%; object-fit: cover;"
-               onload="checkEinkCover(this)" onerror="this.style.setProperty('display', 'none', 'important'); if(this.nextElementSibling) this.nextElementSibling.style.setProperty('display', 'flex', 'important');">
-            <div class="modern-placeholder">
-               <div class="triangle-icon"></div>
-               <div class="m-plt-content">
-                  <div class="m-plt-title">{{ b.title }}</div>
-                  <div class="m-plt-author">{% for a in b.authors %}{{ a.full_name }}{% if not forloop.last %}, {% endif %}{% empty %}Noname{% endfor %}</div>
-               </div>
-            </div>
-         </a>
-      </div>
-      <div class="book-info" style="padding: 15px; display: flex; flex-direction: column; flex: 1;">
-         <div style="flex: 1;">
-            <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{b.id}}"
-               style="text-decoration: none; color: inherit;">
-               <h5 class="book-title" style="margin: 0; font-size: 1.05rem; font-weight: 700;">{{ b.title|truncatechars:45 }}</h5>
-            </a>
-            <p class="book-author" style="margin: 6px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">
-               {% for a in b.authors %}
-               {{ a.full_name }}{% if not forloop.last %}, {% endif %}
-               {% empty %}
-               <span data-trans="un_auth">Unknown Author</span>
-               {% endfor %}
-            </p>
+   {# --- Book Card using unified vl-card system --- #}
+   <div class="vl-card" data-format="{{ b.format|lower }}" id="book-{{b.id}}">
+     <div class="vl-card-cover">
+       <span class="vl-badge {{ b.format|format_badge_class }}">{{ b.format|upper }}</span>
+       <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{b.id}}" class="vl-card-cover-link">
+         <img src="{% url 'opds_catalog:thumb' b.id %}" class="vl-card-img" alt="{{ b.title|clean_title }}"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+         <div class="vl-fmt-placeholder" style="display:none; background: {{ b.format|format_bg }};">
+             <span class="vl-fmt-icon">{{ b.format|format_icon }}</span>
+             <span class="vl-fmt-label" style="color: {{ b.format|format_accent }};">{{ b.format|upper }}</span>
+             <span class="vl-fmt-title">{{ b.title|clean_title|truncatechars:50 }}</span>
          </div>
-         <div class="card-footer"
-            style="display:flex; justify-content:flex-end; align-items:center; margin-top:15px; padding-top: 12px; border-top: 1px dashed var(--border);">
-            <div class="actions" style="font-size:1.1rem; display:flex; align-items: center; gap: 10px;">
-               <a id="ReadLink_{{b.id}}" class="read-online-btn" data-book-id="{{b.id}}" href="#"
-                  style="color:var(--accent); text-decoration:none; font-size: 0.85rem; font-weight: 800; text-transform: uppercase;" data-trans="read">
-                  {% trans "Read" %}
-               </a>
-            </div>
-         </div>
-      </div>
+       </a>
+     </div>
+     <div class="vl-card-body">
+       <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{b.id}}" class="vl-card-title-link">
+         <h5 class="vl-card-title">{{ b.title|clean_title|truncatechars:48 }}</h5>
+       </a>
+       <p class="vl-card-author">
+         {% for a in b.authors %}
+         <a href="{% url 'web:searchbooks' %}?searchtype=a&searchterms={{a.id}}" class="vl-card-author-link">{{ a.full_name }}</a>{% if not forloop.last %}, {% endif %}
+         {% empty %}<span class="vl-card-unknown" data-trans="un_auth">Unknown Author</span>
+         {% endfor %}
+       </p>
+     </div>
    </div>
    {% endif %}
    {% endfor %}
@@ -145,4 +111,4 @@
 </ul>
 {% endif %}
 
-{% endblock %} {# body #}
+{% endblock %}

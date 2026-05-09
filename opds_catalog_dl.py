@@ -233,9 +233,29 @@ def Download(request, book_id, zip_flag):
 
     return response
 
-# Новая версия (0.42) процедуры извлечения обложек из файлов книг fb2, epub, mobi
+# Новая версия (0.42) + Vailib cover cache overlay
 @cache_page(60*60*24) # Cache for 24 hours
 def Cover(request, book_id, thumbnail=False):
+    """Serve cover: first from pre-fetched cache, then from book file."""
+    COVERS_CACHE_DIR = '/var/lib/sopds/covers'
+    cached_path = os.path.join(COVERS_CACHE_DIR, '{}.jpg'.format(book_id))
+    if os.path.exists(cached_path) and os.path.getsize(cached_path) > 5000:
+        try:
+            with open(cached_path, 'rb') as cf:
+                image = cf.read()
+            response = HttpResponse()
+            response["Content-Type"] = 'image/jpeg'
+            if thumbnail:
+                thumb = Image.open(io.BytesIO(image)).convert('RGB')
+                thumb.thumbnail((180, 250), Image.BILINEAR)
+                tfile = io.BytesIO()
+                thumb.save(tfile, 'JPEG', quality=55, optimize=True, progressive=True)
+                image = tfile.getvalue()
+            response.write(image)
+            return response
+        except Exception:
+            pass  # fall through to embedded extraction
+    # --- original embedded extraction below ---
     """ Загрузка обложки """
     book = Book.objects.get(id=book_id)
     response = HttpResponse()
