@@ -2820,9 +2820,8 @@ html[data-theme="eink"] #vl-scroll-bar { display: none !important; }
 }
 
 html[data-theme="eink"] .vl-search-clear { display: none !important; }
-
 /* =======================================================
-   LANG SELECTOR — SHARED GRID LAYOUT
+   LANG SELECTOR — UNIFIED SYSTEM (Premium & E-Ink)
    ======================================================= */
 
 .vl-lang-grid {
@@ -2831,13 +2830,12 @@ html[data-theme="eink"] .vl-search-clear { display: none !important; }
     gap: 4px !important;
     background: transparent !important;
     border: none !important;
-    box-shadow: none !important;
     padding: 0 !important;
     margin: 12px 0 0 0 !important;
 }
 
-/* PREMIUM: flag + latin code (flag visible, native hidden) */
-[data-theme="premium"] .vl-lang-grid .color-lang-btn {
+/* PREMIUM THEME: Icons + Codes */
+[data-theme="premium"] .eink-lang-btn {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -2849,105 +2847,47 @@ html[data-theme="eink"] .vl-search-clear { display: none !important; }
     color: var(--text-muted);
     font-size: 0.72rem;
     font-weight: 800;
-    transition: opacity 0.2s, background 0.2s;
-    background: transparent;
-    border: none;
+    transition: all 0.2s;
 }
+[data-theme="premium"] .eink-lang-btn:hover { background: rgba(255,255,255,0.08); color: var(--text-main); }
+[data-theme="premium"] .eink-lang-btn.active { color: var(--accent); }
+[data-theme="premium"] .lang-flag-img { border-radius: 2px; }
 
-[data-theme="premium"] .vl-lang-grid .color-lang-btn:hover {
-    background: rgba(255,255,255,0.08);
-}
-
-[data-theme="premium"] .lang-flag-img {
-    border-radius: 2px;
-    display: block;
-}
-
-[data-theme="premium"] .lang-native {
-    display: none; /* premium shows flag + latin code only */
-}
-
-/* =======================================================
-   LANG SELECTOR — E-INK: SQUARE, HIGH-CONTRAST, BILINGUAL
-   ======================================================= */
-
-/* Square buttons with thick border — no flag images */
-html[data-theme="eink"] .vl-lang-grid {
-    grid-template-columns: repeat(5, 1fr) !important;
-    gap: 5px !important;
-}
-
+/* E-INK THEME: PURE BLACK & WHITE SQUARES */
 html[data-theme="eink"] .eink-lang-btn {
     display: flex !important;
-    flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 1px !important;
-    padding: 5px 2px !important;
-    border-radius: 0 !important;          /* SQUARE */
-    border: 2px solid #000 !important;
+    padding: 6px 2px !important;
+    border-radius: 0 !important;
+    border: 1px solid #000 !important;
     background: #fff !important;
-    color: #000 !important;
     text-decoration: none !important;
-    font-weight: 900 !important;
-    cursor: pointer;
+    min-height: 32px !important;
     transition: none !important;
-    min-height: 36px;
 }
 
-html[data-theme="eink"] .eink-lang-btn .lang-flag-img {
-    display: none !important;             /* No flag images on E-Ink */
-}
+html[data-theme="eink"] .eink-lang-btn .lang-flag-img { display: none !important; }
 
 html[data-theme="eink"] .eink-lang-btn .lang-code {
-    font-size: 0.68rem !important;
-    font-weight: 900 !important;
-    line-height: 1 !important;
-    color: #000 !important;
-    letter-spacing: 0 !important;
-}
-
-html[data-theme="eink"] .eink-lang-btn .lang-native {
-    display: block !important;            /* Show native script */
-    font-size: 0.65rem !important;
+    font-size: 0.75rem !important;
     font-weight: 700 !important;
-    line-height: 1 !important;
     color: #000 !important;
 }
 
-/* Active / selected language */
-html[data-theme="eink"] .eink-lang-btn[style*="opacity: 1"],
-html[data-theme="eink"] .eink-lang-btn.active {
-    background: #000 !important;
-    color: #fff !important;
-    border-color: #000 !important;
-}
-
-html[data-theme="eink"] .eink-lang-btn.active .lang-code,
-html[data-theme="eink"] .eink-lang-btn.active .lang-native {
-    color: #fff !important;
-}
-
-/* Hover on E-Ink — invert */
-html[data-theme="eink"] .eink-lang-btn:hover {
-    background: #000 !important;
-    color: #fff !important;
-}
-
-html[data-theme="eink"] .eink-lang-btn:hover .lang-code,
-html[data-theme="eink"] .eink-lang-btn:hover .lang-native {
-    color: #fff !important;
-}
-
-/* =======================================================
-   E-INK LANG SELECTOR — FINAL OVERRIDE (simple & clean)
-   ======================================================= */
-html[data-theme="eink"] .vl-lang-grid { grid-template-columns: repeat(5, 1fr) !important; gap: 4px !important; }
-html[data-theme="eink"] .eink-lang-btn { display:flex !important; align-items:center !important; justify-content:center !important; padding:5px 3px !important; border-radius:0 !important; border:1px solid #000 !important; background:#fff !important; text-decoration:none !important; min-height:28px; transition:none !important; }
-html[data-theme="eink"] .eink-lang-btn .lang-flag-img { display:none !important; }
-html[data-theme="eink"] .eink-lang-btn .lang-native { display:none !important; }
-html[data-theme="eink"] .eink-lang-btn .lang-code { font-size:0.72rem !important; font-weight:700 !important; color:#000 !important; }
-html[data-theme="eink"] .eink-lang-btn.active .lang-code,
-html[data-theme="eink"] .eink-lang-btn[style*="opacity: 1"] .lang-code { font-size:0.90rem !important; font-weight:900 !important; color:#000 !important; }
+/* E-INK ACTIVE STATE: 25% BIGGER TEXT */
 html[data-theme="eink"] .eink-lang-btn.active,
-html[data-theme="eink"] .eink-lang-btn[style*="opacity: 1"] { background:#fff !important; border:2px solid #000 !important; }
+html[data-theme="eink"] .eink-lang-btn[style*="opacity: 1"] {
+    background: #fff !important;
+    border: 2px solid #000 !important;
+}
+
+html[data-theme="eink"] .eink-lang-btn.active .lang-code,
+html[data-theme="eink"] .eink-lang-btn[style*="opacity: 1"] .lang-code {
+    font-size: 0.94rem !important; /* ~25% bigger than 0.75rem */
+    font-weight: 900 !important;
+}
+
+html[data-theme="eink"] .eink-lang-btn:hover {
+    background: #f0f0f0 !important;
+}
