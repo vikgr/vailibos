@@ -19,9 +19,9 @@
           <div class="cover-container">
               <img src="{% url 'opds_catalog:thumb' b.id %}" class="book-cover" alt="Обложка"
                   onload="checkEinkCover(this)" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
-              <div class="eink-placeholder" style="display:none;">
-                  <div class="plt-title-box"><span class="plt-title">{{ b.title|clean_title|truncatechars:150 }}</span></div>
-                  <div class="plt-author-box"><span class="plt-author">{% for a in b.authors %}{{ a.full_name|truncatechars:100 }}{% if not forloop.last %}, {% endif %}{% empty %}Noname{% endfor %}</span></div>
+              <div class="eink-placeholder" style="display:none; flex-direction:column; align-items:center; justify-content:center; height: 100px; border: 1px solid #000; background: #fff;">
+                  <span style="font-size: 1.5rem;">📖</span>
+                  <span style="font-size: 0.8rem; font-weight: bold; margin-top: 5px;">{{ b.format|upper }}</span>
               </div>
           </div>
           <div class="book-details">
