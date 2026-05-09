@@ -787,12 +787,7 @@ body {
     box-shadow: none;
 }
 
-[data-theme="eink"] .index-card:hover {
-    background: #000 !important;
-    color: #fff !important;
-    transform: none;
-    box-shadow: none !important;
-}
+[data-theme="eink"] .index-card:hover { background: #fff !important; color: #000 !important; transform: none !important; }
 
 [data-theme="eink"] .index-letter {
     color: inherit !important;
@@ -801,9 +796,7 @@ body {
     overflow-wrap: break-word;
 }
 
-[data-theme="eink"] .index-card:hover .index-letter {
-    color: #fff !important;
-}
+[data-theme="eink"] .index-card:hover .index-letter { color: #000 !important; }
 
 [data-theme="eink"] .index-count {
     color: inherit !important;
@@ -2985,4 +2978,22 @@ html[data-theme="eink"] *:hover {
     transform: none !important;
     transition: none !important;
     box-shadow: none !important;
+}
+
+
+/* GLOBAL E-INK SAFETY: Ensure no text ever turns white on hover */
+html[data-theme="eink"] a:hover,
+html[data-theme="eink"] button:hover,
+html[data-theme="eink"] div:hover,
+html[data-theme="eink"] span:hover {
+    color: #000 !important;
+    background-color: #fff !important;
+}
+
+/* EXCEPT for explicitly active/selected items */
+html[data-theme="eink"] .active,
+html[data-theme="eink"] .nav-btn.active,
+html[data-theme="eink"] .theme-opt.active {
+    color: #fff !important;
+    background-color: #000 !important;
 }
