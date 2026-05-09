@@ -125,10 +125,9 @@
         <img src="{% url 'opds_catalog:thumb' b.id %}" class="vl-card-img" alt="{{ b.title|clean_title }}"
             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
         {# Phase 3: Format-specific gradient placeholder — shown when cover fails #}
-        <div class="vl-fmt-placeholder" style="display:none; background: {{ b.format|format_bg }};">
+        <div class="vl-fmt-placeholder" style="display:none; background: {{ b.format|format_bg }}; flex-direction:column; align-items:center; justify-content:center;">
             <span class="vl-fmt-icon">{{ b.format|format_icon }}</span>
-            <span class="vl-fmt-label" style="color: {{ b.format|format_accent }};">{{ b.format|upper }}</span>
-            <span class="vl-fmt-title">{{ b.title|clean_title|truncatechars:50 }}</span>
+            <span class="vl-fmt-label" style="color: {{ b.format|format_accent }}; font-weight: bold; margin-top: 5px;">{{ b.format|upper }}</span>
         </div>
       </a>
     </div>
