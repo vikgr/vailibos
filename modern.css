@@ -2916,3 +2916,65 @@ html[data-theme="premium"] .lang-flag-img { display: block !important; border-ra
 html[data-theme="premium"] .lang-code { display: block !important; font-size: 0.75rem !important; font-weight: 800 !important; color: #a0a0a0 !important; margin-top: 2px !important; }
 html[data-theme="premium"] .lang-native { display: none !important; }
 html[data-theme="premium"] .color-lang-btn.active .lang-code { color: #00e5ff !important; }
+
+/* =======================================================
+   THEME SWITCHER — NATURAL BUTTONS
+   ======================================================= */
+.theme-segment {
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 2px;
+    gap: 2px;
+}
+
+.theme-opt {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    padding: 6px 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    text-transform: uppercase;
+}
+
+.theme-opt:hover {
+    color: var(--text-main);
+}
+
+.theme-opt.active {
+    background: var(--accent);
+    color: #000;
+}
+
+/* E-INK OVERRIDES FOR THEME SWITCHER */
+html[data-theme="eink"] .theme-segment {
+    background: transparent !important;
+    border: 1px solid #000 !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+}
+
+html[data-theme="eink"] .theme-opt {
+    border-radius: 0 !important;
+    color: #000 !important;
+    border-right: 1px solid #000;
+    padding: 8px !important;
+}
+
+html[data-theme="eink"] .theme-opt:last-child {
+    border-right: none;
+}
+
+html[data-theme="eink"] .theme-opt.active {
+    background: #000 !important;
+    color: #fff !important;
+}
