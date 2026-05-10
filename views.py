@@ -713,3 +713,27 @@ def handler403(request,args):
     response = render(request, 'sopds_login.html', args)
     response.status_code = 403
     return response
+
+@vary_on_headers("HTTP_ACCEPT_LANGUAGE")
+@sopds_login(url='web:login')
+def ReaderView(request, book_id):
+    args = {}
+    try:
+        book = Book.objects.get(id=book_id)
+        args['book'] = book
+        # Detect format
+        fmt = book.format.lower()
+        args['format'] = fmt
+        
+        # Breadcrumbs
+        args['vailib_breadcrumbs'] = [
+            {'name': _('Books'), 'url': '/web/book/?lang=0'},
+            {'name': book.title, 'url': '/web/search/books/?searchtype=i&searchterms=%s' % book_id},
+            {'name': _('Reading'), 'url': None}
+        ]
+    except Book.DoesNotExist:
+        args['errormsg'] = _('Book not found!')
+        return render(request, 'sopds_error.html', args)
+
+    args.update(sopds_processor(request))
+    return render(request, 'sopds_reader.html', args)

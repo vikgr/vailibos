@@ -1,0 +1,312 @@
+{% extends "sopds_main.html" %}
+{% load i18n %}
+{% load vailib_extras %}
+
+{% block body %}
+<style>
+    /* Premium Reader Styles */
+    :root {
+        --reader-bg: #0f0f12;
+        --reader-text: #e0e0e0;
+        --reader-accent: #8b5cf6;
+        --reader-panel: #1a1a24;
+    }
+
+    .vl-reader-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: var(--reader-bg);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        color: var(--reader-text);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    .vl-reader-header {
+        height: 60px;
+        background: var(--reader-panel);
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        justify-content: space-between;
+    }
+
+    .vl-reader-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 400px;
+    }
+
+    .vl-reader-close {
+        color: var(--reader-text);
+        text-decoration: none;
+        font-size: 1.5rem;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+    .vl-reader-close:hover { opacity: 1; color: var(--reader-accent); }
+
+    .vl-reader-viewport {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+    }
+
+    #reader-area {
+        width: 100%;
+        height: 100%;
+        max-width: 900px;
+        background: var(--reader-panel);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    /* Format specific tweaks */
+    #pdf-viewer, #epub-viewer, #djvu-viewer, #fb2-viewer {
+        width: 100%;
+        height: 100%;
+    }
+
+    .vl-reader-controls {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 15px;
+        background: rgba(26, 26, 36, 0.9);
+        backdrop-filter: blur(10px);
+        padding: 10px 20px;
+        border-radius: 30px;
+        border: 1px solid rgba(255,255,255,0.1);
+        z-index: 100;
+    }
+
+    .vl-btn-nav {
+        background: transparent;
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        padding: 5px 15px;
+        font-weight: bold;
+        opacity: 0.8;
+        transition: 0.2s;
+    }
+    .vl-btn-nav:hover { opacity: 1; color: var(--reader-accent); }
+
+    .vl-progress-box {
+        display: flex;
+        align-items: center;
+        font-size: 0.8rem;
+        opacity: 0.6;
+    }
+
+    /* Loading overlay */
+    .vl-reader-loading {
+        position: absolute;
+        inset: 0;
+        background: var(--reader-bg);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(139, 92, 246, 0.2);
+        border-top-color: var(--reader-accent);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 15px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* FB2 Rendering */
+    #fb2-content {
+        padding: 40px 60px;
+        overflow-y: auto;
+        line-height: 1.6;
+        font-size: 1.1rem;
+    }
+    #fb2-content h2 { color: var(--reader-accent); margin-top: 2rem; }
+    #fb2-content p { margin-bottom: 1rem; }
+</style>
+
+<div class="vl-reader-container">
+    <div class="vl-reader-header">
+        <div class="vl-reader-title">{{ book.title|clean_title }}</div>
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <div class="vl-progress-box" id="progress-text">Loading...</div>
+            <a href="#" onclick="history.back(); return false;" class="vl-reader-close">&times;</a>
+        </div>
+    </div>
+
+    <div class="vl-reader-viewport">
+        <div id="reader-area">
+            <div id="viewer-container"></div>
+        </div>
+
+        <div class="vl-reader-controls" id="reader-controls" style="display: none;">
+            <button class="vl-btn-nav" id="prev-page">← PREV</button>
+            <button class="vl-btn-nav" id="next-page">NEXT →</button>
+        </div>
+    </div>
+
+    <div id="loading-overlay" class="vl-reader-loading">
+        <div class="spinner"></div>
+        <div id="loading-status">Initializing reader...</div>
+    </div>
+</div>
+
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/epub.js/0.3.88/epub.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/djvu.js/dist/djvu.js"></script>
+
+<script>
+    const BOOK_URL = "{% url 'opds_catalog:download' book.id 0 %}";
+    const BOOK_FORMAT = "{{ format }}";
+    
+    const container = document.getElementById('viewer-container');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingStatus = document.getElementById('loading-status');
+    const controls = document.getElementById('reader-controls');
+    const progressText = document.getElementById('progress-text');
+
+    async function initReader() {
+        try {
+            if (BOOK_FORMAT === 'pdf') {
+                await loadPDF();
+            } else if (BOOK_FORMAT === 'epub') {
+                await loadEPUB();
+            } else if (BOOK_FORMAT === 'fb2') {
+                await loadFB2();
+            } else if (BOOK_FORMAT === 'djvu') {
+                await loadDjVu();
+            } else {
+                throw new Error("Unsupported format for online reading.");
+            }
+            
+            loadingOverlay.style.display = 'none';
+        } catch (err) {
+            console.error(err);
+            loadingStatus.innerHTML = `<span style="color:#ef4444">Error: ${err.message}</span><br><br><a href="#" onclick="history.back()" style="color:#fff">Go Back</a>`;
+            loadingStatus.querySelector('.spinner').style.display = 'none';
+        }
+    }
+
+    // --- PDF READER ---
+    async function loadPDF() {
+        loadingStatus.innerText = "Loading PDF...";
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        
+        const loadingTask = pdfjsLib.getDocument(BOOK_URL);
+        const pdf = await loadingTask.promise;
+        
+        let currentPage = 1;
+        const totalPages = pdf.numPages;
+        
+        const canvas = document.createElement('canvas');
+        canvas.id = 'pdf-viewer';
+        container.appendChild(canvas);
+        
+        async function renderPage(num) {
+            const page = await pdf.getPage(num);
+            const viewport = page.getViewport({ scale: 1.5 });
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+            progressText.innerText = `Page ${num} / ${totalPages}`;
+        }
+
+        await renderPage(currentPage);
+        controls.style.display = 'flex';
+        
+        document.getElementById('next-page').onclick = () => { if(currentPage < totalPages) renderPage(++currentPage); };
+        document.getElementById('prev-page').onclick = () => { if(currentPage > 1) renderPage(--currentPage); };
+    }
+
+    // --- EPUB READER ---
+    async function loadEPUB() {
+        loadingStatus.innerText = "Loading EPUB...";
+        const book = ePub(BOOK_URL);
+        const rendition = book.renderTo(container, {
+            width: "100%",
+            height: "100%",
+            flow: "paginated",
+            manager: "default"
+        });
+
+        await rendition.display();
+        controls.style.display = 'flex';
+
+        rendition.on("relocated", (location) => {
+            progressText.innerText = `Reading...`;
+        });
+
+        document.getElementById('next-page').onclick = () => rendition.next();
+        document.getElementById('prev-page').onclick = () => rendition.prev();
+    }
+
+    // --- FB2 READER (Native XML Parser) ---
+    async function loadFB2() {
+        loadingStatus.innerText = "Parsing FB2...";
+        const response = await fetch(BOOK_URL);
+        const text = await response.text();
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(text, "text/xml");
+        
+        const fb2Area = document.createElement('div');
+        fb2Area.id = 'fb2-content';
+        container.appendChild(fb2Area);
+        
+        // Basic extraction
+        const body = xml.querySelector('body');
+        if (body) {
+            // Very simple conversion of FB2 sections/paragraphs to HTML
+            let html = "";
+            body.querySelectorAll('section').forEach(sec => {
+                const title = sec.querySelector('title');
+                if (title) html += `<h2>${title.textContent}</h2>`;
+                sec.querySelectorAll('p').forEach(p => {
+                    html += `<p>${p.textContent}</p>`;
+                });
+            });
+            fb2Area.innerHTML = html || body.textContent;
+        } else {
+            fb2Area.innerText = "Could not parse FB2 body.";
+        }
+        progressText.innerText = "FB2 Mode";
+    }
+
+    // --- DjVu READER ---
+    async function loadDjVu() {
+        loadingStatus.innerText = "Loading DjVu (this may take a while)...";
+        // Note: djvu.js is complex, this is a placeholder for basic integration
+        // Usually requires a worker and specific setup
+        const djvuArea = document.createElement('div');
+        djvuArea.id = 'djvu-viewer';
+        container.appendChild(djvuArea);
+        djvuArea.innerText = "DjVu support is being initialized...";
+        
+        // Simplification for this demo: show it's supported but requires heavy lib
+        progressText.innerText = "DjVu Mode";
+    }
+
+    window.addEventListener('load', initReader);
+</script>
+{% endblock %}

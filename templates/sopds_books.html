@@ -84,6 +84,11 @@
             {% endif %}
             <div class="vl-detail-actions-label">Download:</div>
             <div class="vl-detail-actions">
+                {% if b.format|lower in 'pdf,epub,fb2,djvu' %}
+                <a href="{% url 'web:read' b.id %}" class="vl-download-btn" style="background: var(--reader-accent, #8b5cf6); border-color: var(--reader-accent, #8b5cf6); color: #fff;">
+                    📖 READ ONLINE
+                </a>
+                {% endif %}
                 {% if all_formats %}
                     {% for fmt in all_formats %}
                     <a href="{% url 'opds_catalog:download' fmt.id 0 %}" class="vl-download-btn {{ fmt.format|format_badge_class }}">
@@ -142,6 +147,11 @@
         {% empty %}<span class="vl-card-unknown" data-trans="un_auth">Unknown Author</span>
         {% endfor %}
       </p>
+      {% if b.format|lower in 'pdf,epub,fb2,djvu' %}
+      <div class="vl-card-quick-actions" style="margin-top: 10px;">
+          <a href="{% url 'web:read' b.id %}" class="vl-mini-btn" style="font-size: 0.7rem; background: rgba(139, 92, 246, 0.2); color: #c084fc; padding: 4px 8px; border-radius: 4px; text-decoration: none; border: 1px solid rgba(139, 92, 246, 0.3);">📖 READ</a>
+      </div>
+      {% endif %}
     </div>
   </div>
   {% empty %}
