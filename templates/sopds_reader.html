@@ -4,12 +4,23 @@
 
 {% block body %}
 <style>
-    /* Premium Reader Styles */
+    /* Premium Reader Styles with dynamic CSS Variables */
     :root {
-        --reader-bg: #0f0f12;
-        --reader-text: #e0e0e0;
+        --reader-bg: #09090b;
+        --reader-text: #e4e4e7;
+        --reader-panel: #18181b;
         --reader-accent: #8b5cf6;
-        --reader-panel: #1a1a24;
+        --reader-border: rgba(255, 255, 255, 0.08);
+        --reader-font-size: 18px;
+        --reader-font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    /* OpenDyslexic web font integration */
+    @font-face {
+        font-family: 'OpenDyslexic';
+        src: url('https://fastly.jsdelivr.net/npm/opendyslexic@1.0.3/OpenDyslexic-Regular.otf') format('opentype');
+        font-weight: normal;
+        font-style: normal;
     }
 
     .vl-reader-container {
@@ -23,7 +34,8 @@
         display: flex;
         flex-direction: column;
         color: var(--reader-text);
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        font-family: var(--reader-font-family);
+        transition: background 0.3s ease, color 0.3s ease;
     }
 
     .vl-reader-header {
@@ -32,8 +44,9 @@
         display: flex;
         align-items: center;
         padding: 0 20px;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
+        border-bottom: 1px solid var(--reader-border);
         justify-content: space-between;
+        transition: background 0.3s ease, border-bottom 0.3s ease;
     }
 
     .vl-reader-title {
@@ -45,12 +58,32 @@
         max-width: 400px;
     }
 
+    .vl-btn-icon {
+        background: transparent;
+        border: none;
+        color: var(--reader-text);
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s, transform 0.2s, color 0.2s;
+        opacity: 0.8;
+    }
+    .vl-btn-icon:hover {
+        background: rgba(255, 255, 255, 0.08);
+        opacity: 1;
+        transform: rotate(45deg);
+        color: var(--reader-accent);
+    }
+
     .vl-reader-close {
         color: var(--reader-text);
         text-decoration: none;
         font-size: 1.5rem;
         opacity: 0.7;
-        transition: opacity 0.2s;
+        transition: opacity 0.2s, color 0.2s;
     }
     .vl-reader-close:hover { opacity: 1; color: var(--reader-accent); }
 
@@ -67,13 +100,28 @@
         height: 100%;
         max-width: 900px;
         background: var(--reader-panel);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        transition: background 0.3s ease;
     }
 
     /* Format specific tweaks */
     #pdf-viewer, #epub-viewer, #djvu-viewer, #fb2-viewer {
         width: 100%;
         height: 100%;
+    }
+
+    /* PDF Canvas filters based on container data theme attribute */
+    .vl-reader-container[data-theme="dark"] canvas#pdf-viewer {
+        filter: invert(0.93) hue-rotate(180deg) contrast(1.15) brightness(0.95);
+    }
+    .vl-reader-container[data-theme="sepia"] canvas#pdf-viewer {
+        filter: sepia(0.65) contrast(0.9) brightness(0.98);
+    }
+    .vl-reader-container[data-theme="eink"] canvas#pdf-viewer {
+        filter: grayscale(1) contrast(1.2);
+    }
+    .vl-reader-container[data-theme="light"] canvas#pdf-viewer {
+        filter: none;
     }
 
     .vl-reader-controls {
@@ -83,18 +131,19 @@
         transform: translateX(-50%);
         display: flex;
         gap: 15px;
-        background: rgba(26, 26, 36, 0.9);
+        background: var(--reader-panel);
+        border: 1px solid var(--reader-border);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
         backdrop-filter: blur(10px);
         padding: 10px 20px;
         border-radius: 30px;
-        border: 1px solid rgba(255,255,255,0.1);
         z-index: 100;
     }
 
     .vl-btn-nav {
         background: transparent;
         border: none;
-        color: #fff;
+        color: var(--reader-text);
         cursor: pointer;
         padding: 5px 15px;
         font-weight: bold;
@@ -138,10 +187,212 @@
         padding: 40px 60px;
         overflow-y: auto;
         line-height: 1.6;
-        font-size: 1.1rem;
+        font-size: var(--reader-font-size);
+        font-family: var(--reader-font-family);
+        background: var(--reader-panel);
+        color: var(--reader-text);
+        transition: background 0.3s, color 0.3s, font-size 0.2s;
     }
     #fb2-content h2 { color: var(--reader-accent); margin-top: 2rem; }
     #fb2-content p { margin-bottom: 1rem; }
+
+    /* Settings Drawer Styling */
+    .vl-drawer-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
+        z-index: 10000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .vl-drawer-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .vl-settings-drawer {
+        position: fixed;
+        z-index: 10001;
+        background: var(--reader-panel);
+        border: 1px solid var(--reader-border);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        padding: 24px;
+        color: var(--reader-text);
+    }
+
+    /* Desktop View (Sidebar right) */
+    @media (min-width: 769px) {
+        .vl-settings-drawer {
+            top: 0;
+            right: 0;
+            width: 360px;
+            height: 100vh;
+            transform: translateX(100%);
+            border-left: 1px solid var(--reader-border);
+        }
+        .vl-settings-drawer.active {
+            transform: translateX(0);
+        }
+    }
+
+    /* Mobile View (Bottom sheet) */
+    @media (max-width: 768px) {
+        .vl-settings-drawer {
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100vw;
+            max-height: 80vh;
+            transform: translateY(100%);
+            border-top: 1px solid var(--reader-border);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            padding-bottom: 30px;
+        }
+        .vl-settings-drawer.active {
+            transform: translateY(0);
+        }
+    }
+
+    .vl-drawer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        border-bottom: 1px solid var(--reader-border);
+        padding-bottom: 12px;
+    }
+    .vl-drawer-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--reader-text);
+    }
+    .vl-drawer-close-btn {
+        background: transparent;
+        border: none;
+        color: var(--reader-text);
+        font-size: 1.8rem;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+    }
+    .vl-drawer-close-btn:hover {
+        opacity: 1;
+        color: var(--reader-accent);
+    }
+
+    .vl-settings-section {
+        margin-bottom: 24px;
+    }
+    .vl-settings-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        opacity: 0.6;
+        margin-bottom: 12px;
+        display: block;
+        font-weight: 600;
+    }
+
+    .vl-theme-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
+    .vl-theme-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: rgba(255,255,255,0.03);
+        border: 2px solid transparent;
+        border-radius: 12px;
+        padding: 10px 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: var(--reader-text);
+    }
+    .vl-theme-btn:hover {
+        background: rgba(255,255,255,0.06);
+    }
+    .vl-theme-btn.active {
+        border-color: var(--reader-accent);
+        background: rgba(139, 92, 246, 0.1);
+    }
+    .vl-theme-dot {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        margin-bottom: 6px;
+        border: 1px solid rgba(0,0,0,0.15);
+    }
+    .vl-theme-btn span {
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .dot-dark { background: #09090b; }
+    .dot-light { background: #fdfdfd; }
+    .dot-sepia { background: #fbf0d9; }
+    .dot-eink { background: #ffffff; border: 1px solid #000 !important; }
+
+    .vl-size-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--reader-border);
+        border-radius: 12px;
+        padding: 8px 16px;
+    }
+    .vl-size-btn {
+        background: transparent;
+        border: none;
+        color: var(--reader-text);
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: 0.2s;
+    }
+    .vl-size-btn:hover {
+        background: rgba(255,255,255,0.08);
+        color: var(--reader-accent);
+    }
+    .vl-size-display {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .vl-font-select {
+        width: 100%;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--reader-border);
+        border-radius: 12px;
+        color: var(--reader-text);
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        outline: none;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .vl-font-select:focus {
+        border-color: var(--reader-accent);
+    }
+    .vl-font-select option {
+        background: var(--reader-panel);
+        color: var(--reader-text);
+    }
 </style>
 
 <div class="vl-reader-container">
@@ -149,6 +400,9 @@
         <div class="vl-reader-title">{{ book.title|clean_title }}</div>
         <div style="display: flex; gap: 20px; align-items: center;">
             <div class="vl-progress-box" id="progress-text">Loading...</div>
+            <button id="btn-settings" class="vl-btn-icon" title="Reader Settings">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </button>
             <a href="#" onclick="history.back(); return false;" class="vl-reader-close">&times;</a>
         </div>
     </div>
@@ -170,6 +424,59 @@
     </div>
 </div>
 
+<!-- Settings Drawer & Overlay Mask -->
+<div id="drawer-overlay" class="vl-drawer-overlay"></div>
+<div id="settings-drawer" class="vl-settings-drawer">
+    <div class="vl-drawer-header">
+        <h3>Reader Settings</h3>
+        <button id="close-settings" class="vl-drawer-close-btn">&times;</button>
+    </div>
+    
+    <!-- Theme Selection -->
+    <div class="vl-settings-section">
+        <span class="vl-settings-label">Background Style</span>
+        <div class="vl-theme-grid">
+            <button class="vl-theme-btn" data-theme-id="dark">
+                <div class="vl-theme-dot dot-dark"></div>
+                <span>OLED</span>
+            </button>
+            <button class="vl-theme-btn" data-theme-id="light">
+                <div class="vl-theme-dot dot-light"></div>
+                <span>Light</span>
+            </button>
+            <button class="vl-theme-btn" data-theme-id="sepia">
+                <div class="vl-theme-dot dot-sepia"></div>
+                <span>Sepia</span>
+            </button>
+            <button class="vl-theme-btn" data-theme-id="eink">
+                <div class="vl-theme-dot dot-eink"></div>
+                <span>E-Ink</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Font Size Selection -->
+    <div class="vl-settings-section">
+        <span class="vl-settings-label">Font Size</span>
+        <div class="vl-size-controls">
+            <button id="size-decrease" class="vl-size-btn">A-</button>
+            <span id="size-val" class="vl-size-display">18px</span>
+            <button id="size-increase" class="vl-size-btn">A+</button>
+        </div>
+    </div>
+
+    <!-- Font Family Selection -->
+    <div class="vl-settings-section">
+        <span class="vl-settings-label">Font Family</span>
+        <select id="font-family-select" class="vl-font-select">
+            <option value="sans">Sans-Serif (System)</option>
+            <option value="serif">Georgia (Serif)</option>
+            <option value="mono">Fira Code (Monospace)</option>
+            <option value="dyslexic">OpenDyslexic (Accessible)</option>
+        </select>
+    </div>
+</div>
+
 <!-- Libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/epub.js/0.3.88/epub.min.js"></script>
@@ -184,6 +491,150 @@
     const loadingStatus = document.getElementById('loading-status');
     const controls = document.getElementById('reader-controls');
     const progressText = document.getElementById('progress-text');
+
+    // --- Customization Settings Controller ---
+    const SETTINGS = {
+        theme: localStorage.getItem('vailib_reader_theme') || 'dark',
+        fontSize: parseInt(localStorage.getItem('vailib_reader_fontsize')) || 18,
+        fontFamily: localStorage.getItem('vailib_reader_fontfamily') || 'sans'
+    };
+
+    const THEMES = {
+        dark: { bg: '#09090b', text: '#e4e4e7', panel: '#18181b', border: 'rgba(255,255,255,0.08)' },
+        light: { bg: '#fdfdfd', text: '#18181b', panel: '#f4f4f5', border: 'rgba(0,0,0,0.08)' },
+        sepia: { bg: '#fbf0d9', text: '#433422', panel: '#f4e6c3', border: 'rgba(67,52,34,0.1)' },
+        eink: { bg: '#ffffff', text: '#000000', panel: '#e5e5e5', border: 'rgba(0,0,0,0.2)' }
+    };
+
+    const FONTS = {
+        sans: "'Inter', system-ui, -apple-system, sans-serif",
+        serif: "Georgia, serif",
+        mono: "monospace",
+        dyslexic: "'OpenDyslexic', sans-serif"
+    };
+
+    function applyTheme(themeName) {
+        if (!THEMES[themeName]) themeName = 'dark';
+        SETTINGS.theme = themeName;
+        localStorage.setItem('vailib_reader_theme', themeName);
+
+        const activeTheme = THEMES[themeName];
+        const root = document.documentElement;
+        root.style.setProperty('--reader-bg', activeTheme.bg);
+        root.style.setProperty('--reader-text', activeTheme.text);
+        root.style.setProperty('--reader-panel', activeTheme.panel);
+        root.style.setProperty('--reader-border', activeTheme.border);
+        
+        const readerContainer = document.querySelector('.vl-reader-container');
+        if (readerContainer) {
+            readerContainer.setAttribute('data-theme', themeName);
+        }
+
+        document.querySelectorAll('.vl-theme-btn').forEach(btn => {
+            if (btn.getAttribute('data-theme-id') === themeName) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        updateEpubStyles();
+    }
+
+    function applyFontSize(size) {
+        if (size < 12) size = 12;
+        if (size > 30) size = 30;
+        SETTINGS.fontSize = size;
+        localStorage.setItem('vailib_reader_fontsize', size);
+        
+        const root = document.documentElement;
+        root.style.setProperty('--reader-font-size', `${size}px`);
+        document.getElementById('size-val').innerText = `${size}px`;
+
+        updateEpubStyles();
+    }
+
+    function applyFontFamily(fontName) {
+        if (!FONTS[fontName]) fontName = 'sans';
+        SETTINGS.fontFamily = fontName;
+        localStorage.setItem('vailib_reader_fontfamily', fontName);
+
+        const root = document.documentElement;
+        root.style.setProperty('--reader-font-family', FONTS[fontName]);
+        document.getElementById('font-family-select').value = fontName;
+
+        updateEpubStyles();
+    }
+
+    function updateEpubStyles() {
+        if (window.rendition) {
+            const fontStack = FONTS[SETTINGS.fontFamily];
+            const activeTheme = THEMES[SETTINGS.theme];
+            
+            window.rendition.themes.register("current-settings", {
+                body: {
+                    "background-color": `${activeTheme.bg} !important`,
+                    "color": `${activeTheme.text} !important`,
+                    "font-family": `${fontStack} !important`,
+                    "font-size": `${SETTINGS.fontSize}px !important`,
+                    "line-height": "1.6 !important",
+                    "padding": "0 20px !important"
+                },
+                p: {
+                    "font-family": `${fontStack} !important`,
+                    "font-size": `${SETTINGS.fontSize}px !important`
+                },
+                h1: { "color": `${activeTheme.text} !important` },
+                h2: { "color": `${activeTheme.text} !important` },
+                h3: { "color": `${activeTheme.text} !important` }
+            });
+            window.rendition.themes.select("current-settings");
+        }
+    }
+
+    function initSettingsDrawer() {
+        const drawer = document.getElementById('settings-drawer');
+        const overlay = document.getElementById('drawer-overlay');
+        const btnSettings = document.getElementById('btn-settings');
+        const btnClose = document.getElementById('close-settings');
+
+        function toggleDrawer() {
+            drawer.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        btnSettings.onclick = toggleDrawer;
+        btnClose.onclick = toggleDrawer;
+        overlay.onclick = toggleDrawer;
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && drawer.classList.contains('active')) {
+                toggleDrawer();
+            }
+        });
+
+        document.querySelectorAll('.vl-theme-btn').forEach(btn => {
+            btn.onclick = () => {
+                const themeId = btn.getAttribute('data-theme-id');
+                applyTheme(themeId);
+            };
+        });
+
+        document.getElementById('size-decrease').onclick = () => {
+            applyFontSize(SETTINGS.fontSize - 1);
+        };
+        document.getElementById('size-increase').onclick = () => {
+            applyFontSize(SETTINGS.fontSize + 1);
+        };
+
+        document.getElementById('font-family-select').onchange = (e) => {
+            applyFontFamily(e.target.value);
+        };
+
+        applyTheme(SETTINGS.theme);
+        applyFontSize(SETTINGS.fontSize);
+        applyFontFamily(SETTINGS.fontFamily);
+    }
 
     async function initReader() {
         try {
@@ -251,6 +702,12 @@
             manager: "default"
         });
 
+        window.rendition = rendition;
+        
+        rendition.on("rendered", () => {
+            updateEpubStyles();
+        });
+
         await rendition.display();
         controls.style.display = 'flex';
 
@@ -274,10 +731,8 @@
         fb2Area.id = 'fb2-content';
         container.appendChild(fb2Area);
         
-        // Basic extraction
         const body = xml.querySelector('body');
         if (body) {
-            // Very simple conversion of FB2 sections/paragraphs to HTML
             let html = "";
             body.querySelectorAll('section').forEach(sec => {
                 const title = sec.querySelector('title');
@@ -296,17 +751,16 @@
     // --- DjVu READER ---
     async function loadDjVu() {
         loadingStatus.innerText = "Loading DjVu (this may take a while)...";
-        // Note: djvu.js is complex, this is a placeholder for basic integration
-        // Usually requires a worker and specific setup
         const djvuArea = document.createElement('div');
         djvuArea.id = 'djvu-viewer';
         container.appendChild(djvuArea);
         djvuArea.innerText = "DjVu support is being initialized...";
-        
-        // Simplification for this demo: show it's supported but requires heavy lib
         progressText.innerText = "DjVu Mode";
     }
 
-    window.addEventListener('load', initReader);
+    window.addEventListener('load', () => {
+        initSettingsDrawer();
+        initReader();
+    });
 </script>
 {% endblock %}
