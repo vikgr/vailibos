@@ -35,7 +35,7 @@ COPY --from=sopds_base /start.sh /start.sh
 # Install Python package dependencies matching base SOPDS
 RUN pip install --no-cache-dir \
     Django==2.1.15 \
-    "psycopg2-binary>=2.9.0" \
+    psycopg2-binary==2.8.6 \
     python-telegram-bot==13.5 \
     APScheduler==3.6.3 \
     django-picklefield==3.0 \
