@@ -30,6 +30,8 @@ services:
             DB_PASS: "${DB_PASSWORD:-changeme}"
             DB_PASSWORD: "${DB_PASSWORD:-changeme}"
             DB_PORT: "5432"
+            EXT_DB: "True"
+            MIGRATE: "True"
             SOPDS_ROOT_LIB: /library
             SOPDS_TMBOT_ENABLE: "False"
             TIME_ZONE: ${TIME_ZONE:-Europe/Madrid}

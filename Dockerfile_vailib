@@ -1,21 +1,46 @@
-FROM zveronline/sopds:latest
+# Stage 1: Extract SOPDS codebase and entrypoint from the base Alpine image
+FROM zveronline/sopds:latest AS sopds_base
 
-# ============================================================
-# VAILIB NATIVE BUILD (Zero-Bind Architecture - Unified Stack)
-# ============================================================
+# Stage 2: Create stable, compatible Debian-based runtime
+FROM python:3.10-slim
 
-# Install system dependencies for converter and bot (using edge repos for Calibre)
-RUN apk update && \
-    apk add --no-cache \
+# Avoid interactive prompts during apt install
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies (Calibre, DjVuLibre, Postgres client, expect)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
         calibre \
-        djvulibre \
+        djvulibre-bin \
         bash \
         psmisc \
         postgresql-client \
         curl \
-        --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing \
-        --repository=https://dl-cdn.alpinelinux.org/alpine/edge/main \
-        --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community
+        expect \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Create postgres user and group to prevent startup permissions issues in start.sh
+RUN groupadd -r postgres && useradd -r -g postgres postgres
+
+# Create state directory for SOPDS setup check
+RUN mkdir -p /var/lib/pgsql && chown -R postgres:postgres /var/lib/pgsql
+
+# Copy the entire /sopds directory and start script from base image
+COPY --from=sopds_base /sopds /sopds
+COPY --from=sopds_base /start.sh /start.sh
+
+# Install Python package dependencies matching base SOPDS
+RUN pip install --no-cache-dir \
+    Django==2.1.15 \
+    psycopg2-binary==2.8.6 \
+    python-telegram-bot==13.5 \
+    APScheduler==3.6.3 \
+    django-picklefield==3.0 \
+    lxml==5.2.2 \
+    pillow==10.3.0 \
+    pytz==2024.1 \
+    tzlocal==2.1 \
+    tornado==6.4
 
 # Apply backend logic overrides
 COPY models.py /sopds/opds_catalog/models.py
