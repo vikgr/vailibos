@@ -178,11 +178,7 @@
             if (img.complete) {
                 process();
             } else {
-                img.onload = process;
-            }
-        }
-
-        const vailibDict = {
+         const vailibDict = {
             'ru': {
                 cat: 'Каталоги', book: 'Книги', auth: 'Авторы', gen: 'Жанры', ser: 'Серии', set: 'Настройки',
                 login: 'Войти', logout: '(Выйти)', new_e: 'Новинки', new_c: 'Новые Поступления',
@@ -192,7 +188,8 @@
                 stat: 'СТАТИСТИКА', cat_con: 'Этот каталог содержит:', bk_c: 'книг,', aut_c: 'авторов,', gen_c: 'жанров и', t_tot: 'Всего:', t_aut: 'авторов.', t_bk: 'книг.', t_ser: 'серий.', l_scan: 'Последнее сканирование:',
                 read: 'Читать', prev: 'Назад', next: 'Вперед', bk_l: 'Книг:', home: 'НАЧАЛО', s_p: 'Поиск...', s_b: 'Найти',
                 root: 'ROOT', search: 'Поиск', select: 'Выбор', bshelf: 'Книжная полка', show_all: 'ПОКАЗАТЬ ВСЕ', doubles: 'Дубликаты книги',
-                appearance: 'ОФОРМЛЕНИЕ', premium: 'ЦВЕТНАЯ', eink: 'E-INK'
+                appearance: 'ОФОРМЛЕНИЕ', premium: 'ЦВЕТНАЯ', eink: 'E-INK', t_ser: 'серий.',
+                view_book: 'Открыть книгу', browse_lib: 'Обзор библиотеки', browse_cat: 'Обзор каталогов', cover_alt: 'Обложка'
             },
             'en': {
                 cat: 'Catalogs', book: 'Books', auth: 'Authors', gen: 'Genres', ser: 'Series', set: 'Settings',
@@ -203,7 +200,8 @@
                 stat: 'STATISTICS', cat_con: 'This catalog contains:', bk_c: 'books,', aut_c: 'authors,', gen_c: 'genres and', t_tot: 'Total:', t_aut: 'authors.', t_bk: 'books.', t_ser: 'series.', l_scan: 'Last collection scan:',
                 read: 'Read', prev: 'Previous', next: 'Next', bk_l: 'Books:', home: 'HOME', s_p: 'Search...', s_b: 'Find',
                 root: 'ROOT', search: 'Search', select: 'Select', bshelf: 'Bookshelf', show_all: 'SHOW ALL', doubles: 'Doubles for book',
-                appearance: 'THEME', premium: 'COLOR THEME', eink: 'E-INK'
+                appearance: 'THEME', premium: 'COLOR THEME', eink: 'E-INK', t_ser: 'series.',
+                view_book: 'View Book', browse_lib: 'Browse Library', browse_cat: 'Browse Catalogs', cover_alt: 'Cover'
             },
             'de': {
                 cat: 'Katalog', book: 'Bücher', auth: 'Autoren', gen: 'Genres', ser: 'Serien', set: 'Einstellungen',
@@ -213,7 +211,9 @@
                 welc_btn: 'Bibliothek betreten →', s_book: 'Nach Titel suchen', s_auth: 'Nach Autor suchen', s_ser: 'Nach Serie suchen', s_gen: 'Nach Genre suchen', eink_theme: '🖤 E-INK THEME', color_theme: 'FARBDESIGN',
                 stat: 'STATISTIK', cat_con: 'Dieser Katalog enthält:', bk_c: 'Bücher,', aut_c: 'Autoren,', gen_c: 'Genres und', t_tot: 'Gesamt:', t_aut: 'Autoren.', t_bk: 'Bücher.', t_ser: 'Serien.', l_scan: 'Letzter Scan:',
                 read: 'Lesen', prev: 'Zurück', next: 'Weiter', bk_l: 'Bücher:', home: 'START', s_p: 'Suchen...', s_b: 'Finden',
-                root: 'ROOT', search: 'Suchen', select: 'Auswählen', bshelf: 'Regal', show_all: 'ALLE ANZEIGEN', doubles: 'Dublikate für Buch'
+                root: 'ROOT', search: 'Suchen', select: 'Auswählen', bshelf: 'Regal', show_all: 'ALLE ANZEIGEN', doubles: 'Dublikate für Buch',
+                appearance: 'AUSSEHEN', premium: 'FARBDESIGN', eink: 'E-INK', t_ser: 'Serien.',
+                view_book: 'Buch anzeigen', browse_lib: 'Bibliothek durchsuchen', browse_cat: 'Kataloge durchsuchen', cover_alt: 'Abdeckung'
             },
             'el': {
                 cat: 'Κατάλογοι', book: 'Βιβλία', auth: 'Συγγραφείς', gen: 'Είδη', ser: 'Σειρές', set: 'Ρυθμίσεις',
@@ -223,7 +223,9 @@
                 welc_btn: 'Είσοδος στη βιβλιοθήκη →', s_book: 'Αναζήτηση (τίτλος)', s_auth: 'Αναζήτηση (συγγραφέας)', s_ser: 'Αναζήτηση (σειρά)', s_gen: 'Αναζήτηση (είδος)', eink_theme: '🖤 E-INK THEME', color_theme: 'ΧΡΩΜΑΤΙΚΟ ΘΕΜΑ',
                 stat: 'ΣΤΑΤΙΣΤΙΚΑ', cat_con: 'Αυτός ο κατάλογος περιέχει:', bk_c: 'βιβλία,', aut_c: 'συγγραφείς,', gen_c: 'είδη και', t_tot: 'Σύνολο:', t_aut: 'συγγραφείς.', t_bk: 'βιβλία.', t_ser: 'σειρές.', l_scan: 'Τελευταία σάρωση:',
                 read: 'Διαβάστε', prev: 'Προηγούμενο', next: 'Επόμενο', bk_l: 'Βιβλία:', home: 'ΑΡΧΙΚΗ', s_p: 'Αναζήτηση...', s_b: 'Εύρεση',
-                root: 'ROOT', search: 'Αναζήτηση', select: 'Επιλογή', bshelf: 'Βιβλιοθήκη', show_all: 'ΠΡΟΒΟΛΗ ΟΛΩΝ', doubles: 'Διπλότυπα'
+                root: 'ROOT', search: 'Αναζήτηση', select: 'Επιλογή', bshelf: 'Βιβλιοθήκη', show_all: 'ΠΡΟΒΟΛΗ ΟΛΩΝ', doubles: 'Διπλότυπα',
+                appearance: 'ΕΜΦΑΝΙΣΗ', premium: 'ΧΡΩΜΑΤΙΚΟ ΘΕΜΑ', eink: 'ΘΕΜΑ E-INK', t_ser: 'σειρές.',
+                view_book: 'Δείτε το βιβλίο', browse_lib: 'Περιήγηση στη βιβλιοθήκη', browse_cat: 'Περιήγηση στους καταλόγους', cover_alt: 'Εξώφυλλο'
             },
             'es': {
                 cat: 'Catálogos', book: 'Libros', auth: 'Autores', gen: 'Géneros', ser: 'Series', set: 'Ajustes',
@@ -233,7 +235,9 @@
                 welc_btn: 'Entrar a la biblioteca →', s_book: 'Buscar título', s_auth: 'Buscar autor', s_ser: 'Buscar serie', s_gen: 'Buscar género', eink_theme: '🖤 E-INK THEME', color_theme: 'TEMA DE COLOR',
                 stat: 'ESTADÍSTICAS', cat_con: 'Este catálogo contiene:', bk_c: 'libros,', aut_c: 'autores,', gen_c: 'géneros y', t_tot: 'Total:', t_aut: 'autores.', t_bk: 'libros.', t_ser: 'series.', l_scan: 'Último escaneo:',
                 read: 'Leer', prev: 'Anterior', next: 'Siguiente', bk_l: 'Libros:', home: 'INICIO', s_p: 'Buscar...', s_b: 'Buscar',
-                root: 'ROOT', search: 'Buscar', select: 'Seleccionar', bshelf: 'Estantería', show_all: 'MOSTRAR TODO', doubles: 'Dobles'
+                root: 'ROOT', search: 'Buscar', select: 'Seleccionar', bshelf: 'Estantería', show_all: 'MOSTRAR TODO', doubles: 'Dobles',
+                appearance: 'APARIENCIA', premium: 'TEMA DE COLOR', eink: 'TEMA E-INK', t_ser: 'series.',
+                view_book: 'Ver libro', browse_lib: 'Explorar biblioteca', browse_cat: 'Explorar catálogos', cover_alt: 'Portada'
             },
             'fr': {
                 cat: 'Catalogues', book: 'Livres', auth: 'Auteurs', gen: 'Genres', ser: 'Séries', set: 'Paramètres',
@@ -243,7 +247,9 @@
                 welc_btn: 'Entrer dans la bibliothèque →', s_book: 'Rechercher un titre', s_auth: 'Rechercher un auteur', s_ser: 'Rechercher une série', s_gen: 'Rechercher un genre', eink_theme: '🖤 E-INK THEME', color_theme: 'THÈME COULEUR',
                 stat: 'STATISTIQUES', cat_con: 'Ce catalogue contient:', bk_c: 'livres,', aut_c: 'auteurs,', gen_c: 'genres et', t_tot: 'Total:', t_aut: 'auteurs.', t_bk: 'livres.', t_ser: 'séries.', l_scan: 'Dernier scan:',
                 read: 'Lire', prev: 'Précédent', next: 'Suivant', bk_l: 'Livres:', home: 'ACCUEIL', s_p: 'Rechercher...', s_b: 'Trouver',
-                root: 'ROOT', search: 'Recherche', select: 'Sélectionner', bshelf: 'Étagère', show_all: 'TOUT AFFICHER', doubles: 'Doublons'
+                root: 'ROOT', search: 'Recherche', select: 'Sélectionner', bshelf: 'Étagère', show_all: 'TOUT AFFICHER', doubles: 'Doublons',
+                appearance: 'APPARENCE', premium: 'THÈME COULEUR', eink: 'THÈME E-INK', t_ser: 'séries.',
+                view_book: 'Voir le livre', browse_lib: 'Parcourir la bibliothèque', browse_cat: 'Parcourir les catalogues', cover_alt: 'Couverture'
             },
             'ar': {
                 cat: 'كتالوجات', book: 'كتب', auth: 'مؤلفون', gen: 'أنواع', ser: 'سلاسل', set: 'إعدادات',
@@ -253,17 +259,21 @@
                 welc_btn: 'دخول المكتبة →', s_book: 'البحث بالعنوان', s_auth: 'البحث بالمؤلف', s_ser: 'البحث بالسلسلة', s_gen: 'البحث بالنوع', eink_theme: '🖤 E-INK THEME', color_theme: 'السمة الملونة',
                 stat: 'إحصائيات', cat_con: 'يحتوي هذا الكتالوج على:', bk_c: 'كتب,', aut_c: 'مؤلفين,', gen_c: 'أنواع و', t_tot: 'المجموع:', t_aut: 'مؤلفين.', t_bk: 'كتب.', t_ser: 'سلاسل.', l_scan: 'آخر مسح:',
                 read: 'اقرأ', prev: 'السابق', next: 'التالي', bk_l: 'كتب:', home: 'الرئيسية', s_p: 'بحث...', s_b: 'بحث',
-                root: 'ROOT', search: 'بحث', select: 'تحديد', bshelf: 'رف الكتب', show_all: 'عرض الكل', doubles: 'النسخ المكررة'
+                root: 'ROOT', search: 'بحث', select: 'تحديد', bshelf: 'رف الكتب', show_all: 'عرض الكل', doubles: 'النسخ المكررة',
+                appearance: 'المظهر', premium: 'السمة الملونة', eink: 'سمة الحبر الإلكتروني', t_ser: 'سلاسل.',
+                view_book: 'عرض الكتاب', browse_lib: 'تصفح المكتبة', browse_cat: 'تصفح الكتالوجات', cover_alt: 'غلاف'
             },
             'hi': {
                 cat: 'कैटलॉग', book: 'किताबें', auth: 'लेखक', gen: 'शैलियाँ', ser: 'श्रृंखला', set: 'सेटिंग्स',
                 login: 'लॉगिन', logout: '(लॉगआउट)', new_e: 'हाल के जोड़', new_c: 'नए आगमन',
-                un_auth: 'अज्ञात लेखक', empty: 'लाइब्रेरी खाली है', scan: 'डायरेक्टरी स्कैन करें.',
+                un_auth: 'अज्ञान लेखक', empty: 'लाइब्रेरी खाली है', scan: 'डायरेक्टरी स्कैन करें.',
                 welc: 'VAILIB में आपका स्वागत है', welc_sub: 'आपकी डिजिटल लाइब्रेरी। लॉगिन करें।',
                 welc_btn: 'लाइब्रेरी में प्रवेश करें →', s_book: 'शीर्षक से खोजें', s_auth: 'लेखक से खोजें', s_ser: 'श्रृंखला से खोजें', s_gen: 'शैली से खोजें', eink_theme: '🖤 E-INK THEME', color_theme: 'रंगीन थीम',
                 stat: 'आँकड़े', cat_con: 'इस कैटलॉग में है:', bk_c: 'किताबें,', aut_c: 'लेखक,', gen_c: 'शैलियाँ और', t_tot: 'कुल:', t_aut: 'लेखक.', t_bk: 'किताबें.', t_ser: 'श्रृंखला.', l_scan: 'अंतिम स्कैन:',
                 read: 'पढ़ें', prev: 'पिछला', next: 'अगला', bk_l: 'किताबें:', home: 'शुरू', s_p: 'खोजें...', s_b: 'खोजें',
-                root: 'ROOT', search: 'खोजें', select: 'चुनें', bshelf: 'बुकशेल्फ़', show_all: 'सभी दिखाएं', doubles: 'दोहरी किताबें'
+                root: 'ROOT', search: 'खोजें', select: 'चुनें', bshelf: 'बुकशेल्फ़', show_all: 'सभी दिखाएं', doubles: 'दोहरी किताबें',
+                appearance: 'दिखावट', premium: 'रंगीन थीम', eink: 'ई-इंक थीम', t_ser: 'श्रृंखला.',
+                view_book: 'पुस्तक देखें', browse_lib: 'लाइब्रेरी ब्राउज़ करें', browse_cat: 'कैटलॉग ब्राउज़ करें', cover_alt: 'कवर'
             },
             'pt': {
                 cat: 'Catálogos', book: 'Livros', auth: 'Autores', gen: 'Gêneros', ser: 'Séries', set: 'Configurações',
@@ -273,7 +283,9 @@
                 welc_btn: 'Entrar na biblioteca →', s_book: 'Pesquisar título', s_auth: 'Pesquisar autor', s_ser: 'Pesquisar série', s_gen: 'Pesquisar gênero', eink_theme: '🖤 E-INK THEME', color_theme: 'TEMA DE COR',
                 stat: 'ESTATÍSTICAS', cat_con: 'Este catálogo contém:', bk_c: 'livros,', aut_c: 'autores,', gen_c: 'gêneros e', t_tot: 'Total:', t_aut: 'autores.', t_bk: 'livros.', t_ser: 'séries.', l_scan: 'Último scan:',
                 read: 'Ler', prev: 'Anterior', next: 'Próximo', bk_l: 'Livros:', home: 'INÍCIO', s_p: 'Pesquisar...', s_b: 'Buscar',
-                root: 'ROOT', search: 'Pesquisar', select: 'Selecionar', bshelf: 'Estante', show_all: 'MOSTRAR TUDO', doubles: 'Dobras'
+                root: 'ROOT', search: 'Pesquisar', select: 'Selecionar', bshelf: 'Estante', show_all: 'MOSTRAR TUDO', doubles: 'Dobras',
+                appearance: 'APARÊNCIA', premium: 'TEMA DE COR', eink: 'TEMA E-INK', t_ser: 'séries.',
+                view_book: 'Ver livro', browse_lib: 'Navegar na biblioteca', browse_cat: 'Navegar nos catálogos', cover_alt: 'Capa'
             },
             'zh': {
                 cat: '目录', book: '图书', auth: '作者', gen: '流派', ser: '系列', set: '设置',
@@ -283,7 +295,21 @@
                 welc_btn: '进入图书馆 →', s_book: '按书名搜索', s_auth: '按作者搜索', s_ser: '按系列搜索', s_gen: '按流派搜索', eink_theme: '🖤 E-INK THEME', color_theme: '彩色主题',
                 stat: '统计信息', cat_con: '此目录包含:', bk_c: '图书,', aut_c: '作者,', gen_c: '流派和', t_tot: '总计:', t_aut: '作者.', t_bk: '图书.', t_ser: '系列.', l_scan: '最后扫描:',
                 read: '阅读', prev: '上一页', next: '下一页', bk_l: '图书:', home: '首页', s_p: '搜索...', s_b: '查找',
-                root: 'ROOT', search: '搜索', select: '选择', bshelf: '书架', show_all: '全部显示', doubles: '重复书籍'
+                root: 'ROOT', search: '搜索', select: '选择', bshelf: '书架', show_all: '全部显示', doubles: '重复书籍',
+                appearance: '外观', premium: '彩色主题', eink: '电子墨水主题', t_ser: '系列.',
+                view_book: '查看书籍', browse_lib: '浏览图书馆', browse_cat: '浏览目录', cover_alt: '封面'
+            },
+            'bn': {
+                cat: 'ক্যাটালগসমূহ', book: 'বইপত্র', auth: 'লেখকবৃন্দ', gen: 'ধরণসমূহ', ser: 'ধারাবাহিকসমূহ', set: 'সেটিংস',
+                login: 'লগইন', logout: '(লগআউট)', new_e: 'সাম্প্রতিক সংযোজন', new_c: 'নতুন আগমন',
+                un_auth: 'অজানা লেখক', empty: 'লাইব্রেরি খালি', scan: 'ডিরেক্টরি স্ক্যান করুন।',
+                welc: 'VAILIB-এ আপনাকে স্বাগতম', welc_sub: 'আপনার ব্যক্তিগত ডিজিটাল লাইব্রেরি। সংগ্রহের জন্য লগইন করুন।',
+                welc_btn: 'লাইব্রেরিতে প্রবেশ করুন →', s_book: 'শিরোনাম দিয়ে খুঁজুন', s_auth: 'লেখক দিয়ে খুঁজুন', s_ser: 'ধারাবাহিক দিয়ে খুঁজুন', s_gen: 'ধরণ দিয়ে খুঁজুন', eink_theme: '🖤 E-INK থিম', color_theme: 'রঙিন থিম',
+                stat: 'পরিসংখ্যান', cat_con: 'এই ক্যাটালগে রয়েছে:', bk_c: 'বই,', aut_c: 'লেখক,', gen_c: 'ধরণ এবং', t_tot: 'মোট:', t_aut: 'লেখক।', t_bk: 'বই।', t_ser: 'ধারাবাহিক।', l_scan: 'সর্বশেষ স্ক্যান:',
+                read: 'পড়ুন', prev: 'পূর্ববর্তী', next: 'পরবর্তী', bk_l: 'বই:', home: 'মূলপাতা', s_p: 'খুঁজুন...', s_b: 'অনুসন্ধান',
+                root: 'মূল', search: 'অনুসন্ধান', select: 'নির্বাচন করুন', bshelf: 'বইয়ের তাক', show_all: 'সব দেখান', doubles: 'অনুরূপ বইপত্র',
+                appearance: 'পছন্দসই থিম', premium: 'রঙিন', eink: 'ই-ইঙ্ক', t_ser: 'ধারাবাহিক।',
+                view_book: 'বইটি দেখুন', browse_lib: 'লাইব্রেরি ব্রাউজ করুন', browse_cat: 'ক্যাটালগ ব্রাউজ করুন', cover_alt: 'প্রচ্ছদ'
             }
         };
 
@@ -300,7 +326,7 @@
             if (!lang) {
                 const navLang = navigator.language || navigator.userLanguage || 'en';
                 const shortLang = navLang.substring(0, 2).toLowerCase();
-                lang = vailibDict[shortLang] ? shortLang : 'en'; // Fallback to English for global users, or RU for Russians
+                lang = vailibDict[shortLang] ? shortLang : 'en'; // Fallback to English
                 
                 localStorage.setItem('vailib_lang', lang);
                 document.cookie = 'django_language=' + lang + '; path=/; max-age=31536000';
@@ -320,6 +346,14 @@
                     }
                     if (el.tagName === 'INPUT') el.placeholder = txt;
                     else el.innerText = txt;
+                }
+            });
+
+            // Dynamic Image Alt Translations
+            document.querySelectorAll('[data-trans-alt]').forEach(el => {
+                const key = el.getAttribute('data-trans-alt');
+                if (dict[key]) {
+                    el.setAttribute('alt', dict[key]);
                 }
             });
 
@@ -360,7 +394,6 @@
                 btn.style.transition = "opacity 0.2s";
             });
         }
-        
         document.addEventListener("DOMContentLoaded", applyVailibLang);
 
         $(document).foundation();

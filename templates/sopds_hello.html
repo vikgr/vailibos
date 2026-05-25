@@ -65,10 +65,10 @@
             <p class="hero-desc">{{ random_book.annotation|truncatechars:200 }}</p>
             {% endif %}
             <div class="hero-actions">
-                <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{ random_book.id }}" class="hero-btn-primary">
+                <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{ random_book.id }}" class="hero-btn-primary" data-trans="view_book">
                     View Book
                 </a>
-                <a href="{% url 'web:catalog' %}" class="hero-btn-secondary" data-trans="cat">
+                <a href="{% url 'web:catalog' %}" class="hero-btn-secondary" data-trans="browse_lib">
                     Browse Library
                 </a>
             </div>
@@ -141,7 +141,7 @@
 {# --- BROWSE CATEGORIES ROW --- #}
 <section class="swimlane-section" style="margin-top: 40px;">
     <div class="swimlane-header">
-        <h2 class="swimlane-title" data-trans="cat">Browse Catalogs</h2>
+        <h2 class="swimlane-title" data-trans="browse_cat">Browse Catalogs</h2>
         <a href="{% url 'web:catalog' %}" class="swimlane-see-all">→</a>
     </div>
     <div class="browse-chips-row">

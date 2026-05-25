@@ -17,7 +17,7 @@
   <div class="eink-book-card">
       <a href="{% url 'web:searchbooks' %}?searchtype=i&searchterms={{b.id}}" style="display:block; text-decoration:none; color:inherit;">
           <div class="cover-container">
-              <img src="{% url 'opds_catalog:thumb' b.id %}" class="book-cover" alt="Обложка"
+              <img src="{% url 'opds_catalog:thumb' b.id %}" class="book-cover" alt="Cover" data-trans-alt="cover_alt"
                   onload="checkEinkCover(this)" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
               <div class="eink-placeholder" style="display:none; flex-direction:column; align-items:center; justify-content:center; height: 100px; border: 1px solid #000; background: #fff;">
                   <span style="font-size: 1.5rem;">📖</span>
