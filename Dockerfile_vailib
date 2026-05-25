@@ -1,8 +1,21 @@
 FROM zveronline/sopds:latest
 
 # ============================================================
-# VAILIB NATIVE BUILD (Zero-Bind Architecture)
+# VAILIB NATIVE BUILD (Zero-Bind Architecture - Unified Stack)
 # ============================================================
+
+# Install system dependencies for converter and bot (using edge repos for Calibre)
+RUN apk update && \
+    apk add --no-cache \
+        calibre \
+        djvulibre \
+        bash \
+        psmisc \
+        postgresql-client \
+        curl \
+        --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing \
+        --repository=https://dl-cdn.alpinelinux.org/alpine/edge/main \
+        --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community
 
 # Apply backend logic overrides
 COPY models.py /sopds/opds_catalog/models.py
@@ -25,10 +38,13 @@ COPY management/ /sopds/sopds_web_backend/management/
 # Apply static web assets
 COPY static/custom/ /sopds/static/custom/
 
-# Add scanner watcher and patch entrypoint
+# Add unified services: scanner watcher, bot, and converter
 COPY scanner_watcher.sh /scanner_watcher.sh
-RUN chmod +x /scanner_watcher.sh && \
-    sed -i 's/python3 manage.py sopds_scanner start/python3 manage.py sopds_scanner start \& \/scanner_watcher.sh/g' /start.sh
+COPY bot.sh /bot.sh
+COPY convert.sh /convert.sh
+
+RUN chmod +x /scanner_watcher.sh /bot.sh /convert.sh && \
+    sed -i 's/python3 manage.py sopds_scanner start/python3 manage.py sopds_scanner start \& \/scanner_watcher.sh \& \/bot.sh \& \/convert.sh/g' /start.sh
 
 # The application executes exactly as the base SOPDS container.
-# All customizations are now baked into the image.
+# All customizations, bot logic, and converters are now baked into a single image.

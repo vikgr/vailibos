@@ -14,7 +14,7 @@ services:
         networks:
             - library-net
 
-    # ── SOPDS Web & OPDS ──────────────────────────────────
+    # ── SOPDS Web, Bot & Converter (Unified) ───────────────
     sopds:
         container_name: vailib
         build:
@@ -28,37 +28,19 @@ services:
             DB_NAME: ${POSTGRES_DB:-sopds}
             DB_USER: ${POSTGRES_USER:-sopds}
             DB_PASS: "${DB_PASSWORD:-changeme}"
+            DB_PASSWORD: "${DB_PASSWORD:-changeme}"
             DB_PORT: "5432"
             SOPDS_ROOT_LIB: /library
             SOPDS_TMBOT_ENABLE: "False"
             TIME_ZONE: ${TIME_ZONE:-Europe/Madrid}
+            BOT_TOKEN: "${BOT_TOKEN:-YOUR_TELEGRAM_BOT_TOKEN}"
+            CHAT_ID: "${CHAT_ID:-YOUR_TELEGRAM_CHAT_ID}"
         ports:
             - "8081:8001"
         volumes:
             - ${SOPDS_DATA_PATH:-/DATA/AppData/sopds/db}:/var/lib/sopds
-            - ${BOOKS_PATH:-/DATA/Downloads/books}:/library:ro
+            - ${BOOKS_PATH:-/DATA/Downloads/books}:/library
 
-        networks:
-            - library-net
-
-    # ── Telegram Bot & PDF Converter ──────────────────────
-    bot-converter:
-        container_name: vailib-bot
-        build:
-            context: .
-            dockerfile: Dockerfile_converter
-        restart: unless-stopped
-        depends_on:
-            - db
-        environment:
-            BOT_TOKEN: "${BOT_TOKEN:-YOUR_TELEGRAM_BOT_TOKEN}"
-            CHAT_ID: "${CHAT_ID:-YOUR_TELEGRAM_CHAT_ID}"
-            DB_HOST: db
-            DB_USER: ${POSTGRES_USER:-sopds}
-            DB_NAME: ${POSTGRES_DB:-sopds}
-            PGPASSWORD: "${DB_PASSWORD:-changeme}"
-        volumes:
-            - ${BOOKS_PATH:-/DATA/Downloads/books}:/library # RW for conversion
         networks:
             - library-net
 
