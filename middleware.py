@@ -46,6 +46,24 @@ class SOPDSLocaleMiddleware(MiddlewareMixin):
         if 'django_language' in request.COOKIES:
             language = request.COOKIES['django_language']
             
+        # Support short codes mapping for common ones used in JS switcher
+        mapping = {
+            'en': 'en-us',
+            'zh': 'zh-hans',
+            'ru': 'ru',
+            'el': 'el',
+            'de': 'de',
+            'es': 'es',
+            'fr': 'fr',
+            'ar': 'ar',
+            'hi': 'hi',
+            'pt': 'pt',
+            'bn': 'bn',
+        }
+        
+        if language in mapping:
+            language = mapping[language]
+            
         # Fallback to the SOPDS configuration if nothing is found
         if not language:
              language = config.SOPDS_LANGUAGE
@@ -57,6 +75,15 @@ class SOPDSLocaleMiddleware(MiddlewareMixin):
             
         request.LANG = language
         request.LANGUAGE_CODE = translation.get_language()
+
+    def process_response(self, request, response):
+        lang = getattr(request, 'LANG', config.SOPDS_LANGUAGE)
+        try:
+            translation.activate(lang)
+            response['Content-Language'] = translation.get_language()
+        except:
+            pass
+        return response
 
 class FetchFromCacheMiddleware(DjangoFetchFromCacheMiddleware):
     def process_request(self, request):

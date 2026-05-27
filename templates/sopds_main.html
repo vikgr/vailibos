@@ -46,7 +46,7 @@
 
                 
                 {% if vailib_theme == 'premium' %}
-                <div class="lang-selector-container" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; background: transparent; border: none; box-shadow: none; padding: 0; margin: 15px 0 0 0;">
+                <div class="lang-selector-container" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; background: transparent; border: none; box-shadow: none; padding: 0; margin: 15px 0 0 0;">
                     <a href="#" onclick="setVailibLang('ru'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/ru.png" width="15" alt="RU" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">RU</span></a>
                     <a href="#" onclick="setVailibLang('en'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/gb.png" width="15" alt="EN" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">EN</span></a>
                     <a href="#" onclick="setVailibLang('de'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/de.png" width="15" alt="DE" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">DE</span></a>
@@ -57,7 +57,9 @@
                     <a href="#" onclick="setVailibLang('hi'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/in.png" width="15" alt="HI" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">HI</span></a>
                     <a href="#" onclick="setVailibLang('pt'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/pt.png" width="15" alt="PT" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">PT</span></a>
                     <a href="#" onclick="setVailibLang('zh'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/cn.png" width="15" alt="ZH" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">ZH</span></a>
+                    <a href="#" onclick="setVailibLang('bn'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/bd.png" width="15" alt="BN" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">BN</span></a>
                 </div>
+
                 {% else %}
                 <div class="lang-selector-container vl-lang-grid">
                     <a href="#" onclick="setVailibLang('ru'); return false;" class="eink-lang-btn" data-lang="ru" title="Русский">
@@ -99,6 +101,10 @@
                     <a href="#" onclick="setVailibLang('zh'); return false;" class="eink-lang-btn" data-lang="zh" title="中文">
                         <span class="lang-code">ZH</span>
                         <span class="lang-native">中文</span>
+                    </a>
+                    <a href="#" onclick="setVailibLang('bn'); return false;" class="eink-lang-btn" data-lang="bn" title="বাংলা">
+                        <span class="lang-code">BN</span>
+                        <span class="lang-native">বাংলা</span>
                     </a>
                 </div>
                 {% endif %}
@@ -357,8 +363,8 @@
 
         function setVailibLang(lang) {
             localStorage.setItem('vailib_lang', lang);
-            document.cookie = 'django_language=' + lang + '; path=/; max-age=31536000';
-            applyVailibLang();
+            document.cookie = 'django_language=' + lang + '; path=/; max-age=31536000; SameSite=Lax';
+            window.location.reload();
         }
 
         function applyVailibLang() {
