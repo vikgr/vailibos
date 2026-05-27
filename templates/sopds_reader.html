@@ -105,7 +105,7 @@
     }
 
     /* Format specific tweaks */
-    #pdf-viewer, #epub-viewer, #djvu-viewer, #fb2-viewer {
+    #viewer-container, #pdf-viewer, #epub-viewer, #djvu-viewer, #fb2-content {
         width: 100%;
         height: 100%;
     }
@@ -479,7 +479,8 @@
 <!-- Libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/epub.js/0.3.88/epub.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/djvu.js/dist/djvu.js"></script>
+<script src="{% static 'custom/js/djvu.js' %}"></script>
+<script src="{% static 'custom/js/djvu_viewer.js' %}"></script>
 
 <script>
     const BOOK_URL = "{% url 'opds_catalog:download' book.id 0 %}";
@@ -744,16 +745,37 @@
         } else {
             fb2Area.innerText = "Could not parse FB2 body.";
         }
-        progressText.innerText = "FB2 Mode";
+        
+        // Show scroll controls and update progress percentage
+        controls.style.display = 'flex';
+        progressText.innerText = "FB2 Mode (0% read)";
+        
+        fb2Area.addEventListener('scroll', () => {
+            const maxScroll = fb2Area.scrollHeight - fb2Area.clientHeight;
+            const pct = maxScroll > 0 ? Math.round((fb2Area.scrollTop / maxScroll) * 100) : 0;
+            progressText.innerText = `FB2 Mode (${pct}% read)`;
+        });
+
+        document.getElementById('next-page').onclick = () => {
+            fb2Area.scrollBy({ top: window.innerHeight * 0.8, behavior: 'smooth' });
+        };
+        document.getElementById('prev-page').onclick = () => {
+            fb2Area.scrollBy({ top: -window.innerHeight * 0.8, behavior: 'smooth' });
+        };
     }
 
     // --- DjVu READER ---
     async function loadDjVu() {
-        loadingStatus.innerText = "Loading DjVu (this may take a while)...";
+        loadingStatus.innerText = "Loading DjVu...";
         const djvuArea = document.createElement('div');
         djvuArea.id = 'djvu-viewer';
+        djvuArea.style.width = '100%';
+        djvuArea.style.height = '100%';
         container.appendChild(djvuArea);
-        djvuArea.innerText = "DjVu support is being initialized...";
+        
+        window.ViewerInstance = new DjVu.Viewer();
+        window.ViewerInstance.render(djvuArea);
+        await window.ViewerInstance.loadDocumentByUrl(BOOK_URL);
         progressText.innerText = "DjVu Mode";
     }
 

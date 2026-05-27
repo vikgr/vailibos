@@ -4,19 +4,19 @@
 {% block ext-body %}
 <div class="auth-container">
   <div class="modern-auth-card">
-    <h3 class="auth-title">{% trans "User Login" %}</h3>
+    <h3 class="auth-title" data-trans="user_login">{% trans "User Login" %}</h3>
     <form method="post" action='{% url "web:login" %}'>
       {% csrf_token %}
       <div class="form-group">
-        <label>{% trans "Username" %}</label>
-        <input type="text" class="modern-input" name="username" placeholder="{% trans "Enter Username" %}">
+        <label data-trans="username">{% trans "Username" %}</label>
+        <input type="text" class="modern-input" name="username" placeholder="{% trans "Enter Username" %}" data-trans="enter_user">
       </div>
       <div class="form-group">
-        <label>{% trans "Password" %}</label>
-        <input type="password" class="modern-input" name="password" placeholder="{% trans "Enter Password" %}">
+        <label data-trans="password">{% trans "Password" %}</label>
+        <input type="password" class="modern-input" name="password" placeholder="{% trans "Enter Password" %}" data-trans="enter_pass">
       </div>
       <div class="form-actions" style="margin-top: 25px;">
-        <button type="submit" class="modern-btn auth-submit-btn">{% trans "Log in" %}</button>
+        <button type="submit" class="modern-btn auth-submit-btn" data-trans="login_btn">{% trans "Log in" %}</button>
       </div>
     </form>
   </div>

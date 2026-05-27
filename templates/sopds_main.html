@@ -178,7 +178,11 @@
             if (img.complete) {
                 process();
             } else {
-         const vailibDict = {
+                img.onload = process;
+            }
+        }
+
+        const vailibDict = {
             'ru': {
                 cat: 'Каталоги', book: 'Книги', auth: 'Авторы', gen: 'Жанры', ser: 'Серии', set: 'Настройки',
                 login: 'Войти', logout: '(Выйти)', new_e: 'Новинки', new_c: 'Новые Поступления',
@@ -189,7 +193,8 @@
                 read: 'Читать', prev: 'Назад', next: 'Вперед', bk_l: 'Книг:', home: 'НАЧАЛО', s_p: 'Поиск...', s_b: 'Найти',
                 root: 'ROOT', search: 'Поиск', select: 'Выбор', bshelf: 'Книжная полка', show_all: 'ПОКАЗАТЬ ВСЕ', doubles: 'Дубликаты книги',
                 appearance: 'ОФОРМЛЕНИЕ', premium: 'ЦВЕТНАЯ', eink: 'E-INK', t_ser: 'серий.',
-                view_book: 'Открыть книгу', browse_lib: 'Обзор библиотеки', browse_cat: 'Обзор каталогов', cover_alt: 'Обложка'
+                view_book: 'Открыть книгу', browse_lib: 'Обзор библиотеки', browse_cat: 'Обзор каталогов', cover_alt: 'Обложка',
+                user_login: 'Вход в систему', username: 'Имя пользователя', enter_user: 'Введите имя пользователя', password: 'Пароль', enter_pass: 'Введите пароль', login_btn: 'Войти'
             },
             'en': {
                 cat: 'Catalogs', book: 'Books', auth: 'Authors', gen: 'Genres', ser: 'Series', set: 'Settings',
@@ -201,7 +206,8 @@
                 read: 'Read', prev: 'Previous', next: 'Next', bk_l: 'Books:', home: 'HOME', s_p: 'Search...', s_b: 'Find',
                 root: 'ROOT', search: 'Search', select: 'Select', bshelf: 'Bookshelf', show_all: 'SHOW ALL', doubles: 'Doubles for book',
                 appearance: 'THEME', premium: 'COLOR THEME', eink: 'E-INK', t_ser: 'series.',
-                view_book: 'View Book', browse_lib: 'Browse Library', browse_cat: 'Browse Catalogs', cover_alt: 'Cover'
+                view_book: 'View Book', browse_lib: 'Browse Library', browse_cat: 'Browse Catalogs', cover_alt: 'Cover',
+                user_login: 'User Login', username: 'Username', enter_user: 'Enter Username', password: 'Password', enter_pass: 'Enter Password', login_btn: 'Log in'
             },
             'de': {
                 cat: 'Katalog', book: 'Bücher', auth: 'Autoren', gen: 'Genres', ser: 'Serien', set: 'Einstellungen',
@@ -213,7 +219,8 @@
                 read: 'Lesen', prev: 'Zurück', next: 'Weiter', bk_l: 'Bücher:', home: 'START', s_p: 'Suchen...', s_b: 'Finden',
                 root: 'ROOT', search: 'Suchen', select: 'Auswählen', bshelf: 'Regal', show_all: 'ALLE ANZEIGEN', doubles: 'Dublikate für Buch',
                 appearance: 'AUSSEHEN', premium: 'FARBDESIGN', eink: 'E-INK', t_ser: 'Serien.',
-                view_book: 'Buch anzeigen', browse_lib: 'Bibliothek durchsuchen', browse_cat: 'Kataloge durchsuchen', cover_alt: 'Abdeckung'
+                view_book: 'Buch anzeigen', browse_lib: 'Bibliothek durchsuchen', browse_cat: 'Kataloge durchsuchen', cover_alt: 'Abdeckung',
+                user_login: 'Benutzeranmeldung', username: 'Benutzername', enter_user: 'Benutzername eingeben', password: 'Passwort', enter_pass: 'Passwort eingeben', login_btn: 'Einloggen'
             },
             'el': {
                 cat: 'Κατάλογοι', book: 'Βιβλία', auth: 'Συγγραφείς', gen: 'Είδη', ser: 'Σειρές', set: 'Ρυθμίσεις',
@@ -225,7 +232,8 @@
                 read: 'Διαβάστε', prev: 'Προηγούμενο', next: 'Επόμενο', bk_l: 'Βιβλία:', home: 'ΑΡΧΙΚΗ', s_p: 'Αναζήτηση...', s_b: 'Εύρεση',
                 root: 'ROOT', search: 'Αναζήτηση', select: 'Επιλογή', bshelf: 'Βιβλιοθήκη', show_all: 'ΠΡΟΒΟΛΗ ΟΛΩΝ', doubles: 'Διπλότυπα',
                 appearance: 'ΕΜΦΑΝΙΣΗ', premium: 'ΧΡΩΜΑΤΙΚΟ ΘΕΜΑ', eink: 'ΘΕΜΑ E-INK', t_ser: 'σειρές.',
-                view_book: 'Δείτε το βιβλίο', browse_lib: 'Περιήγηση στη βιβλιοθήκη', browse_cat: 'Περιήγηση στους καταλόγους', cover_alt: 'Εξώφυλλο'
+                view_book: 'Δείτε το βιβλίο', browse_lib: 'Περιήγηση στη βιβλιοθήκη', browse_cat: 'Περιήγηση στους καταλόγους', cover_alt: 'Εξώφυλλο',
+                user_login: 'Είσοδος Χρήστη', username: 'Όνομα χρήστη', enter_user: 'Εισάγετε όνομα χρήστη', password: 'Κωδικός πρόσβασης', enter_pass: 'Εισάγετε κωδικό πρόσβασης', login_btn: 'Σύνδεση'
             },
             'es': {
                 cat: 'Catálogos', book: 'Libros', auth: 'Autores', gen: 'Géneros', ser: 'Series', set: 'Ajustes',
@@ -237,7 +245,8 @@
                 read: 'Leer', prev: 'Anterior', next: 'Siguiente', bk_l: 'Libros:', home: 'INICIO', s_p: 'Buscar...', s_b: 'Buscar',
                 root: 'ROOT', search: 'Buscar', select: 'Seleccionar', bshelf: 'Estantería', show_all: 'MOSTRAR TODO', doubles: 'Dobles',
                 appearance: 'APARIENCIA', premium: 'TEMA DE COLOR', eink: 'TEMA E-INK', t_ser: 'series.',
-                view_book: 'Ver libro', browse_lib: 'Explorar biblioteca', browse_cat: 'Explorar catálogos', cover_alt: 'Portada'
+                view_book: 'Ver libro', browse_lib: 'Explorar biblioteca', browse_cat: 'Explorar catálogos', cover_alt: 'Portada',
+                user_login: 'Acceso de usuario', username: 'Nombre de usuario', enter_user: 'Ingrese nombre de usuario', password: 'Contraseña', enter_pass: 'Ingrese contraseña', login_btn: 'Iniciar sesión'
             },
             'fr': {
                 cat: 'Catalogues', book: 'Livres', auth: 'Auteurs', gen: 'Genres', ser: 'Séries', set: 'Paramètres',
@@ -249,19 +258,21 @@
                 read: 'Lire', prev: 'Précédent', next: 'Suivant', bk_l: 'Livres:', home: 'ACCUEIL', s_p: 'Rechercher...', s_b: 'Trouver',
                 root: 'ROOT', search: 'Recherche', select: 'Sélectionner', bshelf: 'Étagère', show_all: 'TOUT AFFICHER', doubles: 'Doublons',
                 appearance: 'APPARENCE', premium: 'THÈME COULEUR', eink: 'THÈME E-INK', t_ser: 'séries.',
-                view_book: 'Voir le livre', browse_lib: 'Parcourir la bibliothèque', browse_cat: 'Parcourir les catalogues', cover_alt: 'Couverture'
+                view_book: 'Voir le livre', browse_lib: 'Parcourir la bibliothèque', browse_cat: 'Parcourir les catalogues', cover_alt: 'Couverture',
+                user_login: 'Connexion utilisateur', username: 'Nom d\'utilisateur', enter_user: 'Entrez le nom d\'utilisateur', password: 'Mot de passe', enter_pass: 'Entrez le mot de passe', login_btn: 'Se connecter'
             },
             'ar': {
                 cat: 'كتالوجات', book: 'كتب', auth: 'مؤلفون', gen: 'أنواع', ser: 'سلاسل', set: 'إعدادات',
                 login: 'دخول', logout: '(خروج)', new_e: 'إضافات حديثة', new_c: 'الوافدون الجدد',
                 un_auth: 'مؤلف مجهول', empty: 'المكتبة فارغة', scan: 'فحص الدليل.',
-                welc: 'مرحبا بك في VAILIB', welc_sub: 'مكتبتك الرقمية. سجل الدخول للوصول.',
+                welc: 'مرحبا بك в VAILIB', welc_sub: 'مكتبتك الرقمية. سجل الدخول للوصول.',
                 welc_btn: 'دخول المكتبة →', s_book: 'البحث بالعنوان', s_auth: 'البحث بالمؤلف', s_ser: 'البحث بالسلسلة', s_gen: 'البحث بالنوع', eink_theme: '🖤 E-INK THEME', color_theme: 'السمة الملونة',
                 stat: 'إحصائيات', cat_con: 'يحتوي هذا الكتالوج على:', bk_c: 'كتب,', aut_c: 'مؤلفين,', gen_c: 'أنواع و', t_tot: 'المجموع:', t_aut: 'مؤلفين.', t_bk: 'كتب.', t_ser: 'سلاسل.', l_scan: 'آخر مسح:',
                 read: 'اقرأ', prev: 'السابق', next: 'التالي', bk_l: 'كتب:', home: 'الرئيسية', s_p: 'بحث...', s_b: 'بحث',
                 root: 'ROOT', search: 'بحث', select: 'تحديد', bshelf: 'رف الكتب', show_all: 'عرض الكل', doubles: 'النسخ المكررة',
                 appearance: 'المظهر', premium: 'السمة الملونة', eink: 'سمة الحبر الإلكتروني', t_ser: 'سلاسل.',
-                view_book: 'عرض الكتاب', browse_lib: 'تصفح المكتبة', browse_cat: 'تصفح الكتالوجات', cover_alt: 'غلاف'
+                view_book: 'عرض الكتاب', browse_lib: 'تصفح المكتبة', browse_cat: 'تصفح الكتالوجات', cover_alt: 'غلاف',
+                user_login: 'تسجيل دخول المستخدم', username: 'اسم المستخدم', enter_user: 'أدخل اسم المستخدم', password: 'كلمة المرور', enter_pass: 'أدخل كلمة المرور', login_btn: 'تسجيل الدخول'
             },
             'hi': {
                 cat: 'कैटलॉग', book: 'किताबें', auth: 'लेखक', gen: 'शैलियाँ', ser: 'श्रृंखला', set: 'सेटिंग्स',
@@ -273,7 +284,8 @@
                 read: 'पढ़ें', prev: 'पिछला', next: 'अगला', bk_l: 'किताबें:', home: 'शुरू', s_p: 'खोजें...', s_b: 'खोजें',
                 root: 'ROOT', search: 'खोजें', select: 'चुनें', bshelf: 'बुकशेल्फ़', show_all: 'सभी दिखाएं', doubles: 'दोहरी किताबें',
                 appearance: 'दिखावट', premium: 'रंगीन थीम', eink: 'ई-इंक थीम', t_ser: 'श्रृंखला.',
-                view_book: 'पुस्तक देखें', browse_lib: 'लाइब्रेरी ब्राउज़ करें', browse_cat: 'कैटलॉग ब्राउज़ करें', cover_alt: 'कवर'
+                view_book: 'पुस्तक देखें', browse_lib: 'लाइब्रेरी ब्राउज़ करें', browse_cat: 'कैटलॉग ब्राउज़ करें', cover_alt: 'कवर',
+                user_login: 'यूज़र लॉगिन', username: 'यूज़रनेम', enter_user: 'यूज़रनेम दर्ज करें', password: 'पासवर्ड', enter_pass: 'पासवर्ड दर्ज करें', login_btn: 'लॉग इन करें'
             },
             'pt': {
                 cat: 'Catálogos', book: 'Livros', auth: 'Autores', gen: 'Gêneros', ser: 'Séries', set: 'Configurações',
@@ -285,6 +297,36 @@
                 read: 'Ler', prev: 'Anterior', next: 'Próximo', bk_l: 'Livros:', home: 'INÍCIO', s_p: 'Pesquisar...', s_b: 'Buscar',
                 root: 'ROOT', search: 'Pesquisar', select: 'Selecionar', bshelf: 'Estante', show_all: 'MOSTRAR TUDO', doubles: 'Dobras',
                 appearance: 'APARÊNCIA', premium: 'TEMA DE COR', eink: 'TEMA E-INK', t_ser: 'séries.',
+                view_book: 'Ver livro', browse_lib: 'Navegar na biblioteca', browse_cat: 'Navegar nos catálogos', cover_alt: 'Capa',
+                user_login: 'Login do usuário', username: 'Nome de usuário', enter_user: 'Insira o nome de usuário', password: 'Senha', enter_pass: 'Insira a senha', login_btn: 'Entrar'
+            },
+            'zh': {
+                cat: '目录', book: '图书', auth: '作者', gen: '流派', ser: '系列', set: '设置',
+                login: '登录', logout: '(退出)', new_e: '最近添加', new_c: '新书上架',
+                un_auth: '未知作者', empty: '图书馆为空', scan: '扫描目录.',
+                welc: '欢迎来到VAILIB', welc_sub: '您的数字图书馆。请登录访问。',
+                welc_btn: '进入图书馆 →', s_book: '按书名搜索', s_auth: '按作者搜索', s_ser: '按系列搜索', s_gen: '按流派搜索', eink_theme: '🖤 E-INK THEME', color_theme: '彩色主题',
+                stat: '统计信息', cat_con: '此目录包含:', bk_c: '图书,', aut_c: '作者,', gen_c: '流派和', t_tot: '总计:', t_aut: '作者.', t_bk: '图书.', t_ser: '系列.', l_scan: '最后扫描:',
+                read: '阅读', prev: '上一页', next: '下一页', bk_l: '图书:', home: '首页', s_p: '搜索...', s_b: '查找',
+                root: 'ROOT', search: '搜索', select: '选择', bshelf: '书架', show_all: '全部显示', doubles: '重复书籍',
+                appearance: '外观', premium: '彩色主题', eink: '电子墨水主题', t_ser: '系列.',
+                view_book: '查看书籍', browse_lib: '浏览图书馆', browse_cat: '浏览目录', cover_alt: '封面',
+                user_login: '用户登录', username: '用户名', enter_user: '输入用户名', password: '密码', enter_pass: '输入密码', login_btn: '登录'
+            },
+            'bn': {
+                cat: 'ক্যাটালগসমূহ', book: 'বইপত্র', auth: 'লেখকবৃন্দ', gen: 'ধরণসমূহ', ser: 'ধারাবাহিকসমূহ', set: 'সেটিংস',
+                login: 'লগইন', logout: '(লগআউট)', new_e: 'সাম্প্রতিক সংযোজন', new_c: 'নতুন আগমন',
+                un_auth: 'অজানা লেখক', empty: 'লাইব্রেরি খালি', scan: 'ডিরেক্টরি স্ক্যান করুন।',
+                welc: 'VAILIB-এ আপনাকে স্বাগতম', welc_sub: 'আপনার ব্যক্তিগত ডিজিটাল লাইব্রেরি। সংগ্রহের জন্য লগইন করুন।',
+                welc_btn: 'লাইব্রেরিতে প্রবেশ করুন →', s_book: 'শিরোনাম দিয়ে খুঁজুন', s_auth: 'লেখক দিয়ে খুঁজুন', s_ser: 'ধারাবাহিক দিয়ে খুঁজুন', s_gen: 'ধরণ দিয়ে খুঁজুন', eink_theme: '🖤 E-INK থিম', color_theme: 'রঙিন থিম',
+                stat: 'পরিসংখ্যান', cat_con: 'এই ক্যাটালগে রয়েছে:', bk_c: 'বই,', aut_c: 'লেখক,', gen_c: 'ধরণ এবং', t_tot: 'মোট:', t_aut: 'লেখক।', t_bk: 'বই।', t_ser: 'ধারাবাহিক।', l_scan: 'সর্বশেষ স্ক্যান:',
+                read: 'পড়ুন', prev: 'পূর্ববর্তী', next: 'পরবর্তী', bk_l: 'বই:', home: 'মূলপাতা', s_p: 'খুঁজুন...', s_b: 'অনুসন্ধান',
+                root: 'মূল', search: 'অনুসন্ধান', select: 'নির্বাচন করুন', bshelf: 'বইয়ের তাক', show_all: 'সব দেখান', doubles: 'অনুরূপ বইপত্র',
+                appearance: 'পছন্দসই থিম', premium: 'রঙিন', eink: 'ই-ইঙ্ক', t_ser: 'ধারাবাহিক।',
+                view_book: 'বইটি দেখুন', browse_lib: 'লাইব্রেরি ব্রাউজ করুন', browse_cat: 'ক্যাটালগ ব্রাউজ করুন', cover_alt: 'প্রচ্ছদ',
+                user_login: 'ব্যবহারকারী লগইন', username: 'ব্যবহারকারীর নাম', enter_user: 'ব্যবহারকারীর নাম লিখুন', password: 'পাসওয়ার্ড', enter_pass: 'পাসওয়ার্ড লিখুন', login_btn: 'লগ ইন করুন'
+            }
+        };_ser: 'séries.',
                 view_book: 'Ver livro', browse_lib: 'Navegar na biblioteca', browse_cat: 'Navegar nos catálogos', cover_alt: 'Capa'
             },
             'zh': {
