@@ -211,7 +211,7 @@ handle_document() {
         # If PDF/DjVu, trigger conversion to FB2
         case "$file_name" in
             *.pdf|*.djvu)
-                echo "$target" > "/tmp/convert_queue"
+                echo "$target" >> "/tmp/convert_queue"
                 send_msg "$chat" "🔄 <b>PDF/DjVu Detected</b>\nTriggering conversion to FB2..."
                 ;;
         esac
