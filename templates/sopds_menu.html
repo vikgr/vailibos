@@ -28,6 +28,14 @@
     </li>
 {% endif %}
 
+    {% if user.is_superuser %}
+    <li class="nav-item">
+        <a href="/web/populate/" class="nav-btn {% if current == 'populate' %}active{% endif %}">
+            <i class="fi-download"></i> <span class="nav-text" data-trans="pop_lib">Populate Library</span>
+        </a>
+    </li>
+    {% endif %}
+
     {% if user.is_superuser and vailib_theme == 'premium' %}
     <li class="nav-item" style="margin-top: 15px;">
         <a href="/admin/" class="nav-btn admin-btn">

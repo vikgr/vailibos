@@ -212,7 +212,7 @@ def fetch_via_gutendex(lang, page=1):
         print(f"  [WARNING] Gutendex fetch failed: {e}")
         return [], None
 
-def crawl_popular_books(languages, limit_per_lang, outdir, trigger_scan_path):
+def crawl_popular_books(languages, limit_per_lang, outdir, trigger_scan_path, progress_callback=None):
     """
     Crawl and download popular books for the selected languages.
     """
@@ -230,6 +230,9 @@ def crawl_popular_books(languages, limit_per_lang, outdir, trigger_scan_path):
         print(f"🌐 Processing language: {lang.upper()}")
         print(f"  Found {len(existing_ids)} existing books in local folder: {lang_dir}")
         
+        if progress_callback:
+            progress_callback(lang, 0, limit_per_lang, "Scanning Gutenberg catalog...")
+            
         downloaded_count = 0
         has_more = True
         
@@ -298,6 +301,9 @@ def crawl_popular_books(languages, limit_per_lang, outdir, trigger_scan_path):
                 print(f"  📥 Downloading [{downloaded_count+1}/{limit_per_lang}]: '{author_name} - {title}'")
                 print(f"     URL: {epub_url}")
                 
+                if progress_callback:
+                    progress_callback(lang, downloaded_count, limit_per_lang, f"Downloading '{safe_author} - {safe_title}'")
+                
                 # Download book file
                 time.sleep(1.0)
                 success = download_book(epub_url, dest_path)
@@ -306,8 +312,12 @@ def crawl_popular_books(languages, limit_per_lang, outdir, trigger_scan_path):
                     print(f"     ✅ Saved: {filename}")
                     downloaded_count += 1
                     existing_ids.add(book_id)
+                    if progress_callback:
+                        progress_callback(lang, downloaded_count, limit_per_lang, f"Saved: {safe_author} - {safe_title}")
                 else:
                     print(f"     ❌ Download failed")
+                    if progress_callback:
+                        progress_callback(lang, downloaded_count, limit_per_lang, f"Failed to download: {safe_title}")
                     
         print(f"  ✨ Completed processing {lang.upper()}. Successfully downloaded {downloaded_count} new books.\n")
         

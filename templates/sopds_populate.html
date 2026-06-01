@@ -1,0 +1,259 @@
+{% extends "sopds_main.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="populate-container">
+    {% if vailib_theme == 'premium' %}
+    <!-- PREMIUM MULTI-THEME OLED LAYOUT -->
+    <div class="vl-card glassmorphic-panel" style="padding: 30px; border-radius: 16px; background: rgba(20, 20, 45, 0.45); backdrop-filter: blur(12px); border: 1px solid rgba(0, 225, 255, 0.15); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);">
+        
+        <h2 style="color: #00E1FF; font-weight: 800; font-family: 'Inter', sans-serif; letter-spacing: -0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+            <i class="fi-download"></i> <span data-trans="pop_lib">{% trans "Populate Library" %}</span>
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 25px;">
+            {% trans "Directly fetch the most popular public-domain eBooks from Project Gutenberg to fill your library catalog." %}
+        </p>
+
+        <!-- Status Dashboard -->
+        <div id="populate-status-card" class="status-badge-container" style="margin-bottom: 30px; padding: 20px; border-radius: 12px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <span style="font-weight: 800; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px;">Status</span>
+                <span id="populate-state-pill" class="badge" style="font-weight: 800; border-radius: 20px; padding: 6px 12px; text-transform: uppercase;">Idle</span>
+            </div>
+            
+            <div id="populate-progress-wrapper" style="display: none; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; color: #fff; font-size: 0.85rem; font-weight: 700; margin-bottom: 5px;">
+                    <span id="populate-progress-text">Downloading...</span>
+                    <span id="populate-progress-pct">0%</span>
+                </div>
+                <div style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; overflow: hidden;">
+                    <div id="populate-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00E1FF, #7000FF); transition: width 0.4s ease;"></div>
+                </div>
+            </div>
+            
+            <div id="populate-message" style="color: #fff; font-size: 0.95rem; font-weight: 500;">
+                {{ populate_status.message }}
+            </div>
+        </div>
+
+        <!-- Populator Form -->
+        <form id="populate-form" method="post" action="/web/populate/" style="margin-top: 20px;">
+            {% csrf_token %}
+            
+            <div class="row">
+                <!-- Count selection -->
+                <div class="large-6 columns" style="margin-bottom: 25px;">
+                    <label style="color: #fff; font-weight: 700; font-size: 0.9rem; margin-bottom: 10px;">
+                        {% trans "Books per Language:" %}
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <input type="range" name="count" id="count-slider" min="1" max="100" value="10" style="flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 5px; cursor: pointer; accent-color: #00E1FF;" oninput="document.getElementById('count-input').value = this.value">
+                        <input type="number" id="count-input" min="1" max="100" value="10" style="width: 80px; text-align: center; font-weight: 700; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 8px; padding: 6px; margin: 0;" oninput="document.getElementById('count-slider').value = this.value">
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 5px;">
+                        {% trans "Limits the number of new eBooks crawled per run (1 - 100)." %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Language select grid -->
+            <div style="margin-bottom: 30px;">
+                <label style="color: #fff; font-weight: 700; font-size: 0.9rem; margin-bottom: 15px; display: block;">
+                    {% trans "Select Languages to Populate:" %}
+                </label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px;">
+                    {% for lang in languages %}
+                    <label class="lang-check-card" style="display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: all 0.2s;">
+                        <input type="checkbox" name="langs" value="{{ lang.code }}" checked style="width: 16px; height: 16px; accent-color: #00E1FF; margin: 0;">
+                        <img src="https://flagcdn.com/w20/{{ lang.flag }}.png" width="16" alt="{{ lang.name }}" style="border-radius:2px;">
+                        <span style="color: #fff; font-size: 0.85rem; font-weight: 600;">{{ lang.name }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button type="submit" id="btn-submit" class="button" style="background: linear-gradient(135deg, #00E1FF, #7000FF); border: none; font-weight: 800; border-radius: 8px; padding: 12px 30px; box-shadow: 0 4px 15px rgba(0, 225, 255, 0.3); transition: all 0.2s;">
+                <i class="fi-download"></i> <span data-trans="pop_lib">{% trans "Populate Library" %}</span>
+            </button>
+        </form>
+
+        <!-- Live Terminal logs -->
+        <div style="margin-top: 35px;">
+            <h5 style="color: var(--text-muted); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Live Execution Logs</h5>
+            <div id="populate-logs" style="font-family: 'Courier New', monospace; font-size: 0.8rem; padding: 15px; background: #080810; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.05); color: #00FF66; height: 200px; overflow-y: auto; line-height: 1.4;">
+                <div style="color: #888;">[SYSTEM] Ready.</div>
+            </div>
+        </div>
+
+    </div>
+
+    {% else %}
+    <!-- E-INK HIGH-CONTRAST STATIC LAYOUT (ZERO-JS) -->
+    {% if populate_status.status == 'running' %}
+    <!-- Meta refresh to reload every 5 seconds for e-readers while crawling -->
+    <meta http-equiv="refresh" content="5">
+    {% endif %}
+
+    <div style="background: #ffffff; color: #000000; padding: 15px; border: 2px solid #000000;">
+        <h2 style="font-weight: bold; margin-bottom: 5px;">Populate Library</h2>
+        <hr style="border: 1px solid #000000; margin-bottom: 15px;">
+
+        <!-- Static Status Badge -->
+        <div style="border: 2px solid #000000; padding: 10px; margin-bottom: 20px;">
+            <table style="width: 100%; border: none; margin: 0;">
+                <tr style="background: none;">
+                    <td style="font-weight: bold; padding: 2px;">STATUS:</td>
+                    <td style="font-weight: bold; text-transform: uppercase; padding: 2px;">{{ populate_status.status }}</td>
+                </tr>
+                {% if populate_status.status == 'running' %}
+                <tr style="background: none;">
+                    <td style="font-weight: bold; padding: 2px;">PROGRESS:</td>
+                    <td style="padding: 2px;">{{ populate_status.downloaded }} / {{ populate_status.total }} (Language: {{ populate_status.current_lang|upper }})</td>
+                </tr>
+                {% endif %}
+                <tr style="background: none;">
+                    <td style="font-weight: bold; padding: 2px;">MESSAGE:</td>
+                    <td style="padding: 2px;">{{ populate_status.message }}</td>
+                </tr>
+            </table>
+            {% if populate_status.status == 'running' %}
+            <div style="margin-top: 10px; font-style: italic;">
+                * Page auto-refreshes every 5 seconds. <a href="/web/populate/" style="font-weight: bold; text-decoration: underline;">[Manual Refresh]</a>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if populate_status.status != 'running' %}
+        <form method="post" action="/web/populate/">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 15px;">
+                <label style="font-weight: bold;">Books per Language (1 - 100):</label><br>
+                <input type="number" name="count" min="1" max="100" value="10" style="width: 100px; padding: 5px; border: 2px solid #000000; color: #000; background: #fff;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Select Languages:</label>
+                {% for lang in languages %}
+                <label style="display: inline-block; margin-right: 15px; font-weight: normal;">
+                    <input type="checkbox" name="langs" value="{{ lang.code }}" checked style="margin-right: 5px;">
+                    {{ lang.name }}
+                </label>
+                {% endfor %}
+            </div>
+
+            <input type="submit" value="[ POPULATE LIBRARY ]" style="padding: 8px 20px; font-weight: bold; background: #000; color: #fff; border: 2px solid #000; cursor: pointer;">
+        </form>
+        {% endif %}
+
+        <!-- Static Logs -->
+        <div style="margin-top: 25px;">
+            <h4 style="font-weight: bold;">Log Output:</h4>
+            <div style="border: 2px solid #000000; padding: 10px; font-family: monospace; font-size: 0.85rem; height: 180px; overflow-y: scroll; background: #ffffff;">
+                {% for log in populate_status.logs %}
+                <div>{{ log }}</div>
+                {% empty %}
+                <div style="color: #666;">No logs available.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block block-js %}
+{% if vailib_theme == 'premium' %}
+<script>
+    (function() {
+        const statePill = document.getElementById('populate-state-pill');
+        const progressWrapper = document.getElementById('populate-progress-wrapper');
+        const progressText = document.getElementById('populate-progress-text');
+        const progressPct = document.getElementById('populate-progress-pct');
+        const progressBar = document.getElementById('populate-progress-bar');
+        const messageDiv = document.getElementById('populate-message');
+        const logsDiv = document.getElementById('populate-logs');
+        const submitBtn = document.getElementById('btn-submit');
+        const populateForm = document.getElementById('populate-form');
+
+        function updateUI(status) {
+            // Update Pill styling
+            statePill.innerText = status.status;
+            
+            if (status.status === 'running') {
+                statePill.style.background = '#FF9900'; // Amber running badge
+                statePill.style.color = '#000';
+                progressWrapper.style.display = 'block';
+                submitBtn.setAttribute('disabled', 'true');
+                submitBtn.style.opacity = '0.5';
+                submitBtn.style.cursor = 'not-allowed';
+                
+                const pct = status.total > 0 ? Math.round((status.downloaded / status.total) * 100) : 0;
+                progressPct.innerText = pct + '%';
+                progressBar.style.width = pct + '%';
+                progressText.innerText = 'Downloading [' + status.current_lang.toUpperCase() + '] ' + status.downloaded + ' / ' + status.total;
+            } else if (status.status === 'completed') {
+                statePill.style.background = '#00FF66'; // Green success badge
+                statePill.style.color = '#000';
+                progressWrapper.style.display = 'none';
+                submitBtn.removeAttribute('disabled');
+                submitBtn.style.opacity = '1';
+                submitBtn.style.cursor = 'pointer';
+            } else if (status.status === 'error') {
+                statePill.style.background = '#FF0055'; // Red error badge
+                statePill.style.color = '#fff';
+                progressWrapper.style.display = 'none';
+                submitBtn.removeAttribute('disabled');
+                submitBtn.style.opacity = '1';
+                submitBtn.style.cursor = 'pointer';
+            } else {
+                statePill.style.background = 'rgba(255,255,255,0.1)';
+                statePill.style.color = '#fff';
+                progressWrapper.style.display = 'none';
+                submitBtn.removeAttribute('disabled');
+                submitBtn.style.opacity = '1';
+                submitBtn.style.cursor = 'pointer';
+            }
+
+            messageDiv.innerText = status.message;
+
+            // Update log box
+            logsDiv.innerHTML = '';
+            if (status.logs && status.logs.length > 0) {
+                status.logs.forEach(log => {
+                    const div = document.createElement('div');
+                    if (log.includes('Saved:')) div.style.color = '#00FF66';
+                    else if (log.includes('Failed') || log.includes('error')) div.style.color = '#FF0055';
+                    else if (log.includes('Scanning')) div.style.color = '#00E1FF';
+                    else div.style.color = '#aaa';
+                    div.innerText = log;
+                    logsDiv.appendChild(div);
+                });
+                logsDiv.scrollTop = logsDiv.scrollHeight;
+            } else {
+                logsDiv.innerHTML = '<div style="color: #666;">[SYSTEM] Ready.</div>';
+            }
+        }
+
+        function pollStatus() {
+            fetch('/web/populate/status/')
+                .then(resp => resp.json())
+                .then(data => {
+                    updateUI(data);
+                    if (data.status === 'running') {
+                        setTimeout(pollStatus, 1500);
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to poll status:', err);
+                    setTimeout(pollStatus, 3000);
+                });
+        }
+
+        // Initialize status polling
+        pollStatus();
+    })();
+</script>
+{% endif %}
+{% endblock %}

@@ -737,3 +737,136 @@ def ReaderView(request, book_id):
 
     args.update(sopds_processor(request))
     return render(request, 'sopds_reader.html', args)
+
+from django.http import JsonResponse
+import threading
+
+# Global populate task status
+populate_lock = threading.Lock()
+populate_status = {
+    "status": "idle",       # "idle", "running", "completed", "error"
+    "current_lang": "",
+    "downloaded": 0,
+    "total": 0,
+    "message": "Ready to populate library.",
+    "logs": []
+}
+
+def update_populate_progress(lang, current, total, message):
+    global populate_status
+    with populate_lock:
+        populate_status["current_lang"] = lang
+        populate_status["downloaded"] = current
+        populate_status["total"] = total
+        populate_status["message"] = message
+        log_line = f"[{lang.upper()}] {current}/{total}: {message}"
+        if not populate_status["logs"] or populate_status["logs"][-1] != log_line:
+            populate_status["logs"].append(log_line)
+            if len(populate_status["logs"]) > 15:
+                populate_status["logs"].pop(0)
+
+def run_populate_thread(languages, limit_per_lang, outdir, trigger_scan_path):
+    global populate_status
+    with populate_lock:
+        populate_status["status"] = "running"
+        populate_status["message"] = "Initializing downloader..."
+        populate_status["logs"] = ["Initializing downloader..."]
+        
+    try:
+        import download_popular_books
+        download_popular_books.crawl_popular_books(
+            languages=languages,
+            limit_per_lang=limit_per_lang,
+            outdir=outdir,
+            trigger_scan_path=trigger_scan_path,
+            progress_callback=update_populate_progress
+        )
+        with populate_lock:
+            populate_status["status"] = "completed"
+            populate_status["message"] = "Library populated successfully!"
+            populate_status["logs"].append("Completed successfully.")
+    except Exception as e:
+        with populate_lock:
+            populate_status["status"] = "error"
+            populate_status["message"] = f"Fatal error: {e}"
+            populate_status["logs"].append(f"Fatal error: {e}")
+
+@vary_on_headers("HTTP_ACCEPT_LANGUAGE")
+@sopds_login(url='web:login')
+def PopulateView(request):
+    # Only allow superusers
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("<h1>403 Forbidden</h1><p>Only administrators can access this feature.</p>")
+        
+    global populate_status
+    args = {}
+    args.update(csrf(request))
+    args['current'] = 'populate'
+    args['languages'] = [
+        {"code": "en", "name": "English", "flag": "gb"},
+        {"code": "ru", "name": "Russian", "flag": "ru"},
+        {"code": "de", "name": "German", "flag": "de"},
+        {"code": "el", "name": "Greek", "flag": "gr"},
+        {"code": "es", "name": "Spanish", "flag": "es"},
+        {"code": "fr", "name": "French", "flag": "fr"},
+        {"code": "ar", "name": "Arabic", "flag": "sa"},
+        {"code": "hi", "name": "Hindi", "flag": "in"},
+        {"code": "pt", "name": "Portuguese", "flag": "pt"},
+        {"code": "zh", "name": "Chinese", "flag": "cn"},
+        {"code": "bn", "name": "Bengali", "flag": "bd"},
+        {"code": "nl", "name": "Dutch", "flag": "nl"},
+    ]
+    
+    if request.method == "POST":
+        # Check if already running
+        is_running = False
+        with populate_lock:
+            if populate_status["status"] == "running":
+                is_running = True
+                
+        if not is_running:
+            selected_langs = request.POST.getlist("langs")
+            if not selected_langs:
+                selected_langs = [lang["code"] for lang in args['languages']]
+                
+            try:
+                count = int(request.POST.get("count", "10"))
+                # Cap between 1 and 100 for server protection
+                count = max(1, min(100, count))
+            except ValueError:
+                count = 10
+                
+            # Default storage and scan trigger files
+            outdir = os.path.join(config.SOPDS_ROOT_LIB, "downloads")
+            trigger_scan_path = os.path.join(config.SOPDS_ROOT_LIB, ".trigger_scan")
+            
+            # Start background thread
+            t = threading.Thread(
+                target=run_populate_thread,
+                args=(selected_langs, count, outdir, trigger_scan_path)
+            )
+            t.daemon = True
+            t.start()
+            
+        return redirect("web:populate")
+        
+    with populate_lock:
+        args['populate_status'] = populate_status.copy()
+        
+    args['vailib_breadcrumbs'] = [
+        {'name': _('HOME'), 'url': '/web/'},
+        {'name': _('Populate Library'), 'url': None}
+    ]
+    args.update(sopds_processor(request))
+    return render(request, 'sopds_populate.html', args)
+
+@sopds_login(url='web:login')
+def PopulateStatusView(request):
+    if not request.user.is_superuser:
+        return JsonResponse({"error": "Forbidden"}, status=403)
+        
+    global populate_status
+    with populate_lock:
+        status_copy = populate_status.copy()
+        
+    return JsonResponse(status_copy)

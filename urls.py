@@ -17,5 +17,7 @@ urlpatterns = [
     url(r'^bs/delete/$',views.BSDelView, name='bsdel'),
     url(r'^bs/clear/$', views.BSClearView, name='bsclear'),
     url(r'^read/(?P<book_id>[0-9]+)/$', views.ReaderView, name='read'),
+    url(r'^populate/$', views.PopulateView, name='populate'),
+    url(r'^populate/status/$', views.PopulateStatusView, name='populate_status'),
     url(r'^$',views.hello, name='main'),
 ]

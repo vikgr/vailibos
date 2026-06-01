@@ -53,6 +53,7 @@ COPY middleware.py /sopds/opds_catalog/middleware.py
 COPY opds_catalog_utils.py /sopds/opds_catalog/utils.py
 COPY views.py /sopds/sopds_web_backend/views.py
 COPY urls.py /sopds/sopds_web_backend/urls.py
+COPY download_popular_books.py /sopds/download_popular_books.py
 
 # Apply template theme overrides (includes admin dashboard and mobile/e-ink templates)
 COPY templates/ /sopds/sopds_web_backend/templates/
