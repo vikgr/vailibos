@@ -59,6 +59,7 @@ class SOPDSLocaleMiddleware(MiddlewareMixin):
             'hi': 'hi',
             'pt': 'pt',
             'bn': 'bn',
+            'nl': 'nl',
         }
         
         if language in mapping:

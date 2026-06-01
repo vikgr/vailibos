@@ -66,6 +66,7 @@ class SOPDSLocaleMiddleware(MiddlewareMixin):
             'hi': 'hi',
             'pt': 'pt',
             'bn': 'bn',
+            'nl': 'nl',
         }
         
         if lang_cookie in mapping:

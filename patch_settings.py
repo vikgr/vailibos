@@ -14,6 +14,7 @@ new = """        'choices': (
             ("pt",      "Portuguese"),
             ("zh-hans", "Chinese"),
             ("bn",      "Bengali"),
+            ("nl",      "Dutch"),
         )"""
 
 if old in content:
