@@ -43,7 +43,8 @@ RUN pip install --no-cache-dir \
     pillow==10.3.0 \
     pytz==2024.1 \
     tzlocal==2.1 \
-    tornado==6.4
+    tornado==6.4 \
+    requests
 
 # Apply backend logic overrides
 COPY models.py /sopds/opds_catalog/models.py
