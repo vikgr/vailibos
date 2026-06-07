@@ -54,6 +54,10 @@
 {% endblock %}
 
 {% block content %}
+<canvas id="particle-canvas"></canvas>
+<div class="floating-orb orb-1"></div>
+<div class="floating-orb orb-2"></div>
+
 <div class="app-container">
     <!-- Sidebar Navigation -->
     <nav class="side-nav">
@@ -157,4 +161,5 @@
         </div>
     </aside>
 </div>
+<script src="{% static 'custom/js/dashboard_particles.js' %}"></script>
 {% endblock %}
