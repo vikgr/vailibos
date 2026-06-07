@@ -5,7 +5,8 @@
 {{ block.super }}
 <style>
     /* Adjustments for integrated Antigravity dashboard */
-    #content { padding: 0 !important; max-width: 100% !important; margin: 0 !important; }
+    #container { background: transparent !important; }
+    #content { padding: 0 !important; max-width: 100% !important; margin: 0 !important; background: transparent !important; }
     .app-container { height: auto !important; min-height: calc(100vh - 58px); grid-template-columns: 80px 1fr 350px !important; }
     #content-main { width: 100%; }
     
@@ -161,5 +162,5 @@
         </div>
     </aside>
 </div>
-<script src="{% static 'custom/js/dashboard_particles.js' %}"></script>
+<script src="{% static 'custom/js/dashboard_particles.js' %}?v=1.1"></script>
 {% endblock %}
