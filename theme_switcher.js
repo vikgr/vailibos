@@ -1,7 +1,10 @@
 /* Theme Switcher Script for SOPDS */
 
 (function() {
-    const theme = localStorage.getItem('sopds-theme') || 'premium';
+    const ua = navigator.userAgent.toLowerCase();
+    const isEink = /kindle|kobo|nook|pocketbook|ereader|sonyreader|e-ink|eink|boox|tolino|bookeen|onyx/.test(ua);
+    const defaultTheme = isEink ? 'eink' : 'premium';
+    const theme = localStorage.getItem('sopds-theme') || defaultTheme;
     document.documentElement.setAttribute('data-theme', theme);
 })();
 

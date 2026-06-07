@@ -60,8 +60,13 @@ def sopds_processor(request):
     if theme_cookie in ['eink', 'premium']:
         args['vailib_theme'] = theme_cookie
     else:
-        # Default to premium for all users. E-Ink users opt-in via the theme switcher.
-        args['vailib_theme'] = 'premium'
+        # Detect e-ink devices in user agent
+        eink_agents = ['kindle', 'kobo', 'nook', 'pocketbook', 'ereader', 'sonyreader', 
+                       'eink', 'e-ink', 'boox', 'tolino', 'bookeen', 'onyx']
+        if any(keyword in user_agent for keyword in eink_agents):
+            args['vailib_theme'] = 'eink'
+        else:
+            args['vailib_theme'] = 'premium'
             
     args['app_title']=settings.TITLE
     args['sopds_auth']=config.SOPDS_AUTH

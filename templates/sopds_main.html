@@ -17,7 +17,10 @@
     <link rel="stylesheet" type="text/css" href="{% static 'custom/css/modern.css' %}?v=22">
     <script>
         (function () {
-            const theme = localStorage.getItem('sopds-theme') || 'eink';
+            const ua = navigator.userAgent.toLowerCase();
+            const isEink = /kindle|kobo|nook|pocketbook|ereader|sonyreader|e-ink|eink|boox|tolino|bookeen|onyx/.test(ua);
+            const defaultTheme = isEink ? 'eink' : 'premium';
+            const theme = localStorage.getItem('sopds-theme') || defaultTheme;
             document.documentElement.setAttribute('data-theme', theme);
         })();
     </script>
