@@ -90,9 +90,18 @@ The Django admin at `/admin/constance/config/` received a full premium dark them
 
 ---
 
+## Phase 5 — Online EPUB Reader Refactoring & Layout Control (June 2026)
+
+We resolved critical crashes in the web-based EPUB reader and refined its rendering layout:
+1. **Scoped `djvu_viewer.js` (Fixed jQuery `$`)**: Wrapped the entire `djvu_viewer.js` bundle in an Immediately Invoked Function Expression (IIFE) closure to isolate its inner variables (such as its internal `const $`) from the global script scope. This resolved the crash where jQuery's `$` was shadowed, allowing Foundation's `$(document).foundation()` to execute correctly.
+2. **In-Memory ZIP Parsing (Fixed 404 `container.xml`)**: Configured `loadEPUB` in `sopds_reader.html` to fetch the book URL as an `ArrayBuffer` and pass the binary array directly to `ePub()`. This enables `epub.js` to parse the book in-memory using `JSZip` instead of assuming the extensionless OPDS download URL represents an unpacked directory structure and making failing requests for `/META-INF/container.xml`.
+3. **Forced Single-Column Layout**: Added the `spread: "none"` option to the rendition settings of `epub.js` to disable the default dual-column layout on wide screens, resulting in a cleaner, single-column paginated view.
+
+---
+
 ## ✅ Current Status
 
-All four phases are complete and pushed to GitHub (`main`). To deploy to production:
+All five phases are complete and pushed to GitHub (`main`). To deploy to production:
 
 ```bash
 # On hproliant
