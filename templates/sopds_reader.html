@@ -696,7 +696,12 @@
     // --- EPUB READER ---
     async function loadEPUB() {
         loadingStatus.innerText = "Loading EPUB...";
-        const book = ePub(BOOK_URL);
+        const response = await fetch(BOOK_URL);
+        if (!response.ok) {
+            throw new Error("Failed to fetch EPUB file from server.");
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        const book = ePub(arrayBuffer);
         const rendition = book.renderTo(container, {
             width: "100%",
             height: "100%",
