@@ -1,4 +1,4 @@
-# 🤖 AI Context: Vailib Project (v4.2 — April 22, 2026)
+# 🤖 AI Context: Vailib Project (v4.3 — June 9, 2026)
 
 **ATTENTION ASSISTANT**: You are continuing development of **Vailib**, a modernized digital library system built on SOPDS. Read this document fully before proceeding.
 
@@ -58,14 +58,18 @@ The Django admin at `/admin/constance/config/` has been **completely rebuilt** u
 - **Admin CSS Pro Theme**: Implemented high-contrast professional GitHub-dark palette in `admin_theme.css`.
 - **Deployment Verification**: Successfully deployed to `hproliant` and verified via browser.
 
+### Phase 5 (June 2026)
+- **Online EPUB Reader Fixes**: Wrapped jQuery/Foundation conflicts in IIFE, implemented ArrayBuffer ZIP parsing, and forced single-column layout flow.
+
+### Phase 6 (June 2026)
+- **Aggregated Language Sorting**: Grouped DB lang variants, mapped standard codes, and fixed display overflow on cards.
+
 ---
 
 ## 📋 NEXT SESSION PRIORITIES
 
-1. **[COMPLETED] Container Merger**: Build the `vailib:latest` Docker image (from `Dockerfile_vailib`) that compiles everything natively — eliminating all bind-mounts entirely.
-2. **[COMPLETED] Converter Bot Integration**: Verify the Telegram bot drops files into `/library` and triggers a re-scan.
-3. **[COMPLETED] Auto-Scan Hook**: Trigger `sopds_scanner` whenever the bot finishes a conversion.
-4. **Kindle Stress Test**: Verify absolute 1-bit rendering on a physical Kindle/Kobo.
+1. **Kindle Stress Test**: Verify absolute 1-bit rendering on a physical Kindle/Kobo.
+2. **Auto-Scan Hook Verification**: Ensure scanner detects files converted by bot instantly.
 
 ---
 
