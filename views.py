@@ -25,6 +25,37 @@ from opds_catalog.opds_paginator import Paginator as OPDS_Paginator
 
 from sopds_web_backend.settings import HALF_PAGES_LINKS
 
+LANG_MAP = {
+    'ru': ['русский', 'rus', 'ru', 'рус', 'russian'],
+    'en': ['английский', 'eng', 'en', 'english'],
+    'de': ['немецкий', 'ger', 'deu', 'de', 'german'],
+    'el': ['греческий', 'ell', 'gre', 'el', 'greek'],
+    'es': ['испанский', 'spa', 'es', 'spanish'],
+    'fr': ['французский', 'fra', 'fre', 'fr', 'french'],
+    'ar': ['арабский', 'ara', 'ar', 'arabic'],
+    'hi': ['хинди', 'hin', 'hi', 'hindi'],
+    'pt': ['португальский', 'por', 'pt', 'portuguese'],
+    'zh': ['китайский', 'zho', 'chi', 'zh', 'chinese'],
+    'bn': ['бенгальский', 'ben', 'bn', 'bengali'],
+    'nl': ['нидерландский', 'nld', 'dut', 'nl', 'dutch'],
+}
+
+LANG_NAMES = {
+    'en': {'name': _('English'), 'flag': 'gb'},
+    'ru': {'name': _('Russian'), 'flag': 'ru'},
+    'de': {'name': _('German'), 'flag': 'de'},
+    'el': {'name': _('Greek'), 'flag': 'gr'},
+    'es': {'name': _('Spanish'), 'flag': 'es'},
+    'fr': {'name': _('French'), 'flag': 'fr'},
+    'ar': {'name': _('Arabic'), 'flag': 'sa'},
+    'hi': {'name': _('Hindi'), 'flag': 'in'},
+    'pt': {'name': _('Portuguese'), 'flag': 'pt'},
+    'zh': {'name': _('Chinese'), 'flag': 'cn'},
+    'bn': {'name': _('Bengali'), 'flag': 'bd'},
+    'nl': {'name': _('Dutch'), 'flag': 'nl'},
+}
+
+
 def get_annotation(mybook):
     full_path = os.path.join(config.SOPDS_ROOT_LIB, mybook.path)
     # Убираем из пути INPX и INP файл
@@ -240,13 +271,19 @@ def SearchBooksView(request):
             ]
             args['searchobject'] = 'title'
             
-        # Поиск по языку
         elif searchtype == 'l':
-            books = Book.objects.filter(lang=searchterms).order_by('search_title', '-docdate')
+            target_langs = LANG_MAP.get(searchterms.lower(), [searchterms])
+            from django.db.models import Q
+            q_objects = Q()
+            for l in target_langs:
+                q_objects |= Q(lang__iexact=l)
+            books = Book.objects.filter(q_objects).order_by('search_title', '-docdate')
+            
+            friendly_name = LANG_NAMES.get(searchterms.lower(), {}).get('name', searchterms.upper())
             args['vailib_breadcrumbs'] = [
                 {'name': _('Books'), 'url': '/web/book/?lang=0'},
                 {'name': _('Languages'), 'url': '/web/language/'},
-                {'name': searchterms.upper(), 'url': '?searchtype=l&searchterms=%s' % searchterms}
+                {'name': friendly_name, 'url': '?searchtype=l&searchterms=%s' % searchterms}
             ]
             args['searchobject'] = 'title'
             
@@ -891,50 +928,36 @@ def PopulateStatusView(request):
 def LanguagesView(request):
     args = {}
     from django.db.models import Count
-    raw_langs = Book.objects.values('lang').annotate(book_count=Count('id')).filter(book_count__gt=0).order_by('-book_count')
+    raw_langs = Book.objects.values('lang').annotate(book_count=Count('id')).filter(book_count__gt=0)
     
-    lang_names = {
-        'en': {'name': 'English', 'flag': 'gb'},
-        'ru': {'name': 'Russian', 'flag': 'ru'},
-        'de': {'name': 'German', 'flag': 'de'},
-        'el': {'name': 'Greek', 'flag': 'gr'},
-        'es': {'name': 'Spanish', 'flag': 'es'},
-        'fr': {'name': 'French', 'flag': 'fr'},
-        'ar': {'name': 'Arabic', 'flag': 'sa'},
-        'hi': {'name': 'Hindi', 'flag': 'in'},
-        'pt': {'name': 'Portuguese', 'flag': 'pt'},
-        'zh': {'name': 'Chinese', 'flag': 'cn'},
-        'bn': {'name': 'Bengali', 'flag': 'bd'},
-        'nl': {'name': 'Dutch', 'flag': 'nl'},
-    }
-    
-    languages = []
+    # Reverse lang map to helper dict for fast resolution
+    reverse_map = {}
+    for std_code, aliases in LANG_MAP.items():
+        for alias in aliases:
+            reverse_map[alias] = std_code
+            
+    aggregated = {}
     for row in raw_langs:
-        code = row['lang'].lower().strip()
-        if not code:
+        raw_val = row['lang'].lower().strip()
+        if not raw_val:
             continue
-        std_code = code
-        if code == 'rus': std_code = 'ru'
-        elif code == 'eng': std_code = 'en'
-        elif code == 'ger' or code == 'deu': std_code = 'de'
-        elif code == 'fra' or code == 'fre': std_code = 'fr'
-        elif code == 'spa': std_code = 'es'
-        elif code == 'ell' or code == 'gre': std_code = 'el'
-        elif code == 'zho' or code == 'chi': std_code = 'zh'
-        elif code == 'ara': std_code = 'ar'
-        elif code == 'hin': std_code = 'hi'
-        elif code == 'por': std_code = 'pt'
-        elif code == 'ben': std_code = 'bn'
-        elif code == 'nld' or code == 'dut': std_code = 'nl'
+        std_code = reverse_map.get(raw_val, raw_val)
         
-        info = lang_names.get(std_code, {'name': code.upper(), 'flag': None})
+        if std_code not in aggregated:
+            aggregated[std_code] = 0
+        aggregated[std_code] += row['book_count']
+        
+    languages = []
+    for std_code, count in aggregated.items():
+        info = LANG_NAMES.get(std_code, {'name': std_code.upper(), 'flag': None})
         languages.append({
-            'code': code,
-            'std_code': std_code,
+            'code': std_code,
             'name': info['name'],
             'flag': info['flag'],
-            'book_count': row['book_count']
+            'book_count': count
         })
+    languages.sort(key=lambda x: x['book_count'], reverse=True)
+    
         
     args['languages'] = languages
     args['current'] = 'language'

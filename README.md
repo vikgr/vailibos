@@ -44,6 +44,17 @@ Integrated **Telegram Converter Bot** support:
 - **OCR Integration**: Automatically performs OCR on image-only documents.
 - **Auto-Cataloging**: Converted documents are instantly saved to the library volume and indexed for the web catalog.
 
+### 📖 Integrated Online EPUB Reader
+- **Conflict Isolation**: Resolved jQuery `$` conflicts and Foundation crashes by wrapping viewer dependencies in closed IIFE scopes.
+- **In-Memory ZIP Processing**: Replaced directory-based URL requests with binary `ArrayBuffer` stream parsing using `JSZip` inside `epub.js`, eliminating 404 path errors.
+- **Single-Column Pagination**: Standardized layout configuration using `spread: "none"` to deliver clean, optimized single-column reading on all desktop screens.
+
+### 🌐 Multi-Language Catalog Sorting
+- **Aggregated View**: Grouped database language records by standard two-letter code (e.g. `'ru'`, `'en'`) and summed up counts to display unified language cards.
+- **Normalized Query Matching**: Clicking a language card filters books case-insensitively across multiple database aliases.
+- **Interactive Flags**: Dynamically loaded country flags from `flagcdn.com` alongside localized language titles.
+
+
 ### ⚡ Git-Based Deployment
 Vailib uses a clean git-pull deployment model:
 - Edit locally → `git push` to GitHub → `bash deploy.sh` on the server.

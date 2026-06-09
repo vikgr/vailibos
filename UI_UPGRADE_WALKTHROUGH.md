@@ -110,9 +110,19 @@ bash /home/vik/vailib/deploy.sh
 
 ---
 
+## Phase 6 — Aggregated Language Sorting & Browsing (June 2026)
+
+We implemented a robust language browsing view (`/web/language/`) and updated search filters:
+1. **Case-Insensitive Database Variant Querying**: Updated `SearchBooksView` to map the selected standard language code (e.g. `'ru'`) to all recognized database aliases (`['русский', 'rus', 'ru', 'рус', 'russian']`) and perform a case-insensitive query using Django's `__iexact` filter in a `Q` object, eliminating empty page results.
+2. **Standardized Aggregated Grouping**: Rewrote `LanguagesView` to group database language fields by their standard two-letter code and sum the `book_count`, displaying clean country flags and localized names without duplicate cards.
+3. **Responsive Card Design**: Adjusted layout templates in `sopds_languages.html` to use a dynamic `min-height` card system, `1rem` font sizes, and explicit `word-break: break-all` wrapping to prevent long uppercase words like "НИДЕРЛАНДСКИЙ" from overflowing container boxes.
+
+---
+
 ## 🔭 Future Roadmap
 
 - [ ] **Container Merger**: Build `vailib:latest` from `docker/` — compiles everything natively, eliminating all bind-mounts.
 - [ ] **Auto-Scan Hook**: Trigger `sopds_scanner` automatically when the Telegram bot finishes a conversion.
 - [ ] **Converter Bot Hardening**: Stress-test bulk PDF/DJVU processing and error recovery.
 - [ ] **Kindle Stress Test**: Verify absolute 1-bit rendering on a physical Kindle/Kobo device.
+
