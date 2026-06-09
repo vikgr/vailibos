@@ -1,0 +1,25 @@
+{% extends "sopds_main.html" %}
+{% load staticfiles %}
+{% load i18n %}
+
+{% block body %}
+{% autoescape on %}
+<div class="index-grid">
+    {% for lang in languages %}
+    <a href="{% url 'web:searchbooks' %}?searchtype=l&searchterms={{ lang.code }}" class="index-card">
+        <div class="index-letter" style="font-size: 1.25rem; font-weight: 800; line-height: 1.2; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90px; padding: 5px; margin: 0; text-align: center; gap: 8px;">
+            {% if lang.flag %}
+            <img src="https://flagcdn.com/w40/{{ lang.flag }}.png" width="30" alt="{{ lang.name }}" style="border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.08);">
+            {% else %}
+            <i class="fi-flag" style="font-size: 1.5rem; color: var(--reader-accent);"></i>
+            {% endif %}
+            <span>{{ lang.name }}</span>
+        </div>
+        <div class="index-count">
+            <span data-trans="t_tot">Total:</span> {{ lang.book_count }} <span data-trans="t_bk">books.</span>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% endautoescape %}
+{% endblock %}

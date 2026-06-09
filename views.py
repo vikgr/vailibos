@@ -240,6 +240,16 @@ def SearchBooksView(request):
             ]
             args['searchobject'] = 'title'
             
+        # Поиск по языку
+        elif searchtype == 'l':
+            books = Book.objects.filter(lang=searchterms).order_by('search_title', '-docdate')
+            args['vailib_breadcrumbs'] = [
+                {'name': _('Books'), 'url': '/web/book/?lang=0'},
+                {'name': _('Languages'), 'url': '/web/language/'},
+                {'name': searchterms.upper(), 'url': '?searchtype=l&searchterms=%s' % searchterms}
+            ]
+            args['searchobject'] = 'title'
+            
         # Поиск книги по ID.
         elif searchtype == 'i':
             try:
@@ -875,3 +885,62 @@ def PopulateStatusView(request):
         status_copy = populate_status.copy()
         
     return JsonResponse(status_copy)
+
+@vary_on_headers("HTTP_ACCEPT_LANGUAGE")
+@sopds_login(url='web:login')
+def LanguagesView(request):
+    args = {}
+    from django.db.models import Count
+    raw_langs = Book.objects.values('lang').annotate(book_count=Count('id')).filter(book_count__gt=0).order_by('-book_count')
+    
+    lang_names = {
+        'en': {'name': 'English', 'flag': 'gb'},
+        'ru': {'name': 'Russian', 'flag': 'ru'},
+        'de': {'name': 'German', 'flag': 'de'},
+        'el': {'name': 'Greek', 'flag': 'gr'},
+        'es': {'name': 'Spanish', 'flag': 'es'},
+        'fr': {'name': 'French', 'flag': 'fr'},
+        'ar': {'name': 'Arabic', 'flag': 'sa'},
+        'hi': {'name': 'Hindi', 'flag': 'in'},
+        'pt': {'name': 'Portuguese', 'flag': 'pt'},
+        'zh': {'name': 'Chinese', 'flag': 'cn'},
+        'bn': {'name': 'Bengali', 'flag': 'bd'},
+        'nl': {'name': 'Dutch', 'flag': 'nl'},
+    }
+    
+    languages = []
+    for row in raw_langs:
+        code = row['lang'].lower().strip()
+        if not code:
+            continue
+        std_code = code
+        if code == 'rus': std_code = 'ru'
+        elif code == 'eng': std_code = 'en'
+        elif code == 'ger' or code == 'deu': std_code = 'de'
+        elif code == 'fra' or code == 'fre': std_code = 'fr'
+        elif code == 'spa': std_code = 'es'
+        elif code == 'ell' or code == 'gre': std_code = 'el'
+        elif code == 'zho' or code == 'chi': std_code = 'zh'
+        elif code == 'ara': std_code = 'ar'
+        elif code == 'hin': std_code = 'hi'
+        elif code == 'por': std_code = 'pt'
+        elif code == 'ben': std_code = 'bn'
+        elif code == 'nld' or code == 'dut': std_code = 'nl'
+        
+        info = lang_names.get(std_code, {'name': code.upper(), 'flag': None})
+        languages.append({
+            'code': code,
+            'std_code': std_code,
+            'name': info['name'],
+            'flag': info['flag'],
+            'book_count': row['book_count']
+        })
+        
+    args['languages'] = languages
+    args['current'] = 'language'
+    args['vailib_breadcrumbs'] = [
+        {'name': _('Books'), 'url': '/web/book/?lang=0'},
+        {'name': _('Languages'), 'url': None}
+    ]
+    args.update(sopds_processor(request))
+    return render(request, 'sopds_languages.html', args)

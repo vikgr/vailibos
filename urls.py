@@ -9,6 +9,7 @@ urlpatterns = [
     url(r'^search/series/$',views.SearchSeriesView, name='searchseries'),
     url(r'^catalog/$',views.CatalogsView, name='catalog'),
     url(r'^book/$',views.BooksView, name='book'),
+    url(r'^language/$', views.LanguagesView, name='language'),
     url(r'^author/$',views.AuthorsView, name='author'),
     url(r'^genre/$',views.GenresView, name='genre'),
     url(r'^series/$',views.SeriesView, name='series'),
