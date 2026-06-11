@@ -300,6 +300,14 @@ def SearchBooksView(request):
                 # Find other formats for this book
                 duplicates = Book.objects.filter(title=mbook.title, authors__in=mbook.authors.all()).distinct()
                 args['all_formats'] = [{'id': b.id, 'format': b.format} for b in duplicates]
+                args['has_epub'] = any(b.format.lower() == 'epub' for b in duplicates)
+                
+                message = request.GET.get('message')
+                if message == 'converting':
+                    args['system_message'] = {
+                        'text': _('Manual conversion to EPUB triggered. The book will appear in the catalog shortly.'),
+                        'type': 'success'
+                    }
 
             args['vailib_breadcrumbs'] = [
                 {'name': _('Books'), 'url': '/web/book/?lang=0'},
@@ -967,3 +975,43 @@ def LanguagesView(request):
     ]
     args.update(sopds_processor(request))
     return render(request, 'sopds_languages.html', args)
+
+
+@sopds_login(url='web:login')
+def ConvertManualView(request, book_id):
+    import threading
+    import subprocess
+    
+    try:
+        book_id = int(book_id)
+        book = Book.objects.get(id=book_id)
+    except (ValueError, Book.DoesNotExist):
+        raise Http404
+        
+    if book.format.lower() not in ['pdf', 'djvu']:
+        return redirect('/web/search/books/?searchtype=i&searchterms=%s' % book_id)
+        
+    # Paths setup
+    in_path = os.path.join(config.SOPDS_ROOT_LIB, book.path, book.filename)
+    out_name = os.path.splitext(book.filename)[0] + ".epub"
+    out_path = os.path.join(config.SOPDS_ROOT_LIB, book.path, out_name)
+    trigger_path = os.path.join(config.SOPDS_ROOT_LIB, ".trigger_scan")
+    
+    # Run conversion in a background thread to prevent HTTP timeouts
+    def run_conversion():
+        try:
+            # calibre's ebook-convert
+            subprocess.run(["ebook-convert", in_path, out_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # touch trigger scan
+            with open(trigger_path, 'a'):
+                os.utime(trigger_path, None)
+        except Exception:
+            pass
+
+    t = threading.Thread(target=run_conversion)
+    t.daemon = True
+    t.start()
+    
+    # Redirect back to the book's details page with message
+    return redirect('/web/search/books/?searchtype=i&searchterms=%s&message=converting' % book_id)
+

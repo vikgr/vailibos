@@ -83,7 +83,7 @@
             <p class="vl-detail-desc">{{ b.annotation|truncatechars:280 }}</p>
             {% endif %}
             <div class="vl-detail-actions-label">Download:</div>
-            <div class="vl-detail-actions">
+            <div class="vl-detail-actions" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
                 {% if b.format|lower in 'pdf,epub,fb2,djvu' %}
                 <a href="{% url 'web:read' b.id %}" class="vl-download-btn" style="background: var(--reader-accent, #8b5cf6); border-color: var(--reader-accent, #8b5cf6); color: #fff;">
                     📖 READ ONLINE
@@ -99,6 +99,14 @@
                     <a href="{% url 'opds_catalog:download' b.id 0 %}" class="vl-download-btn {{ b.format|format_badge_class }}">
                         ↓ {{ b.format|upper }}
                     </a>
+                {% endif %}
+                
+                {% if b.format|lower == 'pdf' or b.format|lower == 'djvu' %}
+                    {% if not has_epub %}
+                    <a href="{% url 'web:convert_manual' b.id %}" class="vl-download-btn" style="background: #10b981; border-color: #10b981; color: #fff; margin-left: auto;">
+                        ⚡ CONVERT TO EPUB
+                    </a>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>
