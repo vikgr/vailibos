@@ -1,0 +1,855 @@
+{% extends "sopds_main.html" %}
+{% load i18n %}
+
+{% block content %}
+<style>
+    /* Styling for native Settings page */
+    .settings-container {
+        display: flex;
+        gap: 30px;
+        position: relative;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding-bottom: 80px;
+    }
+
+    .settings-form-wrapper {
+        flex: 1;
+        min-width: 0; /* Prevents flex items from overflowing */
+    }
+
+    /* Sticky save bar */
+    .sticky-save-bar {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 20px;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 25px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        background: rgba(20, 24, 32, 0.85);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sticky-save-bar.unsaved {
+        border-color: rgba(42, 195, 255, 0.3);
+        box-shadow: 0 10px 30px rgba(42, 195, 255, 0.15);
+        background: rgba(25, 30, 40, 0.9);
+    }
+
+    .save-status-text {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .save-status-text .indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #00FF66; /* green */
+        display: inline-block;
+        box-shadow: 0 0 8px rgba(0, 255, 102, 0.5);
+        transition: all 0.3s ease;
+    }
+
+    .sticky-save-bar.unsaved .save-status-text .indicator {
+        background-color: #FF9900; /* amber */
+        box-shadow: 0 0 10px #FF9900;
+        animation: pulse-amber 2s infinite;
+    }
+
+    @keyframes pulse-amber {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.2); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .sticky-save-bar.unsaved .save-status-text {
+        color: var(--text-main);
+    }
+
+    .save-btn {
+        background: var(--accent);
+        color: #000 !important;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 24px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: var(--accent-glow);
+    }
+
+    .save-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 0 20px rgba(42, 195, 255, 0.5);
+    }
+
+    .save-btn:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    .save-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background: var(--text-muted);
+        color: rgba(0,0,0,0.5) !important;
+        box-shadow: none;
+    }
+
+    /* Sidebar navigation */
+    .settings-nav-sidebar {
+        width: 240px;
+        position: -webkit-sticky;
+        position: sticky;
+        top: 100px;
+        height: fit-content;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .settings-nav-sidebar h5 {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+        padding-left: 8px;
+    }
+
+    .settings-nav-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .settings-nav-link:hover {
+        color: var(--text-main);
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .settings-nav-link.active {
+        color: #000 !important;
+        background: var(--accent);
+        border-color: var(--accent);
+        font-weight: 800;
+        box-shadow: var(--accent-glow);
+    }
+
+    .settings-nav-link.active .nav-shortcut {
+        color: rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-shortcut {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        background: rgba(0,0,0,0.2);
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    /* Collapsible sections */
+    .fieldset-card {
+        background: rgba(20, 24, 32, 0.45);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        margin-bottom: 30px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        scroll-margin-top: 100px; /* Offset scroll when jumping */
+    }
+
+    .fieldset-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.02);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        user-select: none;
+        transition: background-color 0.2s;
+    }
+
+    .fieldset-header:hover {
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    .fieldset-header h3 {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .fieldset-header h3 i {
+        color: var(--accent);
+    }
+
+    .fieldset-chevron {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .fieldset-card.collapsed .fieldset-chevron {
+        transform: rotate(-90deg);
+    }
+
+    .fieldset-body {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .fieldset-card.collapsed .fieldset-body {
+        display: none;
+    }
+
+    /* Form controls */
+    .setting-row {
+        display: grid;
+        grid-template-columns: 1fr 280px;
+        gap: 20px;
+        align-items: center;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .setting-row:last-child {
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .setting-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .setting-label {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--text-main);
+    }
+
+    .setting-help {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        line-height: 1.4;
+    }
+
+    .input-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+
+    .input-field {
+        width: 100%;
+        background: rgba(0, 0, 0, 0.35) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 8px !important;
+        color: #fff !important;
+        padding: 10px 14px !important;
+        font-size: 0.9rem !important;
+        font-family: inherit !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        height: auto !important;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input-field:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 10px rgba(42, 195, 255, 0.2) !important;
+    }
+
+    select.input-field {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 10px center !important;
+        padding-right: 35px !important;
+    }
+
+    /* iOS Toggle switch styling */
+    .switch-wrapper {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 52px;
+        height: 28px;
+        margin: 0;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.08);
+        transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 34px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background-color: #ffffff;
+        transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 50%;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    input:checked + .slider {
+        background-color: var(--accent);
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(24px);
+        background-color: #0d1015;
+    }
+
+    /* Password eye toggle */
+    .password-toggle-btn {
+        position: absolute;
+        right: 12px;
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        font-size: 1.1rem;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 5;
+    }
+
+    .password-toggle-btn:hover {
+        color: var(--accent);
+    }
+
+    /* Extension chips */
+    .chips-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .extension-chip {
+        font-size: 0.72rem;
+        font-weight: 800;
+        padding: 3px 10px;
+        border-radius: 20px;
+        background: rgba(42, 195, 255, 0.08);
+        color: var(--accent);
+        border: 1px solid rgba(42, 195, 255, 0.15);
+        letter-spacing: 0.3px;
+    }
+
+    /* E-Ink Theme Custom Style Overrides */
+    [data-theme="eink"] .settings-container {
+        max-width: 100%;
+        display: block;
+        padding-bottom: 40px;
+    }
+
+    [data-theme="eink"] .sticky-save-bar {
+        position: static;
+        background: #ffffff;
+        color: #000000;
+        border: 2px solid #000000;
+        box-shadow: none;
+        border-radius: 0;
+        margin-bottom: 25px;
+        padding: 15px;
+    }
+
+    [data-theme="eink"] .save-status-text {
+        color: #000000;
+    }
+
+    [data-theme="eink"] .save-status-text .indicator {
+        background-color: #000000;
+        box-shadow: none;
+        border: 1px solid #000000;
+        animation: none !important;
+    }
+
+    [data-theme="eink"] .save-btn {
+        background: #000000;
+        color: #ffffff !important;
+        border: 2px solid #000000;
+        border-radius: 0;
+        font-weight: bold;
+        box-shadow: none;
+        padding: 8px 20px;
+    }
+
+    [data-theme="eink"] .save-btn:hover:not(:disabled) {
+        background: #ffffff;
+        color: #000000 !important;
+        transform: none;
+    }
+
+    [data-theme="eink"] .save-btn:disabled {
+        background: #ffffff;
+        color: #888888 !important;
+        border-color: #888888;
+        opacity: 1;
+    }
+
+    [data-theme="eink"] .settings-nav-sidebar {
+        display: none !important;
+    }
+
+    [data-theme="eink"] .fieldset-card {
+        background: #ffffff;
+        border: 2px solid #000000;
+        border-radius: 0;
+        margin-bottom: 25px;
+        box-shadow: none;
+    }
+
+    [data-theme="eink"] .fieldset-header {
+        background: #ffffff;
+        border-bottom: 2px solid #000000;
+        padding: 15px 20px;
+    }
+
+    [data-theme="eink"] .fieldset-header h3 {
+        color: #000000;
+        font-weight: bold;
+    }
+
+    [data-theme="eink"] .fieldset-header h3 i {
+        color: #000000;
+    }
+
+    [data-theme="eink"] .fieldset-chevron {
+        color: #000000;
+    }
+
+    [data-theme="eink"] .fieldset-body {
+        padding: 20px;
+        gap: 20px;
+    }
+
+    [data-theme="eink"] .setting-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #000000;
+    }
+
+    [data-theme="eink"] .setting-row:last-child {
+        border-bottom: none;
+    }
+
+    [data-theme="eink"] .setting-label {
+        color: #000000;
+    }
+
+    [data-theme="eink"] .setting-help {
+        color: #333333;
+    }
+
+    [data-theme="eink"] .input-field {
+        background: #ffffff !important;
+        border: 2px solid #000000 !important;
+        border-radius: 0 !important;
+        color: #000000 !important;
+        padding: 8px 10px !important;
+    }
+
+    [data-theme="eink"] select.input-field {
+        background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>") !important;
+    }
+
+    [data-theme="eink"] .switch-wrapper {
+        justify-content: flex-start;
+    }
+
+    [data-theme="eink"] .switch {
+        width: auto;
+        height: auto;
+    }
+
+    [data-theme="eink"] .switch input {
+        opacity: 1;
+        width: auto;
+        height: auto;
+        position: static;
+        margin-right: 8px;
+    }
+
+    [data-theme="eink"] .slider {
+        display: none;
+    }
+
+    [data-theme="eink"] .extension-chip {
+        background: #ffffff;
+        color: #000000;
+        border: 1px solid #000000;
+        border-radius: 0;
+        font-weight: bold;
+    }
+
+    /* Layout adjustments for smaller screens */
+    @media (max-width: 900px) {
+        .settings-container {
+            flex-direction: column;
+        }
+        .settings-nav-sidebar {
+            display: none;
+        }
+        .setting-row {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .switch-wrapper {
+            justify-content: flex-start;
+        }
+    }
+</style>
+
+<div class="settings-container">
+    
+    <!-- MAIN FORM COLUMN -->
+    <div class="settings-form-wrapper">
+        <form method="post" id="settings-form">
+            {% csrf_token %}
+            
+            <!-- Sticky Action Bar -->
+            <div class="sticky-save-bar" id="save-bar">
+                <div class="save-status-text">
+                    <span class="indicator"></span>
+                    <span id="save-status-label" data-trans="all_saved">All settings saved.</span>
+                </div>
+                <button type="submit" class="save-btn" id="save-button" disabled>Save Changes</button>
+            </div>
+
+            <!-- Configuration Sections -->
+            {% for section, fields in config_data.items %}
+            <div class="fieldset-card" id="section-{{ forloop.counter }}">
+                <div class="fieldset-header" onclick="toggleSection('section-{{ forloop.counter }}')">
+                    <h3>
+                        {% if forloop.counter == 1 %}<i class="fi-widget"></i>
+                        {% elif forloop.counter == 2 %}<i class="fi-web"></i>
+                        {% elif forloop.counter == 3 %}<i class="fi-magnifying-glass"></i>
+                        {% elif forloop.counter == 4 %}<i class="fi-clock"></i>
+                        {% elif forloop.counter == 5 %}<i class="fi-comment"></i>
+                        {% elif forloop.counter == 6 %}<i class="fi-refresh"></i>
+                        {% else %}<i class="fi-page"></i>{% endif %}
+                        <span>{{ section }}</span>
+                    </h3>
+                    <span class="fieldset-chevron">▼</span>
+                </div>
+                
+                <div class="fieldset-body">
+                    {% for field in fields %}
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <span class="setting-label">{{ field.name }}</span>
+                            <span class="setting-help">{{ field.help_text }}</span>
+                            
+                            <!-- Extension Chips Decorator -->
+                            {% if field.name == 'SOPDS_BOOK_EXTENSIONS' %}
+                            <div class="chips-container" id="extensions-chips-wrapper">
+                                <!-- Generated by JS -->
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <!-- Boolean (Switch) -->
+                            {% if field.type == 'bool' %}
+                            <div class="switch-wrapper">
+                                <label class="switch">
+                                    <input type="checkbox" name="{{ field.name }}" {% if field.value %}checked{% endif %} class="config-input">
+                                    <span class="slider"></span>
+                                </label>
+                                <!-- Visible checkbox label for E-ink mode -->
+                                <span class="eink-only-label" style="display:none; margin-left: 8px; font-weight: bold; font-size: 0.9rem;">Enabled</span>
+                            </div>
+
+                            <!-- Choice List -->
+                            {% elif field.type == 'choice' %}
+                            <div class="input-container">
+                                <select name="{{ field.name }}" class="input-field config-input">
+                                    {% for val, label in field.choices %}
+                                    <option value="{{ val }}" {% if field.value == val %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Integer Number -->
+                            {% elif field.type == 'int' %}
+                            <div class="input-container">
+                                <input type="number" name="{{ field.name }}" value="{{ field.value }}" class="input-field config-input">
+                            </div>
+
+                            <!-- Secret Token Masking -->
+                            {% elif field.name == 'SOPDS_TELEBOT_API_TOKEN' %}
+                            <div class="input-container">
+                                <input type="password" name="{{ field.name }}" id="id_{{ field.name }}" value="{{ field.value }}" class="input-field config-input">
+                                <button type="button" class="password-toggle-btn" onclick="toggleTokenMask('id_{{ field.name }}', this)" title="Show/Hide Token">
+                                    <i class="fi-eye"></i>
+                                </button>
+                            </div>
+
+                            <!-- Default String / Paths -->
+                            {% else %}
+                            <div class="input-container">
+                                <input type="text" name="{{ field.name }}" id="id_{{ field.name }}" value="{{ field.value }}" class="input-field config-input">
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            
+        </form>
+    </div>
+
+    <!-- RIGHT-HAND JUMP MENU (PREMIUM ONLY) -->
+    <div class="settings-nav-sidebar" id="jump-sidebar">
+        <h5>Sections Jump</h5>
+        {% for section, fields in config_data.items %}
+        <a href="#section-{{ forloop.counter }}" class="settings-nav-link" id="nav-link-{{ forloop.counter }}" onclick="scrollToSection(event, 'section-{{ forloop.counter }}')">
+            <span>{{ section|slice:"3:" }}</span>
+            <span class="nav-shortcut">#{{ forloop.counter }}</span>
+        </a>
+        {% endfor %}
+    </div>
+
+</div>
+
+<script>
+    // Collapse/Expand Section Handler
+    function toggleSection(sectionId) {
+        const card = document.getElementById(sectionId);
+        card.classList.toggle('collapsed');
+    }
+
+    // Scroll with offset smooth handler
+    function scrollToSection(e, sectionId) {
+        e.preventDefault();
+        const section = document.getElementById(sectionId);
+        if (section) {
+            // Expand the section if it is collapsed
+            section.classList.remove('collapsed');
+            
+            const offset = 90; // sticky bar offset
+            const bodyRect = document.body.getBoundingClientRect().top;
+            const elementRect = section.getBoundingClientRect().top;
+            const elementPosition = elementRect - bodyRect;
+            const offsetPosition = elementPosition - offset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
+    }
+
+    // Toggle Telegram API Token visibility
+    function toggleTokenMask(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.style.color = 'var(--accent)';
+        } else {
+            input.type = 'password';
+            icon.style.color = 'var(--text-muted)';
+        }
+    }
+
+    // Generate extension chips
+    function renderExtensionChips() {
+        const input = document.getElementById('id_SOPDS_BOOK_EXTENSIONS');
+        const wrapper = document.getElementById('extensions-chips-wrapper');
+        if (!input || !wrapper) return;
+
+        function updateChips() {
+            wrapper.innerHTML = '';
+            const val = input.value.trim();
+            if (val) {
+                const extensions = val.split(/\s+/);
+                extensions.forEach(ext => {
+                    if (ext) {
+                        const chip = document.createElement('span');
+                        chip.className = 'extension-chip';
+                        chip.innerText = ext;
+                        wrapper.appendChild(chip);
+                    }
+                });
+            }
+        }
+
+        input.addEventListener('input', updateChips);
+        updateChips(); // Initial render
+    }
+
+    // Track active section on scroll to highlight jump sidebar links
+    function setupScrollSpy() {
+        const cards = document.querySelectorAll('.fieldset-card');
+        const navLinks = document.querySelectorAll('.settings-nav-link');
+        if (cards.length === 0 || navLinks.length === 0) return;
+
+        function spy() {
+            let currentActiveId = null;
+            const scrollPos = window.scrollY || document.documentElement.scrollTop;
+
+            cards.forEach(card => {
+                const offsetTop = card.offsetTop - 120;
+                if (scrollPos >= offsetTop) {
+                    currentActiveId = card.id;
+                }
+            });
+
+            if (currentActiveId) {
+                const counter = currentActiveId.split('-')[1];
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                });
+                const activeLink = document.getElementById('nav-link-' + counter);
+                if (activeLink) activeLink.classList.add('active');
+            }
+        }
+
+        window.addEventListener('scroll', spy);
+        spy(); // Initial spy check
+    }
+
+    // Detect form changes to show Unsaved indicator
+    function setupUnsavedChangesDetection() {
+        const form = document.getElementById('settings-form');
+        const saveBar = document.getElementById('save-bar');
+        const saveBtn = document.getElementById('save-button');
+        const saveStatusLabel = document.getElementById('save-status-label');
+        if (!form || !saveBar || !saveBtn) return;
+
+        // Store initial form state
+        const initialStates = new Map();
+        const inputs = form.querySelectorAll('.config-input');
+
+        function getInputState(input) {
+            if (input.type === 'checkbox') {
+                return input.checked;
+            }
+            return input.value;
+        }
+
+        inputs.forEach(input => {
+            initialStates.set(input, getInputState(input));
+        });
+
+        function checkChanges() {
+            let hasChanges = false;
+            inputs.forEach(input => {
+                const current = getInputState(input);
+                const initial = initialStates.get(input);
+                if (current !== initial) {
+                    hasChanges = true;
+                }
+            });
+
+            if (hasChanges) {
+                saveBar.classList.add('unsaved');
+                saveBtn.removeAttribute('disabled');
+                
+                // Translate text dynamically based on selected language
+                const lang = localStorage.getItem('vailib_lang') || 'en';
+                const warningMsg = (lang === 'ru') ? 'Есть несохраненные изменения!' : 'You have unsaved changes!';
+                saveStatusLabel.innerText = warningMsg;
+            } else {
+                saveBar.classList.remove('unsaved');
+                saveBtn.setAttribute('disabled', 'true');
+                
+                const lang = localStorage.getItem('vailib_lang') || 'en';
+                const cleanMsg = (lang === 'ru') ? 'Все настройки сохранены.' : 'All settings saved.';
+                saveStatusLabel.innerText = cleanMsg;
+            }
+        }
+
+        form.addEventListener('input', checkChanges);
+        form.addEventListener('change', checkChanges);
+    }
+
+    // Configure E-Ink display nuances (e.g. checkbox inline labels)
+    function setupEinkNuances() {
+        const isEink = document.documentElement.getAttribute('data-theme') === 'eink';
+        if (isEink) {
+            document.querySelectorAll('.eink-only-label').forEach(el => {
+                el.style.display = 'inline-block';
+            });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderExtensionChips();
+        setupScrollSpy();
+        setupUnsavedChangesDetection();
+        setupEinkNuances();
+    });
+</script>
+{% endblock %}

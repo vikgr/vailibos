@@ -1015,3 +1015,78 @@ def ConvertManualView(request, book_id):
     # Redirect back to the book's details page with message
     return redirect('/web/search/books/?searchtype=i&searchterms=%s&message=converting' % book_id)
 
+
+@sopds_login(url='web:login')
+def SettingsView(request):
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("<h1>403 Forbidden</h1>")
+        
+    from django.conf import settings
+    from constance import config
+    from collections import OrderedDict
+    
+    args = {}
+    
+    # Handle Form Submission
+    if request.method == 'POST':
+        for field in settings.CONSTANCE_CONFIG.keys():
+            default_val = settings.CONSTANCE_CONFIG[field][0]
+            if isinstance(default_val, bool):
+                val = (field in request.POST)
+            else:
+                val = request.POST.get(field, default_val)
+                if isinstance(default_val, int):
+                    try:
+                        val = int(val)
+                    except ValueError:
+                        val = default_val
+            setattr(config, field, val)
+        args['system_message'] = {
+            'text': _('Settings saved successfully.'),
+            'type': 'success'
+        }
+        
+    # Get configuration grouped by fieldset
+    fieldsets = settings.CONSTANCE_CONFIG_FIELDSETS
+    config_data = OrderedDict()
+    
+    for section, fields in fieldsets.items():
+        section_fields = []
+        for field in fields:
+            current_val = getattr(config, field)
+            default_val, help_text = settings.CONSTANCE_CONFIG[field][:2]
+            
+            field_type = 'str'
+            choices = None
+            if isinstance(default_val, bool):
+                field_type = 'bool'
+            elif isinstance(default_val, int):
+                field_type = 'int'
+                
+            # Choice field check
+            if len(settings.CONSTANCE_CONFIG[field]) > 2:
+                field_name = settings.CONSTANCE_CONFIG[field][2]
+                add_field = settings.CONSTANCE_ADDITIONAL_FIELDS.get(field_name)
+                if add_field and len(add_field) > 1 and 'choices' in add_field[1]:
+                    field_type = 'choice'
+                    choices = add_field[1]['choices']
+                    
+            section_fields.append({
+                'name': field,
+                'value': current_val,
+                'help_text': help_text,
+                'type': field_type,
+                'choices': choices
+            })
+        config_data[section] = section_fields
+        
+    args['config_data'] = config_data
+    args['current'] = 'settings'
+    args['vailib_breadcrumbs'] = [
+        {'name': _('Books'), 'url': '/web/book/?lang=0'},
+        {'name': _('Settings'), 'url': None}
+    ]
+    args.update(sopds_processor(request))
+    return render(request, 'sopds_settings.html', args)
+
+

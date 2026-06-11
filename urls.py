@@ -17,7 +17,9 @@ urlpatterns = [
     url(r'^logout/$',views.LogoutView, name='logout'),
     url(r'^bs/delete/$',views.BSDelView, name='bsdel'),
     url(r'^bs/clear/$', views.BSClearView, name='bsclear'),
+    url(r'^settings/$', views.SettingsView, name='settings'),
     url(r'^convert/manual/(?P<book_id>[0-9]+)/$', views.ConvertManualView, name='convert_manual'),
+
     url(r'^read/(?P<book_id>[0-9]+)/$', views.ReaderView, name='read'),
 
     url(r'^populate/$', views.PopulateView, name='populate'),

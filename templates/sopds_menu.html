@@ -41,9 +41,9 @@
     </li>
     {% endif %}
 
-    {% if user.is_superuser and vailib_theme == 'premium' %}
+    {% if user.is_superuser %}
     <li class="nav-item" style="margin-top: 15px;">
-        <a href="/admin/" class="nav-btn admin-btn">
+        <a href="/web/settings/" class="nav-btn admin-btn {% if current == 'settings' %}active{% endif %}">
             <i class="fi-widget"></i> <span class="nav-text" data-trans="set">Настройки</span>
         </a>
     </li>
