@@ -1,0 +1,888 @@
+{% extends "sopds_main.html" %}
+{% load i18n %}
+
+{% block content %}
+<style>
+    /* Fullscreen setup layout override */
+    .sidebar-container {
+        display: none !important;
+    }
+    .main-content {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        min-height: 100vh !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-main) !important;
+    }
+    .app-wrapper {
+        display: block !important;
+        width: 100% !important;
+    }
+    
+    /* Setup container styling */
+    .setup-wizard-card {
+        width: 100%;
+        max-width: 650px;
+        margin: 40px auto;
+        padding: 35px;
+        border-radius: 16px;
+        background: rgba(20, 24, 32, 0.65);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+        transition: all 0.3s ease;
+    }
+
+    .setup-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .setup-header h2 {
+        color: var(--accent);
+        font-weight: 800;
+        font-size: 1.6rem;
+        letter-spacing: -0.5px;
+        margin-bottom: 6px;
+    }
+
+    .setup-header p {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    /* Steps Progress Bar */
+    .steps-tracker {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 35px;
+        position: relative;
+        padding: 0 10px;
+    }
+
+    .steps-line {
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        right: 20px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.08);
+        z-index: 1;
+    }
+
+    .steps-line-progress {
+        position: absolute;
+        top: 15px;
+        left: 20px;
+        width: 0%;
+        height: 2px;
+        background: var(--accent);
+        z-index: 2;
+        transition: width 0.3s ease;
+    }
+
+    .step-dot {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #151820;
+        border: 2px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        position: relative;
+        z-index: 3;
+        transition: all 0.3s ease;
+    }
+
+    .step-dot.active {
+        background: #000;
+        border-color: var(--accent);
+        color: var(--accent);
+        box-shadow: var(--accent-glow);
+    }
+
+    .step-dot.completed {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #000;
+    }
+
+    .step-label {
+        position: absolute;
+        top: 38px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        color: var(--text-muted);
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .step-dot.active .step-label {
+        color: var(--text-main);
+    }
+
+    /* Wizard steps panel */
+    .wizard-step-panel {
+        display: none;
+    }
+
+    .wizard-step-panel.active {
+        display: block;
+    }
+
+    /* Inputs & Forms */
+    .form-group {
+        margin-bottom: 22px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: var(--text-main);
+        margin-bottom: 8px;
+    }
+
+    .input-field {
+        width: 100%;
+        background: rgba(0, 0, 0, 0.3) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 8px !important;
+        color: #fff !important;
+        padding: 11px 15px !important;
+        font-size: 0.9rem !important;
+        font-family: inherit !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        height: auto !important;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input-field:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 10px rgba(42, 195, 255, 0.2) !important;
+    }
+
+    select.input-field {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 12px center !important;
+        padding-right: 40px !important;
+    }
+
+    /* Test Button */
+    .test-btn {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-main);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .test-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .test-status {
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Navigation buttons */
+    .wizard-nav {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 35px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-btn {
+        padding: 10px 24px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        letter-spacing: 0.5px;
+    }
+
+    .nav-btn-prev {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-main) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-btn-prev:hover {
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-btn-next {
+        background: var(--accent);
+        color: #000 !important;
+        border: none;
+        box-shadow: var(--accent-glow);
+    }
+
+    .nav-btn-next:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 0 15px rgba(42, 195, 255, 0.5);
+    }
+
+    .nav-btn-next:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    /* Password strength indicator */
+    .strength-meter {
+        height: 4px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 2px;
+        margin-top: 8px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .strength-bar {
+        height: 100%;
+        width: 0%;
+        transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    /* Checkboxes and toggles */
+    .checkbox-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(0,0,0,0.2);
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.04);
+        cursor: pointer;
+    }
+
+    .checkbox-item input {
+        margin: 0;
+    }
+
+    /* E-Ink Setup Overrides */
+    [data-theme="eink"] .setup-wizard-card {
+        background: #ffffff;
+        border: 2px solid #000000;
+        border-radius: 0;
+        box-shadow: none;
+        max-width: 100%;
+        margin: 20px;
+    }
+
+    [data-theme="eink"] .setup-header h2,
+    [data-theme="eink"] .setup-header p {
+        color: #000000 !important;
+    }
+
+    [data-theme="eink"] .steps-tracker {
+        border-bottom: 2px solid #000000;
+        padding-bottom: 15px;
+    }
+
+    [data-theme="eink"] .steps-line,
+    [data-theme="eink"] .steps-line-progress {
+        display: none;
+    }
+
+    [data-theme="eink"] .step-dot {
+        border: 2px solid #000000;
+        background: #ffffff;
+        color: #000000;
+        border-radius: 0;
+    }
+
+    [data-theme="eink"] .step-dot.active {
+        background: #000000;
+        color: #ffffff;
+        box-shadow: none;
+    }
+
+    [data-theme="eink"] .step-dot.completed {
+        border-style: double;
+        font-weight: bold;
+    }
+
+    [data-theme="eink"] .step-label {
+        display: none;
+    }
+
+    [data-theme="eink"] .input-field {
+        background: #ffffff !important;
+        border: 2px solid #000000 !important;
+        border-radius: 0 !important;
+        color: #000000 !important;
+    }
+
+    [data-theme="eink"] select.input-field {
+        background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>") !important;
+    }
+
+    [data-theme="eink"] .test-btn {
+        background: #ffffff;
+        border: 2px solid #000000;
+        color: #000000;
+        border-radius: 0;
+    }
+
+    [data-theme="eink"] .test-btn:hover {
+        background: #000000;
+        color: #ffffff;
+    }
+
+    [data-theme="eink"] .checkbox-item {
+        background: #ffffff;
+        border: 1px solid #000000;
+        border-radius: 0;
+        color: #000000;
+    }
+
+    [data-theme="eink"] .wizard-nav {
+        border-top: 2px solid #000000;
+    }
+
+    [data-theme="eink"] .nav-btn {
+        border-radius: 0;
+    }
+
+    [data-theme="eink"] .nav-btn-prev {
+        background: #ffffff;
+        color: #000000 !important;
+        border: 2px solid #000000;
+    }
+
+    [data-theme="eink"] .nav-btn-prev:hover {
+        background: #000000;
+        color: #ffffff !important;
+    }
+
+    [data-theme="eink"] .nav-btn-next {
+        background: #000000;
+        color: #ffffff !important;
+        box-shadow: none;
+    }
+
+    [data-theme="eink"] .nav-btn-next:hover {
+        background: #ffffff;
+        color: #000000 !important;
+        border: 2px solid #000000;
+        transform: none;
+    }
+</style>
+
+<div class="setup-wizard-card">
+    <div class="setup-header">
+        <h2>VAILIB Setup Wizard</h2>
+        <p>Complete the following configuration steps to initialize your digital library catalog.</p>
+    </div>
+
+    <!-- Step Progress Tracker -->
+    <div class="steps-tracker">
+        <div class="steps-line"></div>
+        <div class="steps-line-progress" id="steps-progress"></div>
+        
+        <div class="step-dot active" id="dot-1">1<span class="step-label">System</span></div>
+        <div class="step-dot" id="dot-2">2<span class="step-label">Admin</span></div>
+        <div class="step-dot" id="dot-3">3<span class="step-label">Library</span></div>
+        <div class="step-dot" id="dot-4">4<span class="step-label">Feeds</span></div>
+        <div class="step-dot" id="dot-5">5<span class="step-label">Finalize</span></div>
+    </div>
+
+    <!-- MAIN CONFIG WIZARD FORM -->
+    <form id="setup-form" onsubmit="submitSetupForm(event)">
+        
+        <!-- STEP 1: Language & Timezone -->
+        <div class="wizard-step-panel active" id="step-panel-1">
+            <div class="form-group">
+                <label for="language">Default Interface Language</label>
+                <select name="language" id="language" class="input-field" onchange="updateFlagIcon(this.value)">
+                    {% for lang in languages %}
+                    <option value="{{ lang.code }}" {% if lang.code == 'en' %}selected{% endif %}>{{ lang.name }}</option>
+                    {% endfor %}
+                </select>
+                <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+                    <img id="selected-lang-flag" src="https://flagcdn.com/w40/gb.png" width="20" style="border-radius: 2px; border: 1px solid rgba(255,255,255,0.08);">
+                    <span id="flag-label" style="font-size: 0.8rem; color: var(--text-muted);">English selected.</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="timezone">Server Timezone</label>
+                <select name="timezone" id="timezone" class="input-field">
+                    {% for tz in timezones %}
+                    <option value="{{ tz }}" {% if tz == 'Europe/Madrid' %}selected{% endif %}>{{ tz }}</option>
+                    {% endfor %}
+                </select>
+                <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px; display: block;">Determines scan schedule precision.</span>
+            </div>
+        </div>
+
+        <!-- STEP 2: Administrator Creation -->
+        <div class="wizard-step-panel" id="step-panel-2">
+            <div class="form-group">
+                <label for="admin_username">Administrator Username</label>
+                <input type="text" name="admin_username" id="admin_username" class="input-field" placeholder="e.g. admin" required oninput="validateAdminStep()">
+            </div>
+
+            <div class="form-group">
+                <label for="admin_password">Administrator Password</label>
+                <input type="password" name="admin_password" id="admin_password" class="input-field" placeholder="Enter password" required oninput="checkPasswordStrength(this.value); validateAdminStep();">
+                <div class="strength-meter">
+                    <div class="strength-bar" id="strength-bar"></div>
+                </div>
+                <span id="strength-label" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">Password strength</span>
+            </div>
+
+            <div class="form-group">
+                <label for="admin_confirm_password">Confirm Password</label>
+                <input type="password" id="admin_confirm_password" class="input-field" placeholder="Re-enter password" required oninput="validateAdminStep()">
+                <span id="pass-match-error" style="color: #FF0055; font-size: 0.8rem; font-weight: 600; display: none; margin-top: 4px;">Passwords do not match!</span>
+            </div>
+        </div>
+
+        <!-- STEP 3: Storage & Permissions -->
+        <div class="wizard-step-panel" id="step-panel-3">
+            <div class="form-group">
+                <label for="library_path">Library Directory Path (Container mount)</label>
+                <input type="text" name="library_path" id="library_path" class="input-field" value="/library" required>
+                <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">Default path inside the container mapping to your files.</span>
+            </div>
+
+            <div class="form-group" style="margin-top: 20px;">
+                <button type="button" class="test-btn" onclick="testWritePermission()">⚡ Validate Storage Permissions</button>
+                <div id="test-result-wrapper" class="test-status" style="display: none;">
+                    <!-- Results injected by JS -->
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 25px;">
+                <label>Manage Book Extensions</label>
+                <div class="checkbox-list">
+                    <label class="checkbox-item"><input type="checkbox" name="extensions" value=".epub" checked> .epub</label>
+                    <label class="checkbox-item"><input type="checkbox" name="extensions" value=".fb2" checked> .fb2</label>
+                    <label class="checkbox-item"><input type="checkbox" name="extensions" value=".pdf" checked> .pdf</label>
+                    <label class="checkbox-item"><input type="checkbox" name="extensions" value=".mobi" checked> .mobi</label>
+                    <label class="checkbox-item"><input type="checkbox" name="extensions" value=".djvu" checked> .djvu</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 4: Preconfigured Feeds -->
+        <div class="wizard-step-panel" id="step-panel-4">
+            <div class="form-group">
+                <label class="checkbox-item" style="padding: 15px; background: rgba(0,0,0,0.15);">
+                    <input type="checkbox" name="enable_gutenberg" id="enable_gutenberg" onchange="toggleGutenbergLangs(this.checked)">
+                    <div style="display: flex; flex-direction: column; gap: 2px;">
+                        <span style="font-weight: 800; font-size: 0.9rem;">Pre-populate with Project Gutenberg</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">Automatically download the most popular books on deploy.</span>
+                    </div>
+                </label>
+            </div>
+
+            <div id="gutenberg-langs-wrapper" class="form-group" style="display: none; border-left: 2px solid var(--accent); padding-left: 15px; margin-left: 10px;">
+                <label>Select languages to ingest (max 10 books each):</label>
+                <div class="checkbox-list">
+                    <label class="checkbox-item"><input type="checkbox" name="gutenberg_langs" value="en" checked> English</label>
+                    <label class="checkbox-item"><input type="checkbox" name="gutenberg_langs" value="ru"> Russian</label>
+                    <label class="checkbox-item"><input type="checkbox" name="gutenberg_langs" value="de"> German</label>
+                    <label class="checkbox-item"><input type="checkbox" name="gutenberg_langs" value="el"> Greek</label>
+                    <label class="checkbox-item"><input type="checkbox" name="gutenberg_langs" value="es"> Spanish</label>
+                    <label class="checkbox-item"><input type="checkbox" name="gutenberg_langs" value="fr"> French</label>
+                    <label class="checkbox-item"><input type="checkbox" name="gutenberg_langs" value="ar"> Arabic</label>
+                    <label class="checkbox-item"><input type="checkbox" name="gutenberg_langs" value="hi"> Hindi</label>
+                    <label class="checkbox-item"><input type="checkbox" name="gutenberg_langs" value="pt"> Portuguese</label>
+                    <label class="checkbox-item"><input type="checkbox" name="gutenberg_langs" value="zh"> Chinese</label>
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-top: 25px; opacity: 0.65;">
+                <label style="font-weight: 800;">More Online Registries (ctext, OpenBook.gr, runivers)</label>
+                <span style="font-size: 0.8rem; color: var(--text-muted); display: block; line-height: 1.4;">Additional public API sources can be enabled in settings later.</span>
+            </div>
+        </div>
+
+        <!-- STEP 5: Deploying & Finalize -->
+        <div class="wizard-step-panel" id="step-panel-5">
+            <!-- Summary Details -->
+            <div id="setup-summary-view" style="margin-bottom: 25px;">
+                <h4 style="font-weight: 800; color: var(--text-main); margin-bottom: 15px;">Configuration Summary</h4>
+                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+                    <div><b style="color: var(--text-muted);">Admin User:</b> <span id="summary-username">admin</span></div>
+                    <div><b style="color: var(--text-muted);">Library Path:</b> <span id="summary-path">/library</span></div>
+                    <div><b style="color: var(--text-muted);">Default Language:</b> <span id="summary-lang">English</span></div>
+                    <div><b style="color: var(--text-muted);">Timezone:</b> <span id="summary-tz">Europe/Madrid</span></div>
+                    <div><b style="color: var(--text-muted);">Initial Feeds:</b> <span id="summary-feeds">Standard scan</span></div>
+                </div>
+            </div>
+
+            <!-- Deployment Progress -->
+            <div id="deployment-progress-wrapper" style="display: none; text-align: center; margin-top: 30px;">
+                <h4 id="deploy-stage-title" style="font-weight: 800; color: var(--accent); margin-bottom: 10px;">Deploying Library...</h4>
+                <p id="deploy-stage-desc" style="color: var(--text-muted); font-size: 0.85rem;">Applying database schemas and configs.</p>
+                
+                <div class="progress-bar-container" style="background: rgba(255,255,255,0.08); border-radius: 8px; height: 10px; overflow: hidden; margin: 20px 0;">
+                    <div id="deploy-progress-bar" style="width: 0%; height: 100%; background: var(--accent); transition: width 0.4s ease; box-shadow: var(--accent-glow);"></div>
+                </div>
+                
+                <div id="deploy-terminal-logs" style="border: 1px solid rgba(255,255,255,0.08); background: #000; padding: 12px; border-radius: 8px; height: 120px; overflow-y: scroll; font-family: monospace; font-size: 0.75rem; text-align: left; color: #a3b8cc; margin-top: 15px;">
+                    <div>[SYSTEM] Preparing library catalog deploy...</div>
+                </div>
+            </div>
+
+            <div id="deployment-success-panel" style="display: none; text-align: center; margin-top: 25px;">
+                <span style="font-size: 2.2rem; color: #00FF66; display: block; margin-bottom: 10px;">🎉</span>
+                <h4 style="font-weight: 800; color: #00FF66; margin-bottom: 8px;">Setup Completed Successfully!</h4>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 25px;">Your digital library is now deployed and ready for use.</p>
+                <a href="/web/" class="nav-btn nav-btn-next" style="display: inline-block; text-decoration: none; padding: 12px 35px;">Enter Library Catalog</a>
+            </div>
+        </div>
+
+        <!-- NAVIGATION CONTROLS -->
+        <div class="wizard-nav" id="wizard-nav-buttons">
+            <button type="button" class="nav-btn nav-btn-prev" id="btn-prev" onclick="changeStep(-1)" disabled>Back</button>
+            <button type="button" class="nav-btn nav-btn-next" id="btn-next" onclick="changeStep(1)">Next</button>
+            <button type="submit" class="nav-btn nav-btn-next" id="btn-submit" style="display: none;">Deploy Catalog</button>
+        </div>
+
+    </form>
+</div>
+
+<script>
+    let currentStep = 1;
+    const totalSteps = 5;
+
+    // Language flag mapper
+    const flagMap = {
+        'en': 'gb', 'ru': 'ru', 'de': 'de', 'el': 'gr', 'es': 'es', 'fr': 'fr',
+        'ar': 'sa', 'hi': 'in', 'pt': 'pt', 'zh': 'cn', 'bn': 'bd', 'nl': 'nl'
+    };
+
+    function updateFlagIcon(langCode) {
+        const flagImg = document.getElementById('selected-lang-flag');
+        const flagLabel = document.getElementById('flag-label');
+        if (flagImg && flagMap[langCode]) {
+            flagImg.src = 'https://flagcdn.com/w40/' + flagMap[langCode] + '.png';
+            
+            // Get language name
+            const selectEl = document.getElementById('language');
+            const langName = selectEl.options[selectEl.selectedIndex].text;
+            flagLabel.innerText = langName + ' selected.';
+            
+            // Check matching Gutenberg checkbox in step 4
+            const checkbox = document.querySelector('input[name="gutenberg_langs"][value="' + langCode + '"]');
+            if (checkbox) {
+                // reset others and check this one
+                document.querySelectorAll('input[name="gutenberg_langs"]').forEach(el => el.checked = false);
+                checkbox.checked = true;
+            }
+        }
+    }
+
+    // Toggle Gutenberg selector panel
+    function toggleGutenbergLangs(checked) {
+        const wrapper = document.getElementById('gutenberg-langs-wrapper');
+        wrapper.style.display = checked ? 'block' : 'none';
+    }
+
+    // Password strength check
+    // password validation
+    function checkPasswordStrength(password) {
+        const bar = document.getElementById('strength-bar');
+        const label = document.getElementById('strength-label');
+        let strength = 0;
+        
+        if (password.length >= 6) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+        const colors = ['#FF0055', '#FF9900', '#FFCC00', '#00FF66'];
+        const labels = ['Weak (Too short/simple)', 'Fair', 'Good', 'Strong & Secure'];
+        
+        bar.style.width = (strength * 25) + '%';
+        bar.style.backgroundColor = colors[strength - 1] || '#FF0055';
+        label.innerText = labels[strength - 1] || 'Enter password';
+        label.style.color = colors[strength - 1] || 'var(--text-muted)';
+    }
+
+    // Validate admin inputs
+    function validateAdminStep() {
+        const nextBtn = document.getElementById('btn-next');
+        const user = document.getElementById('admin_username').value.trim();
+        const pass = document.getElementById('admin_password').value;
+        const confirmPass = document.getElementById('admin_confirm_password').value;
+        const errorSpan = document.getElementById('pass-match-error');
+
+        if (currentStep === 2) {
+            const passwordsMatch = pass === confirmPass;
+            errorSpan.style.display = (confirmPass && !passwordsMatch) ? 'block' : 'none';
+
+            const isValid = user.length > 0 && pass.length >= 4 && passwordsMatch;
+            nextBtn.disabled = !isValid;
+        }
+    }
+
+    // Library permissions validation
+    function testWritePermission() {
+        const path = document.getElementById('library_path').value;
+        const wrapper = document.getElementById('test-result-wrapper');
+        
+        wrapper.style.display = 'flex';
+        wrapper.style.color = 'var(--text-muted)';
+        wrapper.innerHTML = '<span class="loading-spinner" style="border: 2px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; width: 14px; height: 14px; display: inline-block; animation: spin 0.8s linear infinite;"></span> Validating...';
+        
+        // CSS rotation definition dynamically added if not exist
+        if (!document.getElementById('spinner-anim')) {
+            const style = document.createElement('style');
+            style.id = 'spinner-anim';
+            style.innerHTML = '@keyframes spin { 100% { transform: rotate(360deg); } }';
+            document.head.appendChild(style);
+        }
+
+        const formData = new FormData();
+        formData.append('path', path);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+        fetch('/web/setup/write-test/', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                wrapper.style.color = '#00FF66';
+                wrapper.innerHTML = '✔ ' + data.message;
+            } else {
+                wrapper.style.color = '#FF0055';
+                wrapper.innerHTML = '✖ ' + data.message;
+            }
+        })
+        .catch(err => {
+            wrapper.style.color = '#FF0055';
+            wrapper.innerHTML = '✖ Connection error: permission test failed.';
+        });
+    }
+
+    // Navigate steps
+    function changeStep(direction) {
+        if (currentStep === 2 && direction === 1) {
+            const pass = document.getElementById('admin_password').value;
+            const confirmPass = document.getElementById('admin_confirm_password').value;
+            if (pass !== confirmPass) {
+                return;
+            }
+        }
+
+        currentStep += direction;
+        currentStep = Math.max(1, Math.min(totalSteps, currentStep));
+
+        document.querySelectorAll('.wizard-step-panel').forEach((panel, idx) => {
+            panel.classList.toggle('active', (idx + 1) === currentStep);
+        });
+
+        for (let i = 1; i <= totalSteps; i++) {
+            const dot = document.getElementById('dot-' + i);
+            dot.classList.toggle('active', i === currentStep);
+            dot.classList.toggle('completed', i < currentStep);
+        }
+
+        const progressPct = ((currentStep - 1) / (totalSteps - 1)) * 100;
+        document.getElementById('steps-progress').style.width = progressPct + '%';
+
+        document.getElementById('btn-prev').disabled = currentStep === 1;
+        
+        const nextBtn = document.getElementById('btn-next');
+        const submitBtn = document.getElementById('btn-submit');
+        
+        if (currentStep === totalSteps) {
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'inline-block';
+            compileSummary();
+        } else {
+            nextBtn.style.display = 'inline-block';
+            submitBtn.style.display = 'none';
+            nextBtn.disabled = false;
+        }
+
+        if (currentStep === 2) {
+            validateAdminStep();
+        }
+    }
+
+    // Compile values into summary card
+    function compileSummary() {
+        document.getElementById('summary-username').innerText = document.getElementById('admin_username').value;
+        document.getElementById('summary-path').innerText = document.getElementById('library_path').value;
+        
+        const selectEl = document.getElementById('language');
+        document.getElementById('summary-lang').innerText = selectEl.options[selectEl.selectedIndex].text;
+        document.getElementById('summary-tz').innerText = document.getElementById('timezone').value;
+        
+        const gutenbergEnabled = document.getElementById('enable_gutenberg').checked;
+        if (gutenbergEnabled) {
+            const checkedLangs = [];
+            document.querySelectorAll('input[name="gutenberg_langs"]:checked').forEach(el => {
+                checkedLangs.push(el.value.toUpperCase());
+            });
+            document.getElementById('summary-feeds').innerText = 'Gutenberg download [' + checkedLangs.join(', ') + '] + local scan';
+        } else {
+            document.getElementById('summary-feeds').innerText = 'Local directory scan';
+        }
+    }
+
+    // Submit setup configuration
+    function submitSetupForm(e) {
+        e.preventDefault();
+        
+        const form = document.getElementById('setup-form');
+        const formData = new FormData(form);
+        
+        document.getElementById('setup-summary-view').style.display = 'none';
+        document.getElementById('wizard-nav-buttons').style.display = 'none';
+        
+        const progressWrapper = document.getElementById('deployment-progress-wrapper');
+        const progressBar = document.getElementById('deploy-progress-bar');
+        const stageTitle = document.getElementById('deploy-stage-title');
+        const stageDesc = document.getElementById('deploy-stage-desc');
+        const terminalLogs = document.getElementById('deploy-terminal-logs');
+        
+        progressWrapper.style.display = 'block';
+
+        function logTerminal(message, type = 'info') {
+            const div = document.createElement('div');
+            if (type === 'success') div.style.color = '#00FF66';
+            else if (type === 'error') div.style.color = '#FF0055';
+            else if (type === 'step') div.style.color = '#00E1FF';
+            div.innerText = '[' + new Date().toLocaleTimeString() + '] ' + message;
+            terminalLogs.appendChild(div);
+            terminalLogs.scrollTop = terminalLogs.scrollHeight;
+        }
+
+        logTerminal('Deploying administrator user: ' + formData.get('admin_username') + '...', 'step');
+        progressBar.style.width = '15%';
+        
+        fetch('/web/setup/', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                logTerminal('✔ Administrator database credentials stored.', 'success');
+                logTerminal('✔ Constance configuration settings updated.', 'success');
+                logTerminal('✔ Container timezone patched in settings.py to: ' + formData.get('timezone'), 'success');
+                progressBar.style.width = '40%';
+                
+                const gutenbergEnabled = document.getElementById('enable_gutenberg').checked;
+                if (gutenbergEnabled) {
+                    stageTitle.innerText = 'Downloading Catalog Feeds...';
+                    stageDesc.innerText = 'Ingesting initial Gutenberg catalog ebooks.';
+                    logTerminal('Initializing Gutenberg crawler daemon...', 'step');
+                    progressBar.style.width = '60%';
+                    pollPopulateProgress(progressBar, stageTitle, stageDesc, logTerminal);
+                } else {
+                    stageTitle.innerText = 'Scanning Library Catalog...';
+                    stageDesc.innerText = 'Indexing local directory files.';
+                    progressBar.style.width = '80%';
+                    logTerminal('Directory scan triggered in background.', 'step');
+                    
+                    setTimeout(() => {
+                        progressBar.style.width = '100%';
+                        showSuccessScreen();
+                    }, 3000);
+                }
+            } else {
+                logTerminal('✖ Deployment failed: ' + data.message, 'error');
+                resetToSummaryError(data.message);
+            }
+        })
+        .catch(err => {
+            logTerminal('✖ Network connection failed: deploy crashed.', 'error');
+            resetToSummaryError('Connection timeout or network failure.');
+        });
+    }
+
+    // Poll populate status
+    function pollPopulateProgress(progressBar, stageTitle, stageDesc, logTerminal) {
+        fetch('/web/populate/status/')
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'running') {
+                const pct = data.total > 0 ? Math.round((data.downloaded / data.total) * 100) : 0;
+                const progressWidth = 40 + (pct * 0.5);
+                progressBar.style.width = progressWidth + '%';
+                
+                stageDesc.innerText = 'Downloading [' + data.current_lang.toUpperCase() + '] ' + data.downloaded + ' / ' + data.total + ' books';
+                logTerminal('Downloading books: ' + data.message);
+                
+                setTimeout(() => pollPopulateProgress(progressBar, stageTitle, stageDesc, logTerminal), 1500);
+            } else if (data.status === 'completed') {
+                logTerminal('✔ Online feeds downloaded and triggers complete.', 'success');
+                progressBar.style.width = '100%';
+                showSuccessScreen();
+            } else if (data.status === 'error') {
+                logTerminal('✖ Feeds populate warning: ' + data.message, 'error');
+                logTerminal('Proceeding with system deployment.', 'info');
+                progressBar.style.width = '100%';
+                showSuccessScreen();
+            } else {
+                setTimeout(() => pollPopulateProgress(progressBar, stageTitle, stageDesc, logTerminal), 1500);
+            }
+        })
+        .catch(err => {
+            setTimeout(() => pollPopulateProgress(progressBar, stageTitle, stageDesc, logTerminal), 3000);
+        });
+    }
+
+    function showSuccessScreen() {
+        document.getElementById('deployment-progress-wrapper').style.display = 'none';
+        document.getElementById('deployment-success-panel').style.display = 'block';
+    }
+
+    function resetToSummaryError(msg) {
+        alert('Deploy Error: ' + msg);
+        document.getElementById('setup-summary-view').style.display = 'block';
+        document.getElementById('wizard-nav-buttons').style.display = 'flex';
+        document.getElementById('deployment-progress-wrapper').style.display = 'none';
+    }
+</script>
+{% endblock %}

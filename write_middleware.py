@@ -11,6 +11,21 @@ from constance import config
 LANGUAGE_SESSION_KEY = '_language'
 
 
+class SOPDSSetupMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        path = request.path
+        # Allow static files, welcome setup wizard views, and login assets
+        if path.startswith('/web/setup/') or path.startswith('/static/'):
+            return None
+            
+        # Redirect to welcome setup wizard if database has no superuser
+        from django.contrib.auth.models import User
+        if not User.objects.filter(is_superuser=True).exists():
+            from django.shortcuts import redirect
+            return redirect('/web/setup/')
+        return None
+
+
 class BasicAuthMiddleware(object):
     header = "HTTP_AUTHORIZATION"
 

@@ -1017,6 +1017,143 @@ def ConvertManualView(request, book_id):
 
 
 @sopds_login(url='web:login')
+def update_container_timezone(new_tz):
+    settings_path = '/sopds/sopds/settings.py'
+    if os.path.exists(settings_path):
+        try:
+            with open(settings_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            import re
+            pattern = r"TIME_ZONE\s*=\s*['\"][^'\"]+['\"]"
+            if re.search(pattern, content):
+                content = re.sub(pattern, f"TIME_ZONE = '{new_tz}'", content)
+                with open(settings_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                return True
+        except Exception:
+            pass
+    return False
+
+
+def SetupWriteTestView(request):
+    if request.method != 'POST':
+        return HttpResponseForbidden("<h1>403 Forbidden</h1>")
+        
+    path = request.POST.get('path', '/library')
+    try:
+        os.makedirs(path, exist_ok=True)
+        test_file = os.path.join(path, '.vailib_write_test')
+        with open(test_file, 'w', encoding='utf-8') as f:
+            f.write('Vailib write test')
+        with open(test_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+        os.remove(test_file)
+        return JsonResponse({"status": "success", "message": "Write permission verified successfully!"})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": f"Permission Error: {str(e)}"})
+
+
+def SetupWizardView(request):
+    from django.contrib.auth.models import User
+    # If a superuser already exists, redirect to catalog main
+    if User.objects.filter(is_superuser=True).exists():
+        return redirect('/web/')
+        
+    from django.conf import settings
+    from constance import config
+    import pytz
+    import threading
+    
+    args = {}
+    
+    if request.method == 'POST':
+        admin_username = request.POST.get('admin_username')
+        admin_password = request.POST.get('admin_password')
+        library_path = request.POST.get('library_path', '/library')
+        language = request.POST.get('language', 'en')
+        timezone = request.POST.get('timezone', 'Europe/Madrid')
+        extensions = request.POST.getlist('extensions')
+        
+        # Online feeds configuration
+        enable_gutenberg = request.POST.get('enable_gutenberg') == 'on'
+        gutenberg_langs = request.POST.getlist('gutenberg_langs')
+        
+        try:
+            # 1. Create Django Administrator
+            User.objects.create_superuser(username=admin_username, email='', password=admin_password)
+            
+            # 2. Save Constance Configs
+            lang_mapping = {
+                'en': 'en-us', 'zh': 'zh-hans', 'ru': 'ru', 'el': 'el',
+                'de': 'de', 'es': 'es', 'fr': 'fr', 'ar': 'ar',
+                'hi': 'hi', 'pt': 'pt', 'bn': 'bn', 'nl': 'nl'
+            }
+            config.SOPDS_LANGUAGE = lang_mapping.get(language, 'en-US')
+            config.SOPDS_ROOT_LIB = library_path
+            if extensions:
+                config.SOPDS_BOOK_EXTENSIONS = ' '.join(extensions)
+                
+            # 3. Patch System Timezone
+            update_container_timezone(timezone)
+            
+            # 4. Programmatic Session Login
+            from django.contrib.auth import authenticate, login
+            user = authenticate(username=admin_username, password=admin_password)
+            if user:
+                login(request, user)
+                
+            # 5. Populate and scan
+            if enable_gutenberg and gutenberg_langs:
+                outdir = os.path.join(library_path, "downloads")
+                trigger_scan_path = os.path.join(library_path, ".trigger_scan")
+                os.makedirs(outdir, exist_ok=True)
+                
+                global populate_status
+                is_running = False
+                with populate_lock:
+                    if populate_status["status"] == "running":
+                        is_running = True
+                        
+                if not is_running:
+                    t = threading.Thread(
+                        target=run_populate_thread,
+                        args=(gutenberg_langs, 10, outdir, trigger_scan_path)
+                    )
+                    t.daemon = True
+                    t.start()
+            else:
+                trigger_scan_path = os.path.join(library_path, ".trigger_scan")
+                try:
+                    os.makedirs(library_path, exist_ok=True)
+                    with open(trigger_scan_path, 'a'):
+                        os.utime(trigger_scan_path, None)
+                except Exception:
+                    pass
+                    
+            return JsonResponse({"status": "success"})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)})
+            
+    args['timezones'] = pytz.common_timezones
+    args['languages'] = [
+        {"code": "en", "name": "English", "flag": "gb"},
+        {"code": "ru", "name": "Russian", "flag": "ru"},
+        {"code": "de", "name": "German", "flag": "de"},
+        {"code": "el", "name": "Greek", "flag": "gr"},
+        {"code": "es", "name": "Spanish", "flag": "es"},
+        {"code": "fr", "name": "French", "flag": "fr"},
+        {"code": "ar", "name": "Arabic", "flag": "sa"},
+        {"code": "hi", "name": "Hindi", "flag": "in"},
+        {"code": "pt", "name": "Portuguese", "flag": "pt"},
+        {"code": "zh", "name": "Chinese", "flag": "cn"},
+        {"code": "bn", "name": "Bengali", "flag": "bd"},
+        {"code": "nl", "name": "Dutch", "flag": "nl"},
+    ]
+    args.update(sopds_processor(request))
+    return render(request, 'sopds_setup.html', args)
+
+
+@sopds_login(url='web:login')
 def SettingsView(request):
     if not request.user.is_superuser:
         return HttpResponseForbidden("<h1>403 Forbidden</h1>")
@@ -1024,35 +1161,79 @@ def SettingsView(request):
     from django.conf import settings
     from constance import config
     from collections import OrderedDict
+    import pytz
     
     args = {}
     
-    # Handle Form Submission
-    if request.method == 'POST':
-        for field in settings.CONSTANCE_CONFIG.keys():
-            default_val = settings.CONSTANCE_CONFIG[field][0]
-            if isinstance(default_val, bool):
-                val = (field in request.POST)
-            else:
-                val = request.POST.get(field, default_val)
-                if isinstance(default_val, int):
-                    try:
-                        val = int(val)
-                    except ValueError:
-                        val = default_val
-            setattr(config, field, val)
-        args['system_message'] = {
-            'text': _('Settings saved successfully.'),
-            'type': 'success'
-        }
-        
-    # Get configuration grouped by fieldset
-    fieldsets = settings.CONSTANCE_CONFIG_FIELDSETS
-    config_data = OrderedDict()
+    # 5-step wizard groupings
+    steps_schema = OrderedDict([
+        ('system', {
+            'title': _('System & Language'),
+            'icon': 'fi-widget',
+            'fields': ['SOPDS_LANGUAGE', 'SOPDS_CACHE_TIME']
+        }),
+        ('storage', {
+            'title': _('Library & Storage'),
+            'icon': 'fi-folder',
+            'fields': ['SOPDS_ROOT_LIB', 'SOPDS_BOOK_EXTENSIONS', 'SOPDS_SPLITITEMS', 'SOPDS_MAXITEMS', 'SOPDS_TITLE_AS_FILENAME', 'SOPDS_NOCOVER_PATH', 'SOPDS_DELETE_LOGICAL']
+        }),
+        ('integrations', {
+            'title': _('Integrations'),
+            'icon': 'fi-comment',
+            'fields': ['SOPDS_TELEBOT_API_TOKEN', 'SOPDS_TELEBOT_AUTH', 'SOPDS_TELEBOT_MAXITEMS']
+        }),
+        ('scanner', {
+            'title': _('Scanner & Schedule'),
+            'icon': 'fi-clock',
+            'fields': ['SOPDS_SCAN_START_DIRECTLY', 'SOPDS_FB2SAX', 'SOPDS_ZIPSCAN', 'SOPDS_ZIPCODEPAGE', 'SOPDS_INPX_ENABLE', 'SOPDS_INPX_SKIP_UNCHANGED', 'SOPDS_INPX_TEST_ZIP', 'SOPDS_INPX_TEST_FILES', 'SOPDS_SCAN_SHED_MIN', 'SOPDS_SCAN_SHED_HOUR', 'SOPDS_SCAN_SHED_DAY', 'SOPDS_SCAN_SHED_DOW']
+        }),
+        ('logs', {
+            'title': _('Logs & Diagnostics'),
+            'icon': 'fi-page',
+            'fields': ['SOPDS_SERVER_LOG', 'SOPDS_SCANNER_LOG', 'SOPDS_TELEBOT_LOG', 'SOPDS_SERVER_PID', 'SOPDS_SCANNER_PID', 'SOPDS_TELEBOT_PID', 'SOPDS_FB2TOEPUB', 'SOPDS_FB2TOMOBI', 'SOPDS_TEMP_DIR']
+        })
+    ])
     
-    for section, fields in fieldsets.items():
-        section_fields = []
-        for field in fields:
+    # Handle Form Submission (Step-by-step or full POST)
+    if request.method == 'POST':
+        step_name = request.POST.get('step_name')
+        if step_name in steps_schema:
+            fields_to_update = steps_schema[step_name]['fields']
+            for field in fields_to_update:
+                default_val = settings.CONSTANCE_CONFIG[field][0]
+                if isinstance(default_val, bool):
+                    val = (field in request.POST)
+                else:
+                    val = request.POST.get(field, default_val)
+                    if isinstance(default_val, int):
+                        try:
+                            val = int(val)
+                        except ValueError:
+                            val = default_val
+                setattr(config, field, val)
+                
+            # Timezone handling if system step is posted
+            if step_name == 'system':
+                new_tz = request.POST.get('timezone')
+                if new_tz and new_tz in pytz.common_timezones:
+                    update_container_timezone(new_tz)
+                    
+            if request.is_ajax():
+                return JsonResponse({"status": "success", "message": _("Settings saved successfully.")})
+            else:
+                args['system_message'] = {
+                    'text': _('Settings saved successfully.'),
+                    'type': 'success'
+                }
+        else:
+            if request.is_ajax():
+                return JsonResponse({"status": "error", "message": _("Invalid step configuration.")})
+                
+    # Get current configurations grouped by wizard step
+    config_data = OrderedDict()
+    for step_id, step_info in steps_schema.items():
+        step_fields = []
+        for field in step_info['fields']:
             current_val = getattr(config, field)
             default_val, help_text = settings.CONSTANCE_CONFIG[field][:2]
             
@@ -1063,7 +1244,6 @@ def SettingsView(request):
             elif isinstance(default_val, int):
                 field_type = 'int'
                 
-            # Choice field check
             if len(settings.CONSTANCE_CONFIG[field]) > 2:
                 field_name = settings.CONSTANCE_CONFIG[field][2]
                 add_field = settings.CONSTANCE_ADDITIONAL_FIELDS.get(field_name)
@@ -1071,16 +1251,23 @@ def SettingsView(request):
                     field_type = 'choice'
                     choices = add_field[1]['choices']
                     
-            section_fields.append({
+            step_fields.append({
                 'name': field,
                 'value': current_val,
                 'help_text': help_text,
                 'type': field_type,
                 'choices': choices
             })
-        config_data[section] = section_fields
+            
+        config_data[step_id] = {
+            'title': step_info['title'],
+            'icon': step_info['icon'],
+            'fields': step_fields
+        }
         
     args['config_data'] = config_data
+    args['timezones'] = pytz.common_timezones
+    args['current_timezone'] = getattr(settings, 'TIME_ZONE', 'Europe/Madrid')
     args['current'] = 'settings'
     args['vailib_breadcrumbs'] = [
         {'name': _('Books'), 'url': '/web/book/?lang=0'},
@@ -1088,5 +1275,34 @@ def SettingsView(request):
     ]
     args.update(sopds_processor(request))
     return render(request, 'sopds_settings.html', args)
+
+
+@sopds_login(url='web:login')
+def SettingsLogView(request):
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("<h1>403 Forbidden</h1>")
+        
+    from constance import config
+    log_type = request.GET.get('type', 'server')
+    
+    log_file_path = None
+    if log_type == 'server':
+        log_file_path = config.SOPDS_SERVER_LOG
+    elif log_type == 'scanner':
+        log_file_path = config.SOPDS_SCANNER_LOG
+    elif log_type == 'telebot':
+        log_file_path = config.SOPDS_TELEBOT_LOG
+        
+    if not log_file_path or not os.path.exists(log_file_path):
+        return JsonResponse({"status": "error", "message": f"Log file not found at: {log_file_path}"})
+        
+    try:
+        from collections import deque
+        with open(log_file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            lines = list(deque(f, 200))
+        return JsonResponse({"status": "success", "lines": lines})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})
+
 
 

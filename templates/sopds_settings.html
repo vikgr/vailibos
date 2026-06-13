@@ -3,210 +3,140 @@
 
 {% block content %}
 <style>
-    /* Styling for native Settings page */
+    /* Settings container and layout */
     .settings-container {
-        display: flex;
-        gap: 30px;
-        position: relative;
-        max-width: 1100px;
+        max-width: 900px;
         margin: 0 auto;
         padding-bottom: 80px;
     }
 
-    .settings-form-wrapper {
-        flex: 1;
-        min-width: 0; /* Prevents flex items from overflowing */
-    }
-
-    /* Sticky save bar */
-    .sticky-save-bar {
-        position: -webkit-sticky;
-        position: sticky;
-        top: 20px;
-        z-index: 100;
+    /* Steps Progress Tracker - interactive tabs */
+    .steps-tracker {
         display: flex;
-        align-items: center;
         justify-content: space-between;
-        padding: 15px 25px;
-        border-radius: 12px;
-        margin-bottom: 30px;
-        background: rgba(20, 24, 32, 0.85);
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        align-items: center;
+        margin: 30px auto 40px;
+        position: relative;
+        padding: 0 10px;
+        max-width: 750px;
     }
 
-    .sticky-save-bar.unsaved {
-        border-color: rgba(42, 195, 255, 0.3);
-        box-shadow: 0 10px 30px rgba(42, 195, 255, 0.15);
-        background: rgba(25, 30, 40, 0.9);
+    .steps-line {
+        position: absolute;
+        top: 16px;
+        left: 20px;
+        right: 20px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.08);
+        z-index: 1;
     }
 
-    .save-status-text {
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: var(--text-muted);
+    .steps-line-progress {
+        position: absolute;
+        top: 16px;
+        left: 20px;
+        width: 0%;
+        height: 2px;
+        background: var(--accent);
+        z-index: 2;
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .step-tab {
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 3;
+        outline: none;
+    }
+
+    .step-dot {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #151820;
+        border: 2px solid rgba(255, 255, 255, 0.08);
         display: flex;
         align-items: center;
-        gap: 10px;
-    }
-
-    .save-status-text .indicator {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background-color: #00FF66; /* green */
-        display: inline-block;
-        box-shadow: 0 0 8px rgba(0, 255, 102, 0.5);
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.85rem;
+        color: var(--text-muted);
         transition: all 0.3s ease;
     }
 
-    .sticky-save-bar.unsaved .save-status-text .indicator {
-        background-color: #FF9900; /* amber */
-        box-shadow: 0 0 10px #FF9900;
-        animation: pulse-amber 2s infinite;
-    }
-
-    @keyframes pulse-amber {
-        0% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.2); opacity: 0.7; }
-        100% { transform: scale(1); opacity: 1; }
-    }
-
-    .sticky-save-bar.unsaved .save-status-text {
+    .step-tab:hover .step-dot {
+        border-color: rgba(42, 195, 255, 0.4);
         color: var(--text-main);
     }
 
-    .save-btn {
-        background: var(--accent);
-        color: #000 !important;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 24px;
-        font-weight: 800;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        cursor: pointer;
-        transition: all 0.2s ease;
+    .step-tab.active .step-dot {
+        background: #000;
+        border-color: var(--accent);
+        color: var(--accent);
         box-shadow: var(--accent-glow);
     }
 
-    .save-btn:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 0 20px rgba(42, 195, 255, 0.5);
-    }
-
-    .save-btn:active:not(:disabled) {
-        transform: translateY(0);
-    }
-
-    .save-btn:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-        background: var(--text-muted);
-        color: rgba(0,0,0,0.5) !important;
-        box-shadow: none;
-    }
-
-    /* Sidebar navigation */
-    .settings-nav-sidebar {
-        width: 240px;
-        position: -webkit-sticky;
-        position: sticky;
-        top: 100px;
-        height: fit-content;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        flex-shrink: 0;
-    }
-
-    .settings-nav-sidebar h5 {
-        font-size: 0.75rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        letter-spacing: 1px;
-        margin-bottom: 8px;
-        padding-left: 8px;
-    }
-
-    .settings-nav-link {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 12px 16px;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        text-decoration: none;
-        transition: all 0.2s ease;
-    }
-
-    .settings-nav-link:hover {
-        color: var(--text-main);
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.08);
-    }
-
-    .settings-nav-link.active {
-        color: #000 !important;
+    .step-tab.completed .step-dot {
         background: var(--accent);
         border-color: var(--accent);
-        font-weight: 800;
-        box-shadow: var(--accent-glow);
+        color: #000;
     }
 
-    .settings-nav-link.active .nav-shortcut {
-        color: rgba(0, 0, 0, 0.5);
-    }
-
-    .nav-shortcut {
-        font-size: 0.75rem;
+    .step-label {
+        position: absolute;
+        top: 40px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
         color: var(--text-muted);
-        background: rgba(0,0,0,0.2);
-        padding: 2px 6px;
-        border-radius: 4px;
+        left: 50%;
+        transform: translateX(-50%);
+        transition: color 0.3s ease;
     }
 
-    /* Collapsible sections */
-    .fieldset-card {
+    .step-tab.active .step-label {
+        color: var(--text-main);
+    }
+
+    /* Tab Panels */
+    .wizard-tab-panel {
+        display: none;
         background: rgba(20, 24, 32, 0.45);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.06);
         border-radius: 12px;
-        margin-bottom: 30px;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        scroll-margin-top: 100px; /* Offset scroll when jumping */
+        padding: 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        animation: fadeIn 0.3s ease-in-out;
     }
 
-    .fieldset-header {
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .panel-header {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 20px 24px;
-        cursor: pointer;
-        background: rgba(255, 255, 255, 0.02);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        user-select: none;
-        transition: background-color 0.2s;
+        gap: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        padding-bottom: 15px;
+        margin-bottom: 25px;
     }
 
-    .fieldset-header:hover {
-        background: rgba(255, 255, 255, 0.04);
-    }
-
-    .fieldset-header h3 {
+    .panel-header h3 {
         margin: 0;
-        font-size: 1.05rem;
+        font-size: 1.2rem;
         font-weight: 800;
         color: var(--text-main);
         display: flex;
@@ -214,44 +144,25 @@
         gap: 12px;
     }
 
-    .fieldset-header h3 i {
+    .panel-header h3 i {
         color: var(--accent);
     }
 
-    .fieldset-chevron {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .fieldset-card.collapsed .fieldset-chevron {
-        transform: rotate(-90deg);
-    }
-
-    .fieldset-body {
-        padding: 24px;
-        display: flex;
-        flex-direction: column;
-        gap: 25px;
-    }
-
-    .fieldset-card.collapsed .fieldset-body {
-        display: none;
-    }
-
-    /* Form controls */
+    /* Setting Rows */
     .setting-row {
         display: grid;
         grid-template-columns: 1fr 280px;
         gap: 20px;
         align-items: center;
         padding-bottom: 20px;
+        margin-bottom: 20px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     }
 
-    .setting-row:last-child {
-        padding-bottom: 0;
+    .setting-row:last-of-type {
         border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
     }
 
     .setting-info {
@@ -272,6 +183,7 @@
         line-height: 1.4;
     }
 
+    /* Form Inputs */
     .input-container {
         position: relative;
         display: flex;
@@ -308,7 +220,7 @@
         padding-right: 35px !important;
     }
 
-    /* iOS Toggle switch styling */
+    /* iOS Toggle Switch */
     .switch-wrapper {
         display: flex;
         justify-content: flex-end;
@@ -363,7 +275,7 @@
         background-color: #0d1015;
     }
 
-    /* Password eye toggle */
+    /* Token Eye Toggle */
     .password-toggle-btn {
         position: absolute;
         right: 12px;
@@ -383,7 +295,7 @@
         color: var(--accent);
     }
 
-    /* Extension chips */
+    /* Extension Chips */
     .chips-container {
         display: flex;
         flex-wrap: wrap;
@@ -402,103 +314,201 @@
         letter-spacing: 0.3px;
     }
 
-    /* E-Ink Theme Custom Style Overrides */
-    [data-theme="eink"] .settings-container {
-        max-width: 100%;
-        display: block;
-        padding-bottom: 40px;
+    /* Buttons layout inside wizard cards */
+    .wizard-buttons {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        padding-top: 20px;
+        margin-top: 25px;
     }
 
-    [data-theme="eink"] .sticky-save-bar {
-        position: static;
-        background: #ffffff;
-        color: #000000;
-        border: 2px solid #000000;
-        box-shadow: none;
-        border-radius: 0;
-        margin-bottom: 25px;
+    .btn-nav-group {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-action {
+        padding: 10px 22px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-action.btn-back {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-main);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-action.btn-back:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-action.btn-next {
+        background: var(--accent);
+        color: #000 !important;
+        border: none;
+        box-shadow: var(--accent-glow);
+    }
+
+    .btn-action.btn-next:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 20px rgba(42, 195, 255, 0.5);
+    }
+
+    .btn-action.btn-save {
+        background: #00FF66;
+        color: #000 !important;
+        border: none;
+        box-shadow: 0 0 15px rgba(0, 255, 102, 0.3);
+    }
+
+    .btn-action.btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 20px rgba(0, 255, 102, 0.5);
+    }
+
+    .btn-action:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    .test-btn {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-main);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 8px;
+    }
+
+    .test-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: var(--accent);
+    }
+
+    /* Live Log Console Styles */
+    .log-viewer-container {
+        margin-top: 25px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        padding-top: 25px;
+    }
+
+    .log-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .log-tab-btn {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: var(--text-muted);
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .log-tab-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text-main);
+    }
+
+    .log-tab-btn.active {
+        background: var(--accent);
+        color: #000;
+        border-color: var(--accent);
+    }
+
+    .log-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .log-console-box {
+        background: #05070a;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
         padding: 15px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.8rem;
+        color: #00FF66;
+        height: 300px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        line-height: 1.4;
+        margin: 0;
+        box-shadow: inset 0 2px 10px rgba(0,0,0,0.8);
     }
 
-    [data-theme="eink"] .save-status-text {
-        color: #000000;
-    }
-
-    [data-theme="eink"] .save-status-text .indicator {
-        background-color: #000000;
-        box-shadow: none;
-        border: 1px solid #000000;
-        animation: none !important;
-    }
-
-    [data-theme="eink"] .save-btn {
-        background: #000000;
-        color: #ffffff !important;
-        border: 2px solid #000000;
-        border-radius: 0;
-        font-weight: bold;
-        box-shadow: none;
-        padding: 8px 20px;
-    }
-
-    [data-theme="eink"] .save-btn:hover:not(:disabled) {
-        background: #ffffff;
-        color: #000000 !important;
-        transform: none;
-    }
-
-    [data-theme="eink"] .save-btn:disabled {
-        background: #ffffff;
-        color: #888888 !important;
-        border-color: #888888;
-        opacity: 1;
-    }
-
-    [data-theme="eink"] .settings-nav-sidebar {
-        display: none !important;
-    }
-
-    [data-theme="eink"] .fieldset-card {
-        background: #ffffff;
-        border: 2px solid #000000;
-        border-radius: 0;
+    /* Alert Banner */
+    .settings-alert-banner {
+        display: none;
+        padding: 14px 20px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 700;
         margin-bottom: 25px;
-        box-shadow: none;
+        align-items: center;
+        justify-content: space-between;
+        animation: fadeIn 0.3s ease;
     }
 
-    [data-theme="eink"] .fieldset-header {
+    .settings-alert-banner.success {
+        display: flex;
+        background: rgba(0, 255, 102, 0.1);
+        border: 1px solid rgba(0, 255, 102, 0.2);
+        color: #00FF66;
+    }
+
+    .settings-alert-banner.error {
+        display: flex;
+        background: rgba(255, 51, 51, 0.1);
+        border: 1px solid rgba(255, 51, 51, 0.2);
+        color: #FF3333;
+    }
+
+    /* E-Ink overrides */
+    [data-theme="eink"] .wizard-tab-panel {
         background: #ffffff;
-        border-bottom: 2px solid #000000;
-        padding: 15px 20px;
-    }
-
-    [data-theme="eink"] .fieldset-header h3 {
-        color: #000000;
-        font-weight: bold;
-    }
-
-    [data-theme="eink"] .fieldset-header h3 i {
-        color: #000000;
-    }
-
-    [data-theme="eink"] .fieldset-chevron {
-        color: #000000;
-    }
-
-    [data-theme="eink"] .fieldset-body {
+        border: 2px solid #000000;
+        border-radius: 0;
+        box-shadow: none;
         padding: 20px;
-        gap: 20px;
+    }
+
+    [data-theme="eink"] .panel-header {
+        border-bottom: 2px solid #000000;
+    }
+
+    [data-theme="eink"] .panel-header h3,
+    [data-theme="eink"] .panel-header h3 i {
+        color: #000000;
     }
 
     [data-theme="eink"] .setting-row {
         grid-template-columns: 1fr;
-        gap: 10px;
-        padding-bottom: 15px;
+        gap: 8px;
         border-bottom: 1px solid #000000;
-    }
-
-    [data-theme="eink"] .setting-row:last-child {
-        border-bottom: none;
+        padding-bottom: 15px;
+        margin-bottom: 15px;
     }
 
     [data-theme="eink"] .setting-label {
@@ -542,6 +552,69 @@
         display: none;
     }
 
+    [data-theme="eink"] .btn-action {
+        border-radius: 0;
+        border: 2px solid #000000;
+        font-weight: bold;
+    }
+
+    [data-theme="eink"] .btn-action.btn-back {
+        background: #ffffff;
+        color: #000000 !important;
+    }
+
+    [data-theme="eink"] .btn-action.btn-next,
+    [data-theme="eink"] .btn-action.btn-save {
+        background: #000000;
+        color: #ffffff !important;
+        box-shadow: none !important;
+    }
+
+    [data-theme="eink"] .test-btn {
+        border-radius: 0;
+        border: 2px solid #000000;
+        background: #ffffff;
+        color: #000000;
+    }
+
+    [data-theme="eink"] .step-dot {
+        border: 2px solid #000000;
+        background: #ffffff;
+        color: #000000;
+    }
+
+    [data-theme="eink"] .step-tab.active .step-dot {
+        background: #000000;
+        color: #ffffff;
+    }
+
+    [data-theme="eink"] .steps-line {
+        background: #000000;
+    }
+
+    [data-theme="eink"] .steps-line-progress {
+        background: #000000;
+    }
+
+    [data-theme="eink"] .log-tab-btn {
+        border: 2px solid #000000;
+        background: #ffffff;
+        color: #000000;
+        border-radius: 0;
+    }
+
+    [data-theme="eink"] .log-tab-btn.active {
+        background: #000000;
+        color: #ffffff;
+    }
+
+    [data-theme="eink"] .log-console-box {
+        background: #ffffff;
+        color: #000000;
+        border: 2px solid #000000;
+        box-shadow: none;
+    }
+
     [data-theme="eink"] .extension-chip {
         background: #ffffff;
         color: #000000;
@@ -549,181 +622,433 @@
         border-radius: 0;
         font-weight: bold;
     }
-
-    /* Layout adjustments for smaller screens */
-    @media (max-width: 900px) {
-        .settings-container {
-            flex-direction: column;
-        }
-        .settings-nav-sidebar {
-            display: none;
-        }
-        .setting-row {
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-        .switch-wrapper {
-            justify-content: flex-start;
-        }
-    }
 </style>
 
 <div class="settings-container">
     
-    <!-- MAIN FORM COLUMN -->
-    <div class="settings-form-wrapper">
-        <form method="post" id="settings-form">
-            {% csrf_token %}
-            
-            <!-- Sticky Action Bar -->
-            <div class="sticky-save-bar" id="save-bar">
-                <div class="save-status-text">
-                    <span class="indicator"></span>
-                    <span id="save-status-label" data-trans="all_saved">All settings saved.</span>
-                </div>
-                <button type="submit" class="save-btn" id="save-button" disabled>Save Changes</button>
-            </div>
-
-            <!-- Configuration Sections -->
-            {% for section, fields in config_data.items %}
-            <div class="fieldset-card" id="section-{{ forloop.counter }}">
-                <div class="fieldset-header" onclick="toggleSection('section-{{ forloop.counter }}')">
-                    <h3>
-                        {% if forloop.counter == 1 %}<i class="fi-widget"></i>
-                        {% elif forloop.counter == 2 %}<i class="fi-web"></i>
-                        {% elif forloop.counter == 3 %}<i class="fi-magnifying-glass"></i>
-                        {% elif forloop.counter == 4 %}<i class="fi-clock"></i>
-                        {% elif forloop.counter == 5 %}<i class="fi-comment"></i>
-                        {% elif forloop.counter == 6 %}<i class="fi-refresh"></i>
-                        {% else %}<i class="fi-page"></i>{% endif %}
-                        <span>{{ section }}</span>
-                    </h3>
-                    <span class="fieldset-chevron">▼</span>
-                </div>
-                
-                <div class="fieldset-body">
-                    {% for field in fields %}
-                    <div class="setting-row">
-                        <div class="setting-info">
-                            <span class="setting-label">{{ field.name }}</span>
-                            <span class="setting-help">{{ field.help_text }}</span>
-                            
-                            <!-- Extension Chips Decorator -->
-                            {% if field.name == 'SOPDS_BOOK_EXTENSIONS' %}
-                            <div class="chips-container" id="extensions-chips-wrapper">
-                                <!-- Generated by JS -->
-                            </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div>
-                            <!-- Boolean (Switch) -->
-                            {% if field.type == 'bool' %}
-                            <div class="switch-wrapper">
-                                <label class="switch">
-                                    <input type="checkbox" name="{{ field.name }}" {% if field.value %}checked{% endif %} class="config-input">
-                                    <span class="slider"></span>
-                                </label>
-                                <!-- Visible checkbox label for E-ink mode -->
-                                <span class="eink-only-label" style="display:none; margin-left: 8px; font-weight: bold; font-size: 0.9rem;">Enabled</span>
-                            </div>
-
-                            <!-- Choice List -->
-                            {% elif field.type == 'choice' %}
-                            <div class="input-container">
-                                <select name="{{ field.name }}" class="input-field config-input">
-                                    {% for val, label in field.choices %}
-                                    <option value="{{ val }}" {% if field.value == val %}selected{% endif %}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-
-                            <!-- Integer Number -->
-                            {% elif field.type == 'int' %}
-                            <div class="input-container">
-                                <input type="number" name="{{ field.name }}" value="{{ field.value }}" class="input-field config-input">
-                            </div>
-
-                            <!-- Secret Token Masking -->
-                            {% elif field.name == 'SOPDS_TELEBOT_API_TOKEN' %}
-                            <div class="input-container">
-                                <input type="password" name="{{ field.name }}" id="id_{{ field.name }}" value="{{ field.value }}" class="input-field config-input">
-                                <button type="button" class="password-toggle-btn" onclick="toggleTokenMask('id_{{ field.name }}', this)" title="Show/Hide Token">
-                                    <i class="fi-eye"></i>
-                                </button>
-                            </div>
-
-                            <!-- Default String / Paths -->
-                            {% else %}
-                            <div class="input-container">
-                                <input type="text" name="{{ field.name }}" id="id_{{ field.name }}" value="{{ field.value }}" class="input-field config-input">
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endfor %}
-            
-        </form>
+    <!-- Status Alert Banner -->
+    <div id="settings-alert" class="settings-alert-banner">
+        <span id="settings-alert-text"></span>
+        <span style="cursor:pointer;" onclick="this.parentElement.style.display='none'">✕</span>
     </div>
 
-    <!-- RIGHT-HAND JUMP MENU (PREMIUM ONLY) -->
-    <div class="settings-nav-sidebar" id="jump-sidebar">
-        <h5>Sections Jump</h5>
-        {% for section, fields in config_data.items %}
-        <a href="#section-{{ forloop.counter }}" class="settings-nav-link" id="nav-link-{{ forloop.counter }}" onclick="scrollToSection(event, 'section-{{ forloop.counter }}')">
-            <span>{{ section|slice:"3:" }}</span>
-            <span class="nav-shortcut">#{{ forloop.counter }}</span>
-        </a>
+    <!-- Steps Tracker (Interactive Tab Bar) -->
+    <div class="steps-tracker">
+        <div class="steps-line"></div>
+        <div class="steps-line-progress" id="wizard-progress-line"></div>
+        
+        {% for step_id, step_info in config_data.items %}
+        <button class="step-tab {% if forloop.first %}active{% endif %}" id="step-tab-{{ step_id }}" onclick="switchTab('{{ step_id }}')">
+            <div class="step-dot">{{ forloop.counter }}</div>
+            <div class="step-label">
+                {% if step_id == 'system' %}{% trans "System" %}
+                {% elif step_id == 'storage' %}{% trans "Storage" %}
+                {% elif step_id == 'integrations' %}{% trans "Integrations" %}
+                {% elif step_id == 'scanner' %}{% trans "Scanner" %}
+                {% elif step_id == 'logs' %}{% trans "Logs" %}
+                {% else %}{{ step_info.title }}{% endif %}
+            </div>
+        </button>
         {% endfor %}
     </div>
 
+    <!-- Forms Block -->
+    <form method="post" id="settings-wizard-form" action="{% url 'web:settings' %}">
+        {% csrf_token %}
+        <input type="hidden" name="step_name" id="step-name-input" value="system">
+
+        {% for step_id, step_info in config_data.items %}
+        <div class="wizard-tab-panel" id="panel-{{ step_id }}" {% if not forloop.first %}style="display:none;"{% endif %}>
+            
+            <div class="panel-header">
+                <h3>
+                    <i class="{{ step_info.icon }}"></i>
+                    <span>{{ step_info.title }}</span>
+                </h3>
+            </div>
+
+            <div class="panel-fields">
+                {% for field in step_info.fields %}
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="setting-label">{{ field.name }}</span>
+                        <span class="setting-help">{{ field.help_text }}</span>
+
+                        <!-- Storage Permission Test Tool -->
+                        {% if field.name == 'SOPDS_ROOT_LIB' %}
+                        <div>
+                            <button type="button" id="btn-write-test" class="test-btn" onclick="testWritePermission()">
+                                {% trans "Test Write Access" %}
+                            </button>
+                            <span id="write-test-status" style="margin-left:12px; font-weight:700; font-size:0.8rem;"></span>
+                        </div>
+                        {% endif %}
+
+                        <!-- Extension Chips Decorator -->
+                        {% if field.name == 'SOPDS_BOOK_EXTENSIONS' %}
+                        <div class="chips-container" id="extensions-chips-wrapper">
+                            <!-- Populated dynamically -->
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="setting-input-cell">
+                        <!-- Boolean Switches -->
+                        {% if field.type == 'bool' %}
+                        <div class="switch-wrapper">
+                            <label class="switch">
+                                <input type="checkbox" name="{{ field.name }}" {% if field.value %}checked{% endif %} class="config-input">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="eink-only-label" style="display:none; margin-left: 8px; font-weight: bold; font-size: 0.9rem;">Enabled</span>
+                        </div>
+
+                        <!-- Choices dropdown list -->
+                        {% elif field.type == 'choice' %}
+                        <div class="input-container">
+                            <select name="{{ field.name }}" class="input-field config-input">
+                                {% for val, label in field.choices %}
+                                <option value="{{ val }}" {% if field.value == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Integer number inputs -->
+                        {% elif field.type == 'int' %}
+                        <div class="input-container">
+                            <input type="number" name="{{ field.name }}" value="{{ field.value }}" class="input-field config-input">
+                        </div>
+
+                        <!-- Secret Key/API Token masking -->
+                        {% elif field.name == 'SOPDS_TELEBOT_API_TOKEN' %}
+                        <div class="input-container">
+                            <input type="password" name="{{ field.name }}" id="id_{{ field.name }}" value="{{ field.value }}" class="input-field config-input">
+                            <button type="button" class="password-toggle-btn" onclick="toggleTokenMask('id_{{ field.name }}', this)" title="Show/Hide Token">
+                                <i class="fi-eye"></i>
+                            </button>
+                        </div>
+
+                        <!-- Default string/paths inputs -->
+                        {% else %}
+                        <div class="input-container">
+                            <input type="text" name="{{ field.name }}" id="id_{{ field.name }}" value="{{ field.value }}" class="input-field config-input">
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Manual Timezone Addition to System Step -->
+                {% if step_id == 'system' %}
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="setting-label">{% trans "Server Timezone" %}</span>
+                        <span class="setting-help">{% trans "Select the native timezone for scheduler cron runs. Timezone patches will restart the container server." %}</span>
+                    </div>
+                    <div class="setting-input-cell">
+                        <div class="input-container">
+                            <select name="timezone" class="input-field config-input">
+                                {% for tz in timezones %}
+                                <option value="{{ tz }}" {% if current_timezone == tz %}selected{% endif %}>{{ tz }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Dynamic Log Viewer Console addition to Logs Step -->
+                {% if step_id == 'logs' %}
+                <div class="log-viewer-container">
+                    <h5 style="margin: 0 0 15px; font-weight:800; font-size:0.9rem; text-transform:uppercase; color:var(--text-main);">
+                        📋 {% trans "Real-time Diagnostic Logs" %}
+                    </h5>
+                    <div class="log-tabs">
+                        <button type="button" class="log-tab-btn active" id="log-btn-server" onclick="loadDiagnosticsLog('server')">Server Logs</button>
+                        <button type="button" class="log-tab-btn" id="log-btn-scanner" onclick="loadDiagnosticsLog('scanner')">Scanner Logs</button>
+                        <button type="button" class="log-tab-btn" id="log-btn-telebot" onclick="loadDiagnosticsLog('telebot')">Telegram Bot Logs</button>
+                    </div>
+                    <div class="log-controls">
+                        <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; color:var(--text-muted); cursor:pointer;">
+                            <input type="checkbox" id="log-auto-refresh" checked> {% trans "Auto-refresh (5s)" %}
+                        </label>
+                        <button type="button" class="test-btn" style="margin:0;" onclick="refreshActiveLog()">
+                            🔄 {% trans "Refresh Now" %}
+                        </button>
+                    </div>
+                    <pre id="log-console-box" class="log-console-box">{% trans "Select a log tab above to initialize viewer..." %}</pre>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Card Bottom Navigation Buttons -->
+            <div class="wizard-buttons">
+                <div>
+                    {% if not forloop.first %}
+                    <button type="button" class="btn-action btn-back" onclick="navigateWizard(-1)">
+                        « {% trans "Back" %}
+                    </button>
+                    {% endif %}
+                </div>
+                
+                <div class="btn-nav-group">
+                    <button type="button" class="btn-action btn-save" onclick="saveActiveStepSettings()">
+                        💾 {% trans "Save This Tab" %}
+                    </button>
+                    {% if not forloop.last %}
+                    <button type="button" class="btn-action btn-next" onclick="navigateWizard(1)">
+                        {% trans "Next" %} »
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+        {% endfor %}
+    </form>
 </div>
 
 <script>
-    // Collapse/Expand Section Handler
-    function toggleSection(sectionId) {
-        const card = document.getElementById(sectionId);
-        card.classList.toggle('collapsed');
-    }
+    // Ordered steps list mapping
+    const stepsList = ['system', 'storage', 'integrations', 'scanner', 'logs'];
+    let activeStepIdx = 0;
+    let activeLogType = 'server';
+    let logIntervalId = null;
 
-    // Scroll with offset smooth handler
-    function scrollToSection(e, sectionId) {
-        e.preventDefault();
-        const section = document.getElementById(sectionId);
-        if (section) {
-            // Expand the section if it is collapsed
-            section.classList.remove('collapsed');
-            
-            const offset = 90; // sticky bar offset
-            const bodyRect = document.body.getBoundingClientRect().top;
-            const elementRect = section.getBoundingClientRect().top;
-            const elementPosition = elementRect - bodyRect;
-            const offsetPosition = elementPosition - offset;
-
-            window.scrollTo({
-                top: offsetPosition,
-                behavior: 'smooth'
-            });
+    // Switch tabs dynamically
+    function switchTab(stepId) {
+        const idx = stepsList.indexOf(stepId);
+        if (idx !== -1) {
+            activeStepIdx = idx;
+            updateWizardUI();
         }
     }
 
-    // Toggle Telegram API Token visibility
+    // Wizard Back/Next navigation
+    function navigateWizard(direction) {
+        const nextIdx = activeStepIdx + direction;
+        if (nextIdx >= 0 && nextIdx < stepsList.length) {
+            activeStepIdx = nextIdx;
+            updateWizardUI();
+        }
+    }
+
+    // Refresh UI elements
+    function updateWizardUI() {
+        const activeStep = stepsList[activeStepIdx];
+        
+        // Update hidden input
+        document.getElementById('step-name-input').value = activeStep;
+
+        // Hide/Show tab panels
+        stepsList.forEach(step => {
+            const panel = document.getElementById('panel-' + step);
+            if (panel) {
+                panel.style.display = (step === activeStep) ? 'block' : 'none';
+            }
+            
+            const tabBtn = document.getElementById('step-tab-' + step);
+            if (tabBtn) {
+                tabBtn.className = 'step-tab';
+                if (step === activeStep) {
+                    tabBtn.classList.add('active');
+                } else if (stepsList.indexOf(step) < activeStepIdx) {
+                    tabBtn.classList.add('completed');
+                }
+            }
+        });
+
+        // Update step line progress width
+        const progressPercentage = (activeStepIdx / (stepsList.length - 1)) * 100;
+        const progressLine = document.getElementById('wizard-progress-line');
+        if (progressLine) {
+            progressLine.style.width = progressPercentage + '%';
+        }
+
+        // Trigger log load or clear intervals based on whether log tab is active
+        if (activeStep === 'logs') {
+            loadDiagnosticsLog(activeLogType);
+            setupLogAutoRefresh();
+        } else {
+            clearLogInterval();
+        }
+    }
+
+    // Save Active Step Settings via AJAX (falling back to normal post if error/no-ajax support)
+    function saveActiveStepSettings() {
+        const form = document.getElementById('settings-wizard-form');
+        const alertBox = document.getElementById('settings-alert');
+        const alertText = document.getElementById('settings-alert-text');
+        
+        if (!form) return;
+
+        // Gather only fields that belong to the active step card to make it clean
+        const formData = new FormData(form);
+
+        // Fetch is modern and clean
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network response not ok');
+            return response.json();
+        })
+        .then(data => {
+            alertBox.className = 'settings-alert-banner';
+            if (data.status === 'success') {
+                alertBox.classList.add('success');
+                alertText.innerText = data.message || 'Settings saved successfully!';
+                
+                // If the container timezone is updated, notify about restart delay
+                const activeStep = stepsList[activeStepIdx];
+                if (activeStep === 'system') {
+                    alertText.innerText += ' (Container may reload timezone changes shortly)';
+                }
+            } else {
+                alertBox.classList.add('error');
+                alertText.innerText = data.message || 'Error occurred while saving configurations.';
+            }
+            alertBox.style.display = 'flex';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        })
+        .catch(err => {
+            // Degrade gracefully: submit form via normal POST
+            console.warn('AJAX save failed, degrading to standard post submission...', err);
+            form.submit();
+        });
+    }
+
+    // Write Permission Test
+    function testWritePermission() {
+        const statusLabel = document.getElementById('write-test-status');
+        const pathInput = document.getElementById('id_SOPDS_ROOT_LIB');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        if (!statusLabel || !pathInput) return;
+
+        statusLabel.style.color = 'var(--text-muted)';
+        statusLabel.innerText = 'Testing write permissions...';
+
+        const formData = new FormData();
+        formData.append('path', pathInput.value);
+        formData.append('csrfmiddlewaretoken', csrfToken);
+
+        fetch('/web/setup/write-test/', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                statusLabel.style.color = '#00FF66';
+                statusLabel.innerText = '✔ ' + data.message;
+            } else {
+                statusLabel.style.color = '#FF3333';
+                statusLabel.innerText = '✘ ' + data.message;
+            }
+        })
+        .catch(err => {
+            statusLabel.style.color = '#FF3333';
+            statusLabel.innerText = '✘ Permission test request failed.';
+        });
+    }
+
+    // Toggle Secret Mask
     function toggleTokenMask(inputId, btn) {
         const input = document.getElementById(inputId);
         const icon = btn.querySelector('i');
         if (input.type === 'password') {
             input.type = 'text';
+            icon.className = 'fi-eye';
             icon.style.color = 'var(--accent)';
         } else {
             input.type = 'password';
+            icon.className = 'fi-eye';
             icon.style.color = 'var(--text-muted)';
         }
     }
 
-    // Generate extension chips
+    // Live Diagnostic Logs Viewer fetching
+    function loadDiagnosticsLog(logType) {
+        activeLogType = logType;
+        
+        // Highlight active log button
+        ['server', 'scanner', 'telebot'].forEach(type => {
+            const btn = document.getElementById('log-btn-' + type);
+            if (btn) {
+                btn.className = 'log-tab-btn' + (type === logType ? ' active' : '');
+            }
+        });
+
+        const consoleBox = document.getElementById('log-console-box');
+        if (!consoleBox) return;
+
+        fetch(`/web/settings/logs/?type=${logType}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                if (data.lines && data.lines.length > 0) {
+                    consoleBox.innerText = data.lines.join('');
+                    consoleBox.scrollTop = consoleBox.scrollHeight;
+                } else {
+                    consoleBox.innerText = '[SYSTEM] Log file is currently empty.';
+                }
+                consoleBox.style.color = '#00FF66';
+            } else {
+                consoleBox.innerText = `[ERROR] ${data.message}`;
+                consoleBox.style.color = '#FF3333';
+            }
+        })
+        .catch(err => {
+            consoleBox.innerText = '[ERROR] Failed to fetch diagnostic logs.';
+            consoleBox.style.color = '#FF3333';
+        });
+    }
+
+    function refreshActiveLog() {
+        loadDiagnosticsLog(activeLogType);
+    }
+
+    function setupLogAutoRefresh() {
+        clearLogInterval();
+        const checkbox = document.getElementById('log-auto-refresh');
+        
+        if (checkbox && checkbox.checked) {
+            logIntervalId = setInterval(() => {
+                loadDiagnosticsLog(activeLogType);
+            }, 5000);
+        }
+
+        if (checkbox) {
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    setupLogAutoRefresh();
+                } else {
+                    clearLogInterval();
+                }
+            });
+        }
+    }
+
+    function shadowAutoRefresh() {
+        // Safe check
+        if (stepsList[activeStepIdx] === 'logs') {
+            setupLogAutoRefresh();
+        }
+    }
+
+    function clearLogInterval() {
+        if (logIntervalId) {
+            clearInterval(logIntervalId);
+            logIntervalId = null;
+        }
+    }
+
+    // Book extensions chip rendering
     function renderExtensionChips() {
         const input = document.getElementById('id_SOPDS_BOOK_EXTENSIONS');
         const wrapper = document.getElementById('extensions-chips-wrapper');
@@ -746,97 +1071,11 @@
         }
 
         input.addEventListener('input', updateChips);
-        updateChips(); // Initial render
+        updateChips(); // initial
     }
 
-    // Track active section on scroll to highlight jump sidebar links
-    function setupScrollSpy() {
-        const cards = document.querySelectorAll('.fieldset-card');
-        const navLinks = document.querySelectorAll('.settings-nav-link');
-        if (cards.length === 0 || navLinks.length === 0) return;
-
-        function spy() {
-            let currentActiveId = null;
-            const scrollPos = window.scrollY || document.documentElement.scrollTop;
-
-            cards.forEach(card => {
-                const offsetTop = card.offsetTop - 120;
-                if (scrollPos >= offsetTop) {
-                    currentActiveId = card.id;
-                }
-            });
-
-            if (currentActiveId) {
-                const counter = currentActiveId.split('-')[1];
-                navLinks.forEach(link => {
-                    link.classList.remove('active');
-                });
-                const activeLink = document.getElementById('nav-link-' + counter);
-                if (activeLink) activeLink.classList.add('active');
-            }
-        }
-
-        window.addEventListener('scroll', spy);
-        spy(); // Initial spy check
-    }
-
-    // Detect form changes to show Unsaved indicator
-    function setupUnsavedChangesDetection() {
-        const form = document.getElementById('settings-form');
-        const saveBar = document.getElementById('save-bar');
-        const saveBtn = document.getElementById('save-button');
-        const saveStatusLabel = document.getElementById('save-status-label');
-        if (!form || !saveBar || !saveBtn) return;
-
-        // Store initial form state
-        const initialStates = new Map();
-        const inputs = form.querySelectorAll('.config-input');
-
-        function getInputState(input) {
-            if (input.type === 'checkbox') {
-                return input.checked;
-            }
-            return input.value;
-        }
-
-        inputs.forEach(input => {
-            initialStates.set(input, getInputState(input));
-        });
-
-        function checkChanges() {
-            let hasChanges = false;
-            inputs.forEach(input => {
-                const current = getInputState(input);
-                const initial = initialStates.get(input);
-                if (current !== initial) {
-                    hasChanges = true;
-                }
-            });
-
-            if (hasChanges) {
-                saveBar.classList.add('unsaved');
-                saveBtn.removeAttribute('disabled');
-                
-                // Translate text dynamically based on selected language
-                const lang = localStorage.getItem('vailib_lang') || 'en';
-                const warningMsg = (lang === 'ru') ? 'Есть несохраненные изменения!' : 'You have unsaved changes!';
-                saveStatusLabel.innerText = warningMsg;
-            } else {
-                saveBar.classList.remove('unsaved');
-                saveBtn.setAttribute('disabled', 'true');
-                
-                const lang = localStorage.getItem('vailib_lang') || 'en';
-                const cleanMsg = (lang === 'ru') ? 'Все настройки сохранены.' : 'All settings saved.';
-                saveStatusLabel.innerText = cleanMsg;
-            }
-        }
-
-        form.addEventListener('input', checkChanges);
-        form.addEventListener('change', checkChanges);
-    }
-
-    // Configure E-Ink display nuances (e.g. checkbox inline labels)
-    function setupEinkNuances() {
+    // Support visible labels in checkboxes when E-Ink is active
+    function configureEinkNuances() {
         const isEink = document.documentElement.getAttribute('data-theme') === 'eink';
         if (isEink) {
             document.querySelectorAll('.eink-only-label').forEach(el => {
@@ -846,10 +1085,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        updateWizardUI();
         renderExtensionChips();
-        setupScrollSpy();
-        setupUnsavedChangesDetection();
-        setupEinkNuances();
+        configureEinkNuances();
     });
 </script>
 {% endblock %}
