@@ -825,12 +825,12 @@ def update_populate_progress(lang, current, total, message):
             if len(populate_status["logs"]) > 15:
                 populate_status["logs"].pop(0)
 
-def run_populate_thread(languages, limit_per_lang, outdir, trigger_scan_path):
+def run_populate_thread(languages, limit_per_lang, outdir, trigger_scan_path, source="gutenberg"):
     global populate_status
     with populate_lock:
         populate_status["status"] = "running"
-        populate_status["message"] = "Initializing downloader..."
-        populate_status["logs"] = ["Initializing downloader..."]
+        populate_status["message"] = f"Initializing downloader for {source}..."
+        populate_status["logs"] = [f"Initializing downloader for {source}..."]
         
     try:
         import download_popular_books
@@ -839,6 +839,7 @@ def run_populate_thread(languages, limit_per_lang, outdir, trigger_scan_path):
             limit_per_lang=limit_per_lang,
             outdir=outdir,
             trigger_scan_path=trigger_scan_path,
+            source=source,
             progress_callback=update_populate_progress
         )
         with populate_lock:
@@ -896,6 +897,10 @@ def PopulateView(request):
             except ValueError:
                 count = 10
                 
+            source = request.POST.get("source", "gutenberg")
+            if source not in ["gutenberg", "standardebooks"]:
+                source = "gutenberg"
+                
             # Default storage and scan trigger files
             outdir = os.path.join(config.SOPDS_ROOT_LIB, "downloads")
             trigger_scan_path = os.path.join(config.SOPDS_ROOT_LIB, ".trigger_scan")
@@ -903,12 +908,13 @@ def PopulateView(request):
             # Start background thread
             t = threading.Thread(
                 target=run_populate_thread,
-                args=(selected_langs, count, outdir, trigger_scan_path)
+                args=(selected_langs, count, outdir, trigger_scan_path, source)
             )
             t.daemon = True
             t.start()
             
         return redirect("web:populate")
+
         
     with populate_lock:
         args['populate_status'] = populate_status.copy()
@@ -1077,6 +1083,8 @@ def SetupWizardView(request):
         # Online feeds configuration
         enable_gutenberg = request.POST.get('enable_gutenberg') == 'on'
         gutenberg_langs = request.POST.getlist('gutenberg_langs')
+        enable_standardebooks = request.POST.get('enable_standardebooks') == 'on'
+
         
         try:
             # 1. Create Django Administrator
@@ -1103,7 +1111,7 @@ def SetupWizardView(request):
                 login(request, user)
                 
             # 5. Populate and scan
-            if enable_gutenberg and gutenberg_langs:
+            if (enable_gutenberg and gutenberg_langs) or enable_standardebooks:
                 outdir = os.path.join(library_path, "downloads")
                 trigger_scan_path = os.path.join(library_path, ".trigger_scan")
                 os.makedirs(outdir, exist_ok=True)
@@ -1115,9 +1123,11 @@ def SetupWizardView(request):
                         is_running = True
                         
                 if not is_running:
+                    source = "standardebooks" if (enable_standardebooks and not enable_gutenberg) else "gutenberg"
+                    langs = ["en"] if source == "standardebooks" else gutenberg_langs
                     t = threading.Thread(
                         target=run_populate_thread,
-                        args=(gutenberg_langs, 10, outdir, trigger_scan_path)
+                        args=(langs, 10, outdir, trigger_scan_path, source)
                     )
                     t.daemon = True
                     t.start()
@@ -1129,6 +1139,7 @@ def SetupWizardView(request):
                         os.utime(trigger_scan_path, None)
                 except Exception:
                     pass
+
                     
             return JsonResponse({"status": "success"})
         except Exception as e:

@@ -23,6 +23,10 @@ GUTENDEX_URL = "https://gutendex.com/books"
 # Official Project Gutenberg OPDS base URL
 GUTENBERG_OPDS_URL = "https://www.gutenberg.org/ebooks/search.opds/"
 
+# Standard Ebooks OPDS URL
+STANDARD_EBOOKS_OPDS_URL = "https://standardebooks.org/opds/all"
+
+
 def clean_filename(name):
     """
     Remove unsafe filesystem characters and keep it clean and robust.
@@ -212,12 +216,83 @@ def fetch_via_gutendex(lang, page=1):
         print(f"  [WARNING] Gutendex fetch failed: {e}")
         return [], None
 
-def crawl_popular_books(languages, limit_per_lang, outdir, trigger_scan_path, progress_callback=None):
+def parse_standard_ebooks_opds(xml_text):
+    books = []
+    try:
+        root = ET.fromstring(xml_text)
+        ns = {
+            'atom': 'http://www.w3.org/2005/Atom'
+        }
+        
+        for entry in root.findall('atom:entry', ns):
+            title_el = entry.find('atom:title', ns)
+            title = title_el.text.strip() if title_el is not None else "Unknown Title"
+            
+            author_name = "Unknown Author"
+            author_el = entry.find('atom:author', ns)
+            if author_el is not None:
+                name_el = author_el.find('atom:name', ns)
+                if name_el is not None:
+                    author_name = name_el.text.strip()
+            
+            # Find epub link
+            epub_url = None
+            for link in entry.findall('atom:link', ns):
+                href = link.get('href', '')
+                type_attr = link.get('type', '')
+                if href.endswith('.epub') or type_attr == 'application/epub+zip':
+                    epub_url = href
+                    break
+                    
+            if epub_url:
+                import hashlib
+                book_id = int(hashlib.md5(epub_url.encode('utf-8')).hexdigest()[:8], 16)
+                
+                books.append({
+                    "id": book_id,
+                    "title": title,
+                    "author": author_name,
+                    "epub_url": epub_url
+                })
+                
+        next_url = None
+        for link in root.findall('atom:link', ns):
+            if link.get('rel') == 'next':
+                next_url = link.get('href')
+                if next_url and not next_url.startswith('http'):
+                    next_url = "https://standardebooks.org" + next_url
+                break
+                
+        return books, next_url
+    except Exception as e:
+        print(f"  [ERROR] Standard Ebooks XML parsing failed: {e}")
+        return [], None
+
+def fetch_via_standard_ebooks(page_url_or_none=None):
+    url = page_url_or_none or STANDARD_EBOOKS_OPDS_URL
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        resp = requests.get(url, headers=headers, timeout=15)
+        resp.raise_for_status()
+        return parse_standard_ebooks_opds(resp.text)
+    except Exception as e:
+        print(f"  [WARNING] Standard Ebooks fetch failed: {e}")
+        return [], None
+
+def crawl_popular_books(languages, limit_per_lang, outdir, trigger_scan_path, source="gutenberg", progress_callback=None):
     """
     Crawl and download popular books for the selected languages.
     """
     os.makedirs(outdir, exist_ok=True)
-    print(f"Starting popular books downloader (Dual-Engine Mode)...")
+    
+    if source == "standardebooks":
+        languages = ["en"]
+        print("  [INFO] Standard Ebooks source is English-only. Forcing target language to 'en'.")
+        
+    print(f"Starting popular books downloader...")
+    print(f"Source Catalog: {source.upper()}")
     print(f"Target languages: {', '.join(languages)}")
     print(f"Active download limit: {limit_per_lang} books per language")
     print(f"Output directory: {outdir}\n")
@@ -231,20 +306,29 @@ def crawl_popular_books(languages, limit_per_lang, outdir, trigger_scan_path, pr
         print(f"  Found {len(existing_ids)} existing books in local folder: {lang_dir}")
         
         if progress_callback:
-            progress_callback(lang, 0, limit_per_lang, "Scanning Gutenberg catalog...")
+            progress_callback(lang, 0, limit_per_lang, f"Scanning {source} catalog...")
             
         downloaded_count = 0
         has_more = True
         
-        # Dual-engine state variables
-        engine = "gutenberg_opds"
         opds_next_url = None
         gutendex_page = 1
+        engine = "gutenberg_opds" if source == "gutenberg" else source
         
         while downloaded_count < limit_per_lang and has_more:
             books = []
             
-            if engine == "gutenberg_opds":
+            if engine == "standardebooks":
+                time.sleep(1.0)
+                books, next_ref = fetch_via_standard_ebooks(opds_next_url)
+                if books:
+                    opds_next_url = next_ref
+                    if not next_ref:
+                        has_more = False
+                else:
+                    has_more = False
+                    
+            elif engine == "gutenberg_opds":
                 time.sleep(1.0)
                 books, next_ref = fetch_via_gutenberg_opds(lang, opds_next_url)
                 if books:
@@ -256,7 +340,7 @@ def crawl_popular_books(languages, limit_per_lang, outdir, trigger_scan_path, pr
                     print("  [INFO] Switching to fallback engine (Gutendex)...")
                     engine = "gutendex"
                     
-            if engine == "gutendex":
+            elif engine == "gutendex":
                 time.sleep(1.0)
                 books, next_ref = fetch_via_gutendex(lang, gutendex_page)
                 if books:
@@ -331,7 +415,7 @@ def crawl_popular_books(languages, limit_per_lang, outdir, trigger_scan_path, pr
             print(f"⚠️ Failed to write trigger file: {e}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Polite bulk public-domain eBook downloader utilizing Gutenberg OPDS and Gutendex APIs.")
+    parser = argparse.ArgumentParser(description="Polite bulk public-domain eBook downloader utilizing Gutenberg OPDS, Gutendex APIs, and Standard Ebooks OPDS.")
     parser.add_argument(
         "--languages", 
         type=str, 
@@ -356,9 +440,17 @@ if __name__ == "__main__":
         default="/library/.trigger_scan", 
         help="Path to the scan trigger file (default: /library/.trigger_scan)."
     )
+    parser.add_argument(
+        "--source",
+        type=str,
+        default="gutenberg",
+        choices=["gutenberg", "standardebooks"],
+        help="Source catalog to download from (default: gutenberg)."
+    )
     
     args = parser.parse_args()
     
     lang_list = [lang.strip().lower() for lang in args.languages.split(",") if lang.strip()]
     
-    crawl_popular_books(lang_list, args.count, args.outdir, args.trigger_scan)
+    crawl_popular_books(lang_list, args.count, args.outdir, args.trigger_scan, args.source)
+

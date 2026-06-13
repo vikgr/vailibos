@@ -534,11 +534,22 @@
                 </div>
             </div>
             
+            <div class="form-group" style="margin-top: 15px;">
+                <label class="checkbox-item" style="padding: 15px; background: rgba(0,0,0,0.15);">
+                    <input type="checkbox" name="enable_standardebooks" id="enable_standardebooks">
+                    <div style="display: flex; flex-direction: column; gap: 2px;">
+                        <span style="font-weight: 800; font-size: 0.9rem;">Pre-populate with Standard Ebooks</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">Download highly curated English public-domain titles on deploy.</span>
+                    </div>
+                </label>
+            </div>
+            
             <div class="form-group" style="margin-top: 25px; opacity: 0.65;">
                 <label style="font-weight: 800;">More Online Registries (ctext, OpenBook.gr, runivers)</label>
                 <span style="font-size: 0.8rem; color: var(--text-muted); display: block; line-height: 1.4;">Additional public API sources can be enabled in settings later.</span>
             </div>
         </div>
+
 
         <!-- STEP 5: Deploying & Finalize -->
         <div class="wizard-step-panel" id="step-panel-5">
@@ -758,12 +769,22 @@
         document.getElementById('summary-tz').innerText = document.getElementById('timezone').value;
         
         const gutenbergEnabled = document.getElementById('enable_gutenberg').checked;
+        const standardebooksEnabled = document.getElementById('enable_standardebooks').checked;
+        
+        let feedSummary = [];
         if (gutenbergEnabled) {
             const checkedLangs = [];
             document.querySelectorAll('input[name="gutenberg_langs"]:checked').forEach(el => {
                 checkedLangs.push(el.value.toUpperCase());
             });
-            document.getElementById('summary-feeds').innerText = 'Gutenberg download [' + checkedLangs.join(', ') + '] + local scan';
+            feedSummary.push('Gutenberg [' + checkedLangs.join(', ') + ']');
+        }
+        if (standardebooksEnabled) {
+            feedSummary.push('Standard Ebooks [EN]');
+        }
+        
+        if (feedSummary.length > 0) {
+            document.getElementById('summary-feeds').innerText = feedSummary.join(' + ') + ' + local scan';
         } else {
             document.getElementById('summary-feeds').innerText = 'Local directory scan';
         }
@@ -813,10 +834,12 @@
                 progressBar.style.width = '40%';
                 
                 const gutenbergEnabled = document.getElementById('enable_gutenberg').checked;
-                if (gutenbergEnabled) {
+                const standardebooksEnabled = document.getElementById('enable_standardebooks').checked;
+                if (gutenbergEnabled || standardebooksEnabled) {
                     stageTitle.innerText = 'Downloading Catalog Feeds...';
-                    stageDesc.innerText = 'Ingesting initial Gutenberg catalog ebooks.';
-                    logTerminal('Initializing Gutenberg crawler daemon...', 'step');
+                    stageDesc.innerText = 'Ingesting initial public-domain catalog ebooks.';
+                    const sourceName = standardebooksEnabled && !gutenbergEnabled ? 'Standard Ebooks' : 'Gutenberg';
+                    logTerminal('Initializing ' + sourceName + ' crawler daemon...', 'step');
                     progressBar.style.width = '60%';
                     pollPopulateProgress(progressBar, stageTitle, stageDesc, logTerminal);
                 } else {

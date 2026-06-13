@@ -40,21 +40,29 @@
         <form id="populate-form" method="post" action="/web/populate/" style="margin-top: 20px;">
             {% csrf_token %}
             
-            <div class="row">
+            <div class="row" style="display: flex; gap: 20px;">
+                <!-- Source selection -->
+                <div style="flex: 1; margin-bottom: 25px;">
+                    <label style="color: #fff; font-weight: 700; font-size: 0.9rem; margin-bottom: 10px;">
+                        {% trans "Source Library Catalog:" %}
+                    </label>
+                    <select name="source" style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 8px; padding: 10px 14px; margin: 0; width: 100%; height: 42px;">
+                        <option value="gutenberg">Project Gutenberg (Global / 12 Languages)</option>
+                        <option value="standardebooks">Standard Ebooks (Curated / English Only)</option>
+                    </select>
+                </div>
                 <!-- Count selection -->
-                <div class="large-6 columns" style="margin-bottom: 25px;">
+                <div style="flex: 1; margin-bottom: 25px;">
                     <label style="color: #fff; font-weight: 700; font-size: 0.9rem; margin-bottom: 10px;">
                         {% trans "Books per Language:" %}
                     </label>
-                    <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="display: flex; align-items: center; gap: 15px; height: 42px;">
                         <input type="range" name="count" id="count-slider" min="1" max="100" value="10" style="flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 5px; cursor: pointer; accent-color: #00E1FF;" oninput="document.getElementById('count-input').value = this.value">
                         <input type="number" id="count-input" min="1" max="100" value="10" style="width: 80px; text-align: center; font-weight: 700; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 8px; padding: 6px; margin: 0;" oninput="document.getElementById('count-slider').value = this.value">
                     </div>
-                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 5px;">
-                        {% trans "Limits the number of new eBooks crawled per run (1 - 100)." %}
-                    </span>
                 </div>
             </div>
+
 
             <!-- Language select grid -->
             <div style="margin-bottom: 30px;">
@@ -128,9 +136,18 @@
             {% csrf_token %}
             
             <div style="margin-bottom: 15px;">
+                <label style="font-weight: bold;">Source Library Catalog:</label><br>
+                <select name="source" style="padding: 5px; border: 2px solid #000000; color: #000; background: #fff; width: 220px; font-weight: bold;">
+                    <option value="gutenberg">Project Gutenberg</option>
+                    <option value="standardebooks">Standard Ebooks (English)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 15px;">
                 <label style="font-weight: bold;">Books per Language (1 - 100):</label><br>
                 <input type="number" name="count" min="1" max="100" value="10" style="width: 100px; padding: 5px; border: 2px solid #000000; color: #000; background: #fff;">
             </div>
+
 
             <div style="margin-bottom: 20px;">
                 <label style="font-weight: bold; display: block; margin-bottom: 5px;">Select Languages:</label>
