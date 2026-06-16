@@ -1022,7 +1022,6 @@ def ConvertManualView(request, book_id):
     return redirect('/web/search/books/?searchtype=i&searchterms=%s&message=converting' % book_id)
 
 
-@sopds_login(url='web:login')
 def update_container_timezone(new_tz):
     settings_path = '/sopds/sopds/settings.py'
     if os.path.exists(settings_path):
