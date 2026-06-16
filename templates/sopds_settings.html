@@ -221,26 +221,32 @@
     }
 
     /* iOS Toggle Switch */
-    .switch-wrapper {
+    .vailib-switch-wrapper {
         display: flex;
         justify-content: flex-end;
     }
 
-    .switch {
+    .vailib-switch {
         position: relative;
-        display: inline-block;
-        width: 52px;
-        height: 28px;
-        margin: 0;
+        display: inline-block !important;
+        width: 52px !important;
+        height: 28px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: none !important;
+        border: none !important;
     }
 
-    .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
+    .vailib-switch input {
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        position: absolute !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
-    .slider {
+    .vailib-slider {
         position: absolute;
         cursor: pointer;
         top: 0;
@@ -253,7 +259,7 @@
         border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    .slider:before {
+    .vailib-slider:before {
         position: absolute;
         content: "";
         height: 20px;
@@ -266,11 +272,11 @@
         box-shadow: 0 2px 5px rgba(0,0,0,0.3);
     }
 
-    input:checked + .slider {
+    .vailib-switch input:checked + .vailib-slider {
         background-color: var(--accent);
     }
 
-    input:checked + .slider:before {
+    .vailib-switch input:checked + .vailib-slider:before {
         transform: translateX(24px);
         background-color: #0d1015;
     }
@@ -531,24 +537,24 @@
         background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>") !important;
     }
 
-    [data-theme="eink"] .switch-wrapper {
+    [data-theme="eink"] .vailib-switch-wrapper {
         justify-content: flex-start;
     }
 
-    [data-theme="eink"] .switch {
-        width: auto;
-        height: auto;
+    [data-theme="eink"] .vailib-switch {
+        width: auto !important;
+        height: auto !important;
     }
 
-    [data-theme="eink"] .switch input {
-        opacity: 1;
-        width: auto;
-        height: auto;
-        position: static;
-        margin-right: 8px;
+    [data-theme="eink"] .vailib-switch input {
+        opacity: 1 !important;
+        width: auto !important;
+        height: auto !important;
+        position: static !important;
+        margin-right: 8px !important;
     }
 
-    [data-theme="eink"] .slider {
+    [data-theme="eink"] .vailib-slider {
         display: none;
     }
 
@@ -695,10 +701,10 @@
                     <div class="setting-input-cell">
                         <!-- Boolean Switches -->
                         {% if field.type == 'bool' %}
-                        <div class="switch-wrapper">
-                            <label class="switch">
+                        <div class="vailib-switch-wrapper">
+                            <label class="vailib-switch">
                                 <input type="checkbox" name="{{ field.name }}" {% if field.value %}checked{% endif %} class="config-input">
-                                <span class="slider"></span>
+                                <span class="vailib-slider"></span>
                             </label>
                             <span class="eink-only-label" style="display:none; margin-left: 8px; font-weight: bold; font-size: 0.9rem;">Enabled</span>
                         </div>
