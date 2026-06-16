@@ -1,10 +1,29 @@
 import base64
-from django.contrib import auth
-from django.utils.deprecation import MiddlewareMixin
-from django.utils import translation
 from django.http import HttpResponse
-from constance import config
+from django.contrib import auth
+from django.utils import translation
 from django.middleware.cache import FetchFromCacheMiddleware as DjangoFetchFromCacheMiddleware
+from django.utils.deprecation import MiddlewareMixin
+
+from constance import config
+
+LANGUAGE_SESSION_KEY = '_language'
+
+
+class SOPDSSetupMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        path = request.path
+        # Allow static files, welcome setup wizard views, and login assets
+        if path.startswith('/web/setup/') or path.startswith('/static/'):
+            return None
+            
+        # Redirect to welcome setup wizard if database has no superuser
+        from django.contrib.auth.models import User
+        if not User.objects.filter(is_superuser=True).exists():
+            from django.shortcuts import redirect
+            return redirect('/web/setup/')
+        return None
+
 
 class BasicAuthMiddleware(MiddlewareMixin):
     def unauthed(self):
@@ -37,15 +56,15 @@ class BasicAuthMiddleware(MiddlewareMixin):
 
         return self.unauthed()
 
+
 class SOPDSLocaleMiddleware(MiddlewareMixin):
+
     def process_request(self, request):
-        # First, try to get the language from the request (cookie, session, or headers)
-        language = translation.get_language_from_request(request)
+        # 1. Try cookie (set by our JS flag switcher)
+        # 2. Try session
+        # 3. Fallback to global config
+        lang_cookie = request.COOKIES.get('django_language')
         
-        # Check if we have a custom cookie set by our JS lang menu
-        if 'django_language' in request.COOKIES:
-            language = request.COOKIES['django_language']
-            
         # Support short codes mapping for common ones used in JS switcher
         mapping = {
             'en': 'en-us',
@@ -62,31 +81,27 @@ class SOPDSLocaleMiddleware(MiddlewareMixin):
             'nl': 'nl',
         }
         
-        if language in mapping:
-            language = mapping[language]
-            
-        # Fallback to the SOPDS configuration if nothing is found
-        if not language:
-             language = config.SOPDS_LANGUAGE
-             
-        try:
-            translation.activate(language)
-        except:
-            translation.activate(config.SOPDS_LANGUAGE)
-            
-        request.LANG = language
+        if lang_cookie in mapping:
+            lang = mapping[lang_cookie]
+        else:
+            lang = lang_cookie or config.SOPDS_LANGUAGE
+
+        request.LANG = lang
+        translation.activate(lang)
         request.LANGUAGE_CODE = translation.get_language()
+        
+        if hasattr(request, 'session'):
+            request.session[LANGUAGE_SESSION_KEY] = lang
 
     def process_response(self, request, response):
         lang = getattr(request, 'LANG', config.SOPDS_LANGUAGE)
-        try:
-            translation.activate(lang)
-            response['Content-Language'] = translation.get_language()
-        except:
-            pass
+        translation.activate(lang)
+        response['Content-Language'] = translation.get_language()
         return response
 
+
 class FetchFromCacheMiddleware(DjangoFetchFromCacheMiddleware):
+
     def process_request(self, request):
         if not request.user.is_authenticated:
             return None

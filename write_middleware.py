@@ -1,5 +1,6 @@
-with open('/tmp/sopds_custom/middleware.py', 'w', encoding='utf-8') as f:
-    f.write('''import base64
+import os
+
+middleware_code = '''import base64
 from django.http import HttpResponse
 from django.contrib import auth
 from django.utils import translation
@@ -26,26 +27,24 @@ class SOPDSSetupMiddleware(MiddlewareMixin):
         return None
 
 
-class BasicAuthMiddleware(object):
-    header = "HTTP_AUTHORIZATION"
-
+class BasicAuthMiddleware(MiddlewareMixin):
     def unauthed(self):
-        response = HttpResponse("""<html><title>Auth required</title><body>
-                                <h1>Authorization Required</h1></body></html>""", content_type="text/html")
-        response['WWW-Authenticate'] = 'Basic realm="OPDS"'
-        response.status_code = 401
+        response = HttpResponse("""<html><title>Auth required</title><body><h1>401 Unauthorized</h1></body></html>""", status=401)
+        response['WWW-Authenticate'] = 'Basic realm="SOPDS"'
         return response
 
     def process_request(self, request):
         if not config.SOPDS_AUTH:
-            return
+            return None
 
-        try:
-            authentication = request.META[self.header]
-        except KeyError:
+        import opds_catalog.utils as utils
+        if utils.request_is_opds(request):
+            return None
+
+        if 'HTTP_AUTHORIZATION' not in request.META:
             return self.unauthed()
 
-        (auth_meth, auth_data) = authentication.split(' ', 1)
+        auth_meth, auth_data = request.META['HTTP_AUTHORIZATION'].split(' ', 1)
         if 'basic' != auth_meth.lower():
             return self.unauthed()
         auth_data = base64.b64decode(auth_data.strip()).decode('utf-8')
@@ -110,5 +109,18 @@ class FetchFromCacheMiddleware(DjangoFetchFromCacheMiddleware):
             return None
         else:
             return super(FetchFromCacheMiddleware, self).process_request(request)
-''')
-print("middleware.py written OK")
+'''
+
+# 1. Write locally to repository root (for Docker build context)
+with open('middleware.py', 'w', encoding='utf-8') as f:
+    f.write(middleware_code)
+print("middleware.py written locally OK")
+
+# 2. Write to fallback /tmp/sopds_custom/middleware.py
+try:
+    os.makedirs('/tmp/sopds_custom', exist_ok=True)
+    with open('/tmp/sopds_custom/middleware.py', 'w', encoding='utf-8') as f:
+        f.write(middleware_code)
+    print("middleware.py written to /tmp/sopds_custom/ OK")
+except Exception as e:
+    print(f"Warning: failed to write to /tmp/sopds_custom: {e}")
