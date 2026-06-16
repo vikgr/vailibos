@@ -56,6 +56,11 @@ COPY views.py /sopds/sopds_web_backend/views.py
 COPY urls.py /sopds/sopds_web_backend/urls.py
 COPY download_popular_books.py /sopds/download_popular_books.py
 
+# Patch settings.py for multi-language choices and setup middleware
+COPY patch_settings.py /tmp/patch_settings.py
+RUN python3 /tmp/patch_settings.py && rm /tmp/patch_settings.py
+
+
 # Apply template theme overrides (includes admin dashboard and mobile/e-ink templates)
 COPY templates/ /sopds/sopds_web_backend/templates/
 
