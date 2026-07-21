@@ -53,6 +53,17 @@ if os.path.exists(settings_path):
     else:
         print("INFO: SOPDSSetupMiddleware already registered")
 
+    # Register Theme Middleware in settings.py MIDDLEWARE list
+    theme_middleware = "'opds_catalog.middleware.VailibThemeMiddleware'"
+    if theme_middleware not in content:
+        if setup_middleware in content:
+            content = content.replace(setup_middleware, f"{theme_middleware},\n    {setup_middleware}")
+            print("OK: VailibThemeMiddleware registered in settings.py")
+        else:
+            print("WARNING: SOPDSSetupMiddleware not found in settings, skipping theme middleware registration")
+    else:
+        print("INFO: VailibThemeMiddleware already registered")
+
     with open(settings_path, 'w', encoding='utf-8') as f:
         f.write(content)
 else:

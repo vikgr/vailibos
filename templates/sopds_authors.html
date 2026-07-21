@@ -79,6 +79,7 @@
 {% endblock %}
 
 {% block block-js %}
+{% if vailib_theme == 'premium' %}
 <script>
     async function fetchAuthorPhoto(authorName, imgElement) {
         let cleanName = authorName.replace(/,/g, '').trim();
@@ -203,4 +204,5 @@
         }
     });
 </script>
+{% endif %}
 {% endblock %}

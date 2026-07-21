@@ -14,12 +14,17 @@
     <link rel="stylesheet" type="text/css" href="{% static 'foundation-icons/foundation-icons.css' %}">
 
     <!-- Modern & E-Ink Inject -->
-    <link rel="stylesheet" type="text/css" href="{% static 'custom/css/modern.css' %}?v=22">
+    <link rel="stylesheet" type="text/css" href="{% static 'custom/css/modern.css' %}?v=23">
     <script>
         (function () {
             const ua = navigator.userAgent.toLowerCase();
             const isEink = /kindle|kobo|nook|pocketbook|ereader|sonyreader|e-ink|eink|boox|tolino|bookeen|onyx/.test(ua);
-            const defaultTheme = isEink ? 'eink' : 'premium';
+            const isOldDevice = /windows nt 5|windows nt 6\.0|windows nt 6\.1|android [2-4]\.|iphone os [3-6]_|msie|trident|opera mini|ucbrowser|symbian|blackberry|nokia/.test(ua);
+            const isLowRes = Math.max(window.screen.width, window.screen.height) <= 850 && (window.devicePixelRatio || 1) <= 1;
+            const isLowHardware = (navigator.deviceMemory && navigator.deviceMemory <= 1) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 1);
+            
+            const shouldUseEink = isEink || isOldDevice || isLowRes || isLowHardware;
+            const defaultTheme = shouldUseEink ? 'eink' : 'premium';
             const theme = localStorage.getItem('sopds-theme') || defaultTheme;
             document.documentElement.setAttribute('data-theme', theme);
         })();
@@ -167,8 +172,10 @@
 
     </div>
 
+    {% if vailib_theme == 'premium' %}
     <script src="{% static 'js/vendor/jquery.js' %}"></script>
     <script src="{% static 'js/vendor/foundation.min.js' %}"></script>
+    {% endif %}
     <script src="{% static 'custom/js/theme_switcher.js' %}"></script>
 
     <script>
@@ -439,6 +446,7 @@
         }
         document.addEventListener("DOMContentLoaded", applyVailibLang);
 
+        {% if vailib_theme == 'premium' %}
         $(document).foundation();
         if (typeof SetSearch === 'function') SetSearch();
 
@@ -500,6 +508,7 @@
                 }
             });
         })();
+        {% endif %}
 
     </script>
     {% block block-js %}{% endblock %}

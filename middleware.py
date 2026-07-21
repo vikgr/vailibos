@@ -10,6 +10,21 @@ from constance import config
 LANGUAGE_SESSION_KEY = '_language'
 
 
+class VailibThemeMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        theme_param = request.GET.get('theme')
+        if theme_param in ['eink', 'premium']:
+            request.vailib_theme = theme_param
+
+    def process_response(self, request, response):
+        theme_param = request.GET.get('theme')
+        if theme_param in ['eink', 'premium']:
+            response.set_cookie('vailib_theme', theme_param, max_age=31536000, path='/')
+        elif hasattr(request, 'vailib_theme'):
+            response.set_cookie('vailib_theme', request.vailib_theme, max_age=31536000, path='/')
+        return response
+
+
 class SOPDSSetupMiddleware(MiddlewareMixin):
     def process_request(self, request):
         path = request.path

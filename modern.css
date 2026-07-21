@@ -713,7 +713,7 @@ body {
     filter: grayscale(1) contrast(1.15) !important;
 }
 
-/* Task 3: Folder cover background â€” must be white, not dark grey */
+/* Task 3: Folder cover background Ã¢â‚¬â€ must be white, not dark grey */
 [data-theme="eink"] .cover-wrapper {
     background: #fff !important;
 }
@@ -1411,7 +1411,7 @@ html[data-theme="eink"] .active {
     color: #fff !important;
 }
 
-/* Simplify Search Section â€” remove outer container square */
+/* Simplify Search Section Ã¢â‚¬â€ remove outer container square */
 html[data-theme="eink"] .comfort-search-wrapper {
     border: none !important;
     background: transparent !important;
@@ -1431,26 +1431,26 @@ html[data-theme="eink"] .modern-breadcrumbs {
     background: #fff !important;
 }
 
-/* Pagination â€” minimal */
+/* Pagination Ã¢â‚¬â€ minimal */
 html[data-theme="eink"] .pagination li a,
 html[data-theme="eink"] .pagination li.current {
     border: 1px solid #000 !important;
 }
 
-/* Welcome card â€” plain box */
+/* Welcome card Ã¢â‚¬â€ plain box */
 html[data-theme="eink"] .welcome-card {
     border: 2px solid #000 !important;
     background: #fff !important;
 }
 
-/* Welcome login button â€” white bg style */
+/* Welcome login button Ã¢â‚¬â€ white bg style */
 html[data-theme="eink"] .welcome-login-btn {
     background: #fff !important;
     color: #000 !important;
     border: 1px solid #000 !important;
 }
 
-/* Book card â€” thin border */
+/* Book card Ã¢â‚¬â€ thin border */
 html[data-theme="eink"] .book-card {
     border: 1px solid #000 !important;
     background: #fff !important;
@@ -1735,7 +1735,7 @@ html[data-theme="eink"] img {
 }
 
 /* =======================================================
-   PHASE 3: DISCOVERY HOMEPAGE — PREMIUM THEME ONLY
+   PHASE 3: DISCOVERY HOMEPAGE â€” PREMIUM THEME ONLY
    ======================================================= */
 
 /* ---- Hero Banner ---- */
@@ -2446,7 +2446,7 @@ html[data-theme="eink"] .vl-empty-state { display: none !important; }
     z-index: 5;
 }
 
-/* Sidebar nav links � staggered entrance */
+/* Sidebar nav links — staggered entrance */
 [data-theme="premium"] .sidebar-nav a,
 [data-theme="premium"] .sidebar-container nav a,
 [data-theme="premium"] aside a.nav-item,
@@ -2483,7 +2483,7 @@ html[data-theme="eink"] .vl-empty-state { display: none !important; }
     border-left-color: var(--accent) !important;
 }
 
-/* Sidebar entrance animation � stagger each nav item */
+/* Sidebar entrance animation — stagger each nav item */
 @keyframes sidebarSlideIn {
     from { opacity: 0; transform: translateX(-12px); }
     to   { opacity: 1; transform: translateX(0); }
@@ -2496,7 +2496,7 @@ html[data-theme="eink"] .vl-empty-state { display: none !important; }
 [data-theme="premium"] .sidebar-container nav a:nth-child(5) { animation: sidebarSlideIn 0.35s 0.25s both ease; }
 [data-theme="premium"] .sidebar-container nav a:nth-child(6) { animation: sidebarSlideIn 0.35s 0.30s both ease; }
 
-/* Sidebar stats block � premium styling */
+/* Sidebar stats block — premium styling */
 [data-theme="premium"] .sidebar-stats {
     border-top: 1px solid var(--border);
     margin-top: 20px !important;
@@ -2814,7 +2814,7 @@ html[data-theme="eink"] #vl-scroll-bar { display: none !important; }
 
 html[data-theme="eink"] .vl-search-clear { display: none !important; }
 /* =======================================================
-   LANG SELECTOR � UNIFIED SYSTEM (Premium & E-Ink)
+   LANG SELECTOR — UNIFIED SYSTEM (Premium & E-Ink)
    ======================================================= */
 
 .vl-lang-grid {
@@ -2911,7 +2911,7 @@ html[data-theme="premium"] .lang-native { display: none !important; }
 html[data-theme="premium"] .color-lang-btn.active .lang-code { color: #00e5ff !important; }
 
 /* =======================================================
-   THEME SWITCHER � NATURAL BUTTONS
+   THEME SWITCHER — NATURAL BUTTONS
    ======================================================= */
 .theme-segment {
     display: flex;
@@ -2997,3 +2997,10 @@ html[data-theme="eink"] .theme-opt.active {
     color: #fff !important;
     background-color: #000 !important;
 }
+
+/* Hide specific menu items in E-Ink mode */
+html[data-theme="eink"] .populate-item,
+html[data-theme="eink"] .settings-item {
+    display: none !important;
+}
+

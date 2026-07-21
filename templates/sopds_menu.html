@@ -34,7 +34,7 @@
 {% endif %}
 
     {% if user.is_superuser %}
-    <li class="nav-item">
+    <li class="nav-item populate-item">
         <a href="/web/populate/" class="nav-btn {% if current == 'populate' %}active{% endif %}">
             <i class="fi-download"></i> <span class="nav-text" data-trans="pop_lib">Populate Library</span>
         </a>
@@ -42,7 +42,7 @@
     {% endif %}
 
     {% if user.is_superuser %}
-    <li class="nav-item" style="margin-top: 15px;">
+    <li class="nav-item settings-item" style="margin-top: 15px;">
         <a href="/web/settings/" class="nav-btn admin-btn {% if current == 'settings' %}active{% endif %}">
             <i class="fi-widget"></i> <span class="nav-text" data-trans="set">Настройки</span>
         </a>
@@ -53,12 +53,12 @@
     <li class="nav-item theme-switcher-container" style="margin-top: 25px;">
         <div class="theme-label" data-trans="appearance" style="font-size: 0.75rem; color: var(--text-muted); font-weight: 800; margin-bottom: 8px; letter-spacing: 1px;">THEME</div>
         <div class="theme-segment">
-            <button type="button" class="theme-opt" data-val="premium">
+            <a href="?theme=premium" class="theme-opt" data-val="premium" style="text-decoration: none;">
                 <i class="fi-monitor"></i> <span data-trans="premium">COLOR</span>
-            </button>
-            <button type="button" class="theme-opt" data-val="eink">
+            </a>
+            <a href="?theme=eink" class="theme-opt" data-val="eink" style="text-decoration: none;">
                 <i class="fi-page"></i> <span data-trans="eink">E-INK</span>
-            </button>
+            </a>
         </div>
     </li>
 

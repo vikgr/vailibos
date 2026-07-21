@@ -86,7 +86,7 @@ def sopds_processor(request):
     args={}
     
     user_agent = request.META.get('HTTP_USER_AGENT', '').lower()
-    theme_cookie = request.COOKIES.get('vailib_theme')
+    theme_cookie = getattr(request, 'vailib_theme', None) or request.COOKIES.get('vailib_theme')
     
     if theme_cookie in ['eink', 'premium']:
         args['vailib_theme'] = theme_cookie

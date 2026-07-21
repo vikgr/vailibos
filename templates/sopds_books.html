@@ -172,6 +172,7 @@
 </div>
 
 {% block block-js %}
+{% if vailib_theme == 'premium' %}
 <script>
 (function() {
   var chips = document.querySelectorAll('.filter-chip');
@@ -215,6 +216,7 @@
   });
 })();
 </script>
+{% endif %}
 {% endblock %}
 {% endif %}
 
