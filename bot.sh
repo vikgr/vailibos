@@ -12,10 +12,10 @@ OFFSET_FILE="/tmp/bot_offset"
 [ -f "$OFFSET_FILE" ] || echo "0" > "$OFFSET_FILE"
 
 # DB Connection
-DB_HOST="${DB_HOST:-db}"
-DB_USER="sopds"
-DB_NAME="sopds"
-export PGPASSWORD="${DB_PASSWORD:-changeme}"
+DB_HOST="${DB_HOST:-sopds-db}"
+DB_USER="${DB_USER:-sopds}"
+DB_NAME="${DB_NAME:-sopds}"
+export PGPASSWORD="${DB_PASS:-${DB_PASSWORD:-changeme}}"
 
 # ── Helpers ─────────────────────────────────────────────────
 
