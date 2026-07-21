@@ -21,8 +21,9 @@ python3 $VAILIB/patch_settings.py
 echo '🐳 Building vailib:latest native container...'
 sudo docker build -t vailib:latest -f Dockerfile_vailib .
 
-echo '📋 Deploying docker-compose to production...'
+echo '📋 Deploying docker-compose and environment variables to production...'
 sudo cp $VAILIB/sopds-docker-compose.yml $COMPOSE
+[ -f "$VAILIB/.env" ] && sudo cp "$VAILIB/.env" "$(dirname "$COMPOSE")/.env"
 
 echo '🔁 Recreating and starting vailib container...'
 cd "$(dirname "$COMPOSE")"

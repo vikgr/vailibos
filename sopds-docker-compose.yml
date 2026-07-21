@@ -24,6 +24,8 @@ services:
             SOPDS_TMBOT_ENABLE: "False"
             SOPDS_TELEBOT_AUTH: "True"
             SOPDS_TMBOT_TOKEN: "${BOT_TOKEN:-YOUR_TELEGRAM_BOT_TOKEN}"
+            BOT_TOKEN: "${BOT_TOKEN:-YOUR_TELEGRAM_BOT_TOKEN}"
+            CHAT_ID: "${CHAT_ID:-YOUR_TELEGRAM_CHAT_ID}"
         hostname: vailib
         image: vailib:latest
         labels:
