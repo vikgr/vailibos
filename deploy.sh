@@ -8,9 +8,9 @@ set -e
 VAILIB="${VAILIB_DIR:-/opt/vailib}"
 COMPOSE="${COMPOSE_FILE:-/opt/sopds/docker-compose.yml}"
 
-echo '🔄 Pulling latest from GitHub...'
+echo '🔄 Skipping GitHub pull (using direct push)...'
 cd $VAILIB
-git pull origin main
+# git pull origin main
 
 echo '⚙️  Regenerating middleware.py...'
 python3 $VAILIB/write_middleware.py
