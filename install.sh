@@ -115,7 +115,7 @@ if [ ! -d "$REPO_PATH/.git" ]; then
 else
     echo -e "\n${CYAN}📦 Updating existing Vailib repository at $REPO_PATH...${NC}"
     cd "$REPO_PATH"
-    git pull origin main || echo -e "${YELLOW}⚠️ Git pull failed. Using current repository files.${NC}"
+    GIT_TERMINAL_PROMPT=0 git pull origin main || echo -e "${YELLOW}⚠️ Git pull failed (credential prompt disabled). Using current repository files.${NC}"
 fi
 
 # 4. Generate Environment files
