@@ -135,7 +135,10 @@ EOF
 # Ensure directories exist
 echo -e "\n${CYAN}📁 Creating host mount directories...${NC}"
 $SUDO mkdir -p "$BOOKS_PATH" "$COMPOSE_PATH" "$COMPOSE_PATH/postgres" "$COMPOSE_PATH/db"
-$SUDO chown -R $(whoami):$(whoami) "$REPO_PATH" "$BOOKS_PATH" "$COMPOSE_PATH"
+$SUDO chown -R $(whoami):$(whoami) "$REPO_PATH" "$BOOKS_PATH"
+$SUDO chown $(whoami):$(whoami) "$COMPOSE_PATH"
+$SUDO chown -R $(whoami):$(whoami) "$COMPOSE_PATH/db"
+$SUDO chown -R 70:70 "$COMPOSE_PATH/postgres" 2>/dev/null || true
 touch "$BOOKS_PATH/.trigger_scan" || true
 
 # 5. Build and Deploy
