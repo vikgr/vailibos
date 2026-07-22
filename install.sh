@@ -135,8 +135,8 @@ EOF
 # Ensure directories exist
 echo -e "\n${CYAN}📁 Creating host mount directories...${NC}"
 $SUDO mkdir -p "$BOOKS_PATH" "$COMPOSE_PATH" "$COMPOSE_PATH/postgres" "$COMPOSE_PATH/db"
-$SUDO touch "$BOOKS_PATH/.trigger_scan"
 $SUDO chown -R $(whoami):$(whoami) "$REPO_PATH" "$BOOKS_PATH" "$COMPOSE_PATH"
+touch "$BOOKS_PATH/.trigger_scan" || true
 
 # 5. Build and Deploy
 echo -e "\n${CYAN}🚀 Launching Docker stack...${NC}"
