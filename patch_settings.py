@@ -64,6 +64,21 @@ if os.path.exists(settings_path):
     else:
         print("INFO: VailibThemeMiddleware already registered")
 
+    # Register Telegram Bot Constance Configs in settings.py
+    if "SOPDS_TELEBOT_CHAT_ID" not in content:
+        telebot_pid = "('SOPDS_TELEBOT_PID', (os.path.join(BASE_DIR, 'opds_catalog/tmp/sopds_telebot.pid'), _('Path to pidfile for sopds_telebot process'))),"
+        new_telebot_configs = """('SOPDS_TELEBOT_PID', (os.path.join(BASE_DIR, 'opds_catalog/tmp/sopds_telebot.pid'), _('Path to pidfile for sopds_telebot process'))),
+    ('SOPDS_TELEBOT_CHAT_ID', ('', _('Allowed Telegram Chat ID for Bot Assistant'))),
+    ('SOPDS_TELEBOT_ENABLED', (True, _('Enable custom Telegram Assistant Bot'))),"""
+        content = content.replace(telebot_pid, new_telebot_configs)
+        print("OK: Telegram bot settings registered in CONSTANCE_CONFIG")
+        
+        # Also register in fieldsets
+        old_fieldsets = "'5. Telegramm Bot Options': ('SOPDS_TELEBOT_API_TOKEN','SOPDS_TELEBOT_AUTH','SOPDS_TELEBOT_MAXITEMS'),"
+        new_fieldsets = "'5. Telegramm Bot Options': ('SOPDS_TELEBOT_API_TOKEN','SOPDS_TELEBOT_AUTH','SOPDS_TELEBOT_MAXITEMS','SOPDS_TELEBOT_CHAT_ID','SOPDS_TELEBOT_ENABLED'),"
+        content = content.replace(old_fieldsets, new_fieldsets)
+        print("OK: Telegram bot settings registered in CONSTANCE_CONFIG_FIELDSETS")
+
     with open(settings_path, 'w', encoding='utf-8') as f:
         f.write(content)
 else:

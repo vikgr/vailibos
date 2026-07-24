@@ -1084,6 +1084,10 @@ def SetupWizardView(request):
         gutenberg_langs = request.POST.getlist('gutenberg_langs')
         enable_standardebooks = request.POST.get('enable_standardebooks') == 'on'
 
+        # Telegram Bot configuration
+        telegram_token = request.POST.get('telegram_token')
+        telegram_chat_id = request.POST.get('telegram_chat_id', '')
+        enable_telegram_bot = request.POST.get('enable_telegram_bot') == 'on'
         
         try:
             # 1. Create Django Administrator
@@ -1099,15 +1103,21 @@ def SetupWizardView(request):
             config.SOPDS_ROOT_LIB = library_path
             if extensions:
                 config.SOPDS_BOOK_EXTENSIONS = ' '.join(extensions)
+
+            # Save Telegram configs in DB Constance backend
+            if telegram_token:
+                config.SOPDS_TELEBOT_API_TOKEN = telegram_token
+            config.SOPDS_TELEBOT_CHAT_ID = telegram_chat_id
+            config.SOPDS_TELEBOT_ENABLED = enable_telegram_bot
                 
             # 3. Patch System Timezone
             update_container_timezone(timezone)
             
-            # 4. Programmatic Session Login
-            from django.contrib.auth import authenticate, login
-            user = authenticate(username=admin_username, password=admin_password)
-            if user:
-                login(request, user)
+            # 4. Programmatic Session Login (Guaranteed login, bypasses authenticate lookup)
+            from django.contrib.auth import login
+            user = User.objects.get(username=admin_username)
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
+            login(request, user)
                 
             # 5. Populate and scan
             if (enable_gutenberg and gutenberg_langs) or enable_standardebooks:

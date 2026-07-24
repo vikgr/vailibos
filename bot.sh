@@ -17,6 +17,30 @@ DB_USER="${DB_USER:-sopds}"
 DB_NAME="${DB_NAME:-sopds}"
 export PGPASSWORD="${DB_PASS:-${DB_PASSWORD:-changeme}}"
 
+get_db_config() {
+    local key="$1"
+    echo "from constance import config; print(config.${key})" > /tmp/get_config.py
+    python3 /sopds/manage.py shell < /tmp/get_config.py 2>/dev/null | tail -n 1 | tr -d '\r\n '
+}
+
+check_bot_config() {
+    local DB_TOKEN; DB_TOKEN=$(get_db_config "SOPDS_TELEBOT_API_TOKEN" 2>/dev/null)
+    local DB_CHAT; DB_CHAT=$(get_db_config "SOPDS_TELEBOT_CHAT_ID" 2>/dev/null)
+    local DB_ENABLED; DB_ENABLED=$(get_db_config "SOPDS_TELEBOT_ENABLED" 2>/dev/null)
+
+    if [ -n "$DB_TOKEN" ] && [ "$DB_TOKEN" != "None" ] && [ "$DB_TOKEN" != "YOUR_TELEGRAM_BOT_TOKEN" ] && [[ "$DB_TOKEN" != *"AttributeError"* ]]; then
+        BOT_TOKEN="$DB_TOKEN"
+    fi
+    if [ -n "$DB_CHAT" ] && [ "$DB_CHAT" != "None" ] && [[ "$DB_CHAT" != *"AttributeError"* ]]; then
+        ALLOWED_CHAT="$DB_CHAT"
+    fi
+    if [ -n "$DB_ENABLED" ] && [[ "$DB_ENABLED" != *"AttributeError"* ]]; then
+        BOT_ENABLED="$DB_ENABLED"
+    else
+        BOT_ENABLED="True"
+    fi
+}
+
 # ── Helpers ─────────────────────────────────────────────────
 
 api() {
@@ -262,9 +286,40 @@ process_update() {
 api deleteWebhook >/dev/null
 echo "Bot (v12) started at $(date)" >> "$LOG_FILE"
 
+# Wait for a valid, enabled token from database configuration
 while true; do
+    check_bot_config
+    if [ "$BOT_ENABLED" != "False" ] && [ -n "$BOT_TOKEN" ] && [ "$BOT_TOKEN" != "YOUR_TELEGRAM_BOT_TOKEN" ] && [ "$BOT_TOKEN" != "None" ]; then
+        echo "Valid Telegram Token found. Starting main listener loop..." >> "$LOG_FILE"
+        break
+    fi
+    echo "Waiting for Telegram Bot Token configuration (Enabled: $BOT_ENABLED)..." >> "$LOG_FILE"
+    sleep 10
+done
+
+loop_count=0
+while true; do
+    # Every 100 iterations, re-read configs from DB
+    loop_count=$((loop_count + 1))
+    if [ $((loop_count % 100)) -eq 0 ]; then
+        check_bot_config
+    fi
+
+    if [ "$BOT_ENABLED" == "False" ]; then
+        sleep 10
+        continue
+    fi
+
     offset=$(cat "$OFFSET_FILE")
     response=$(api getUpdates -d offset="$offset" -d timeout=20 -d allowed_updates='["message","callback_query"]')
+    
+    # If the response contains an error (e.g. 401 Unauthorized), the token might have changed. Re-check configs immediately!
+    if echo "$response" | grep -q '"ok":false'; then
+        echo "API request failed. Re-checking bot config from DB..." >> "$LOG_FILE"
+        check_bot_config
+        sleep 5
+        continue
+    fi
     
     # Parse into pipe-separated: type|up_id|chat_id|payload|msg_id|cb_id
     echo "$response" | python3 -c "

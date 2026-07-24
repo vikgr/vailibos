@@ -423,8 +423,9 @@
         <div class="step-dot active" id="dot-1">1<span class="step-label">System</span></div>
         <div class="step-dot" id="dot-2">2<span class="step-label">Admin</span></div>
         <div class="step-dot" id="dot-3">3<span class="step-label">Library</span></div>
-        <div class="step-dot" id="dot-4">4<span class="step-label">Feeds</span></div>
-        <div class="step-dot" id="dot-5">5<span class="step-label">Finalize</span></div>
+        <div class="step-dot" id="dot-4">4<span class="step-label">Telegram</span></div>
+        <div class="step-dot" id="dot-5">5<span class="step-label">Feeds</span></div>
+        <div class="step-dot" id="dot-6">6<span class="step-label">Finalize</span></div>
     </div>
 
     <!-- MAIN CONFIG WIZARD FORM -->
@@ -506,8 +507,33 @@
             </div>
         </div>
 
-        <!-- STEP 4: Preconfigured Feeds -->
+        <!-- STEP 4: Telegram Bot Integration -->
         <div class="wizard-step-panel" id="step-panel-4">
+            <div class="form-group">
+                <label for="telegram_token">Telegram Bot Token (Optional)</label>
+                <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 8px;">Create a bot using @BotFather on Telegram and paste the token here.</span>
+                <input type="text" name="telegram_token" id="telegram_token" class="input-field" placeholder="e.g. 123456:ABC-DEF1234ghIkl-zyx">
+            </div>
+            
+            <div class="form-group" style="margin-top: 20px;">
+                <label for="telegram_chat_id">Allowed Chat ID (Optional)</label>
+                <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 8px;">Your personal Telegram Chat ID (obtain via @userinfobot) to restrict bot access to you.</span>
+                <input type="text" name="telegram_chat_id" id="telegram_chat_id" class="input-field" placeholder="e.g. 1655536">
+            </div>
+            
+            <div class="form-group" style="margin-top: 20px;">
+                <label class="checkbox-item" style="padding: 15px; background: rgba(0,0,0,0.15);">
+                    <input type="checkbox" name="enable_telegram_bot" id="enable_telegram_bot" checked>
+                    <div style="display: flex; flex-direction: column; gap: 2px;">
+                        <span style="font-weight: 800; font-size: 0.9rem;">Enable Custom Telegram Assistant Bot</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">Start the background bot listener immediately on finalize.</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- STEP 5: Preconfigured Feeds -->
+        <div class="wizard-step-panel" id="step-panel-5">
             <div class="form-group">
                 <label class="checkbox-item" style="padding: 15px; background: rgba(0,0,0,0.15);">
                     <input type="checkbox" name="enable_gutenberg" id="enable_gutenberg" onchange="toggleGutenbergLangs(this.checked)">
@@ -551,8 +577,8 @@
         </div>
 
 
-        <!-- STEP 5: Deploying & Finalize -->
-        <div class="wizard-step-panel" id="step-panel-5">
+        <!-- STEP 6: Deploying & Finalize -->
+        <div class="wizard-step-panel" id="step-panel-6">
             <!-- Summary Details -->
             <div id="setup-summary-view" style="margin-bottom: 25px;">
                 <h4 style="font-weight: 800; color: var(--text-main); margin-bottom: 15px;">Configuration Summary</h4>
@@ -561,6 +587,7 @@
                     <div><b style="color: var(--text-muted);">Library Path:</b> <span id="summary-path">/library</span></div>
                     <div><b style="color: var(--text-muted);">Default Language:</b> <span id="summary-lang">English</span></div>
                     <div><b style="color: var(--text-muted);">Timezone:</b> <span id="summary-tz">Europe/Madrid</span></div>
+                    <div><b style="color: var(--text-muted);">Telegram Bot:</b> <span id="summary-telegram">Not configured</span></div>
                     <div><b style="color: var(--text-muted);">Initial Feeds:</b> <span id="summary-feeds">Standard scan</span></div>
                 </div>
             </div>
@@ -599,7 +626,7 @@
 
 <script>
     let currentStep = 1;
-    const totalSteps = 5;
+    const totalSteps = 6;
 
     // Language flag mapper
     const flagMap = {
@@ -768,6 +795,16 @@
         document.getElementById('summary-lang').innerText = selectEl.options[selectEl.selectedIndex].text;
         document.getElementById('summary-tz').innerText = document.getElementById('timezone').value;
         
+        const telegramToken = document.getElementById('telegram_token').value;
+        const telegramEnabled = document.getElementById('enable_telegram_bot').checked;
+        if (telegramEnabled && telegramToken) {
+            document.getElementById('summary-telegram').innerText = 'Active (Token: ' + telegramToken.substring(0, 6) + '...)';
+        } else if (telegramEnabled) {
+            document.getElementById('summary-telegram').innerText = 'Enabled (no token)';
+        } else {
+            document.getElementById('summary-telegram').innerText = 'Disabled';
+        }
+
         const gutenbergEnabled = document.getElementById('enable_gutenberg').checked;
         const standardebooksEnabled = document.getElementById('enable_standardebooks').checked;
         
