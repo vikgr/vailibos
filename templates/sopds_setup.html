@@ -430,6 +430,7 @@
 
     <!-- MAIN CONFIG WIZARD FORM -->
     <form id="setup-form" onsubmit="submitSetupForm(event)">
+        {% csrf_token %}
         
         <!-- STEP 1: Language & Timezone -->
         <div class="wizard-step-panel active" id="step-panel-1">
