@@ -101,6 +101,7 @@
         position: relative;
         z-index: 3;
         transition: all 0.3s ease;
+        cursor: pointer;
     }
 
     .step-dot.active {
@@ -420,12 +421,12 @@
         <div class="steps-line"></div>
         <div class="steps-line-progress" id="steps-progress"></div>
         
-        <div class="step-dot active" id="dot-1">1<span class="step-label">System</span></div>
-        <div class="step-dot" id="dot-2">2<span class="step-label">Admin</span></div>
-        <div class="step-dot" id="dot-3">3<span class="step-label">Library</span></div>
-        <div class="step-dot" id="dot-4">4<span class="step-label">Telegram</span></div>
-        <div class="step-dot" id="dot-5">5<span class="step-label">Feeds</span></div>
-        <div class="step-dot" id="dot-6">6<span class="step-label">Finalize</span></div>
+        <div class="step-dot active" id="dot-1" onclick="goToStep(1)">1<span class="step-label">System</span></div>
+        <div class="step-dot" id="dot-2" onclick="goToStep(2)">2<span class="step-label">Admin</span></div>
+        <div class="step-dot" id="dot-3" onclick="goToStep(3)">3<span class="step-label">Library</span></div>
+        <div class="step-dot" id="dot-4" onclick="goToStep(4)">4<span class="step-label">Telegram</span></div>
+        <div class="step-dot" id="dot-5" onclick="goToStep(5)">5<span class="step-label">Feeds</span></div>
+        <div class="step-dot" id="dot-6" onclick="goToStep(6)">6<span class="step-label">Finalize</span></div>
     </div>
 
     <!-- MAIN CONFIG WIZARD FORM -->
@@ -743,15 +744,21 @@
 
     // Navigate steps
     function changeStep(direction) {
-        if (currentStep === 2 && direction === 1) {
+        goToStep(currentStep + direction);
+    }
+
+    function goToStep(stepNum) {
+        if (stepNum > 2 && currentStep <= 2) {
+            const user = document.getElementById('admin_username').value.trim();
             const pass = document.getElementById('admin_password').value;
             const confirmPass = document.getElementById('admin_confirm_password').value;
-            if (pass !== confirmPass) {
+            if (!user || pass.length < 4 || pass !== confirmPass) {
+                alert('Please configure a valid Administrator account (Username & Password min 4 chars) before navigating forward.');
                 return;
             }
         }
 
-        currentStep += direction;
+        currentStep = stepNum;
         currentStep = Math.max(1, Math.min(totalSteps, currentStep));
 
         document.querySelectorAll('.wizard-step-panel').forEach((panel, idx) => {
