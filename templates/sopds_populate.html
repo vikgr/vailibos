@@ -3,15 +3,123 @@
 
 {% block content %}
 <div class="populate-container">
+
+    <!-- Flash message from session (for redirects) -->
+    {% if upload_flash %}
+    <div class="vl-alert {% if upload_flash.type == 'success' %}alert-success{% else %}alert-danger{% endif %}" style="padding: 16px 20px; border-radius: 12px; margin-bottom: 25px; background: {% if upload_flash.type == 'success' %}rgba(0, 255, 102, 0.15){% else %}rgba(255, 0, 85, 0.15){% endif %}; border: 1px solid {% if upload_flash.type == 'success' %}#00FF66{% else %}#FF0055{% endif %}; color: #fff; font-weight: 600; display: flex; align-items: flex-start; gap: 12px;">
+        <i class="{% if upload_flash.type == 'success' %}fi-check{% else %}fi-alert{% endif %}" style="font-size: 1.4rem; color: {% if upload_flash.type == 'success' %}#00FF66{% else %}#FF0055{% endif %};"></i>
+        <div>
+            <div>{{ upload_flash.message }}</div>
+            {% if upload_flash.errors %}
+            <ul style="margin: 6px 0 0 18px; font-size: 0.85rem; color: #ff9999;">
+                {% for err in upload_flash.errors %}
+                <li>{{ err }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
     {% if vailib_theme == 'premium' %}
-    <!-- PREMIUM MULTI-THEME OLED LAYOUT -->
+    <!-- ======================================================== -->
+    <!-- PREMIUM MULTI-THEME OLED LAYOUT                         -->
+    <!-- ======================================================== -->
+
+    <!-- SECTION 1: MANUAL BOOK & ARCHIVE UPLOAD -->
+    <div class="vl-card glassmorphic-panel" style="padding: 30px; border-radius: 16px; background: rgba(20, 20, 45, 0.45); backdrop-filter: blur(12px); border: 1px solid rgba(0, 225, 255, 0.22); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); margin-bottom: 30px;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-bottom: 8px;">
+            <div>
+                <h2 style="color: #00E1FF; font-weight: 800; font-family: 'Inter', sans-serif; letter-spacing: -0.5px; margin: 0 0 6px 0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fi-upload"></i> <span>{% trans "Manual Book & Archive Upload" %}</span>
+                </h2>
+                <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin: 0;">
+                    {% trans "Manually upload books and ZIP archives from your device directly into the library catalog." %}
+                </p>
+            </div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <span class="badge" style="background: rgba(0, 225, 255, 0.15); color: #00E1FF; border: 1px solid rgba(0, 225, 255, 0.3); border-radius: 20px; padding: 4px 10px; font-size: 0.75rem; font-weight: 700;">EPUB</span>
+                <span class="badge" style="background: rgba(0, 225, 255, 0.15); color: #00E1FF; border: 1px solid rgba(0, 225, 255, 0.3); border-radius: 20px; padding: 4px 10px; font-size: 0.75rem; font-weight: 700;">PDF</span>
+                <span class="badge" style="background: rgba(0, 225, 255, 0.15); color: #00E1FF; border: 1px solid rgba(0, 225, 255, 0.3); border-radius: 20px; padding: 4px 10px; font-size: 0.75rem; font-weight: 700;">FB2</span>
+                <span class="badge" style="background: rgba(0, 225, 255, 0.15); color: #00E1FF; border: 1px solid rgba(0, 225, 255, 0.3); border-radius: 20px; padding: 4px 10px; font-size: 0.75rem; font-weight: 700;">MOBI</span>
+                <span class="badge" style="background: rgba(0, 225, 255, 0.15); color: #00E1FF; border: 1px solid rgba(0, 225, 255, 0.3); border-radius: 20px; padding: 4px 10px; font-size: 0.75rem; font-weight: 700;">DJVU</span>
+                <span class="badge" style="background: rgba(112, 0, 255, 0.25); color: #c471ed; border: 1px solid rgba(112, 0, 255, 0.4); border-radius: 20px; padding: 4px 10px; font-size: 0.75rem; font-weight: 700;">ZIP ARCHIVES</span>
+            </div>
+        </div>
+
+        <!-- Drag & Drop Zone -->
+        <div id="upload-dropzone" style="margin-top: 20px; border: 2px dashed rgba(0, 225, 255, 0.35); border-radius: 14px; padding: 35px 20px; text-align: center; background: rgba(0, 0, 0, 0.2); cursor: pointer; transition: all 0.25s ease;">
+            <input type="file" id="upload-file-input" name="books" multiple accept=".epub,.pdf,.fb2,.mobi,.djvu,.cbr,.cbz,.azw,.azw3,.txt,.doc,.docx,.rtf,.chm,.zip" style="display: none;">
+            <div style="font-size: 2.8rem; color: #00E1FF; margin-bottom: 10px;">
+                <i class="fi-upload"></i>
+            </div>
+            <div style="color: #fff; font-size: 1.1rem; font-weight: 700; margin-bottom: 6px;">
+                {% trans "Drop books or ZIP archives here, or click to browse" %}
+            </div>
+            <div style="color: var(--text-muted); font-size: 0.85rem;">
+                {% trans "Select one or multiple files. ZIP archives can be automatically unpacked into individual books." %}
+            </div>
+        </div>
+
+        <!-- Selected Files Queue -->
+        <div id="upload-queue-container" style="display: none; margin-top: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="color: #fff; font-weight: 700; font-size: 0.9rem;" id="queue-count-label">0 files selected</span>
+                <button type="button" id="btn-clear-queue" style="background: none; border: none; color: #FF0055; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
+                    <i class="fi-x"></i> {% trans "Clear All" %}
+                </button>
+            </div>
+            <div id="upload-queue-list" style="max-height: 170px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 5px;"></div>
+        </div>
+
+        <!-- Upload Options & Controls -->
+        <div style="margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; flex-wrap: wrap; gap: 18px; align-items: center; justify-content: space-between;">
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: center;">
+                <label style="display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.88rem; font-weight: 600; cursor: pointer; margin: 0;">
+                    <input type="checkbox" id="opt-extract-zips" checked style="width: 17px; height: 17px; accent-color: #00E1FF; margin: 0;">
+                    <span>{% trans "Auto-extract books from ZIP archives" %}</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.88rem; font-weight: 600; cursor: pointer; margin: 0;">
+                    <input type="checkbox" id="opt-trigger-scan" checked style="width: 17px; height: 17px; accent-color: #00E1FF; margin: 0;">
+                    <span>{% trans "Scan library after upload" %}</span>
+                </label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">Folder:</span>
+                    <input type="text" id="opt-subfolder" value="uploads" placeholder="uploads" style="width: 120px; height: 34px; padding: 4px 10px; margin: 0; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 6px; font-size: 0.85rem;">
+                </div>
+            </div>
+
+            <button type="button" id="btn-start-upload" class="button" disabled style="background: linear-gradient(135deg, #00E1FF, #7000FF); border: none; font-weight: 800; border-radius: 8px; padding: 12px 28px; box-shadow: 0 4px 15px rgba(0, 225, 255, 0.3); cursor: not-allowed; opacity: 0.5; transition: all 0.2s; margin: 0;">
+                <i class="fi-upload"></i> <span>{% trans "Upload & Import" %}</span>
+            </button>
+        </div>
+
+        <!-- Live Upload Progress Bar -->
+        <div id="upload-progress-container" style="display: none; margin-top: 20px;">
+            <div style="display: flex; justify-content: space-between; color: #fff; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px;">
+                <span id="upload-progress-status">Uploading files...</span>
+                <span id="upload-progress-percent">0%</span>
+            </div>
+            <div style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; overflow: hidden;">
+                <div id="upload-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00E1FF, #00FF66); transition: width 0.2s ease;"></div>
+            </div>
+        </div>
+
+        <!-- Upload Status Result Box -->
+        <div id="upload-status-box" style="display: none; margin-top: 20px; padding: 16px; border-radius: 10px; font-size: 0.9rem; line-height: 1.5;"></div>
+
+    </div>
+
+    <!-- SECTION 2: AUTOMATED CATALOG POPULATE (Gutenberg & Standard Ebooks) -->
     <div class="vl-card glassmorphic-panel" style="padding: 30px; border-radius: 16px; background: rgba(20, 20, 45, 0.45); backdrop-filter: blur(12px); border: 1px solid rgba(0, 225, 255, 0.15); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);">
         
         <h2 style="color: #00E1FF; font-weight: 800; font-family: 'Inter', sans-serif; letter-spacing: -0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
-            <i class="fi-download"></i> <span data-trans="pop_lib">{% trans "Populate Library" %}</span>
+            <i class="fi-download"></i> <span data-trans="pop_lib">{% trans "Pre-Populate from Online Catalogs" %}</span>
         </h2>
         <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 25px;">
-            {% trans "Directly fetch the most popular public-domain eBooks from Project Gutenberg to fill your library catalog." %}
+            {% trans "Directly fetch popular public-domain eBooks from Project Gutenberg or Standard Ebooks to expand your library catalog." %}
         </p>
 
         <!-- Status Dashboard -->
@@ -63,7 +171,6 @@
                 </div>
             </div>
 
-
             <!-- Language select grid -->
             <div style="margin-bottom: 30px;">
                 <label style="color: #fff; font-weight: 700; font-size: 0.9rem; margin-bottom: 15px; display: block;">
@@ -96,14 +203,53 @@
     </div>
 
     {% else %}
-    <!-- E-INK HIGH-CONTRAST STATIC LAYOUT (ZERO-JS) -->
+    <!-- ======================================================== -->
+    <!-- E-INK HIGH-CONTRAST STATIC LAYOUT (ZERO-JS)              -->
+    <!-- ======================================================== -->
+
+    <!-- SECTION 1: E-INK MANUAL UPLOAD -->
+    <div style="background: #ffffff; color: #000000; padding: 15px; border: 2px solid #000000; margin-bottom: 25px;">
+        <h2 style="font-weight: bold; margin-bottom: 5px;">Upload Books & ZIP Archives</h2>
+        <hr style="border: 1px solid #000000; margin-bottom: 15px;">
+        <p style="font-size: 0.9rem; margin-bottom: 15px;">
+            Select book files (.epub, .pdf, .fb2, .mobi, .djvu) or ZIP archives to manually upload directly into the library.
+        </p>
+
+        <form method="post" action="/web/upload/" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div style="margin-bottom: 15px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Select Book / Archive Files:</label>
+                <input type="file" name="books" multiple accept=".epub,.pdf,.fb2,.mobi,.djvu,.cbr,.cbz,.azw,.azw3,.txt,.doc,.docx,.rtf,.chm,.zip" style="border: 1px solid #000; padding: 6px; width: 100%; max-width: 450px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: normal; margin-bottom: 8px;">
+                    <input type="checkbox" name="extract_zips" value="true" checked style="margin-right: 6px;">
+                    Automatically extract books from ZIP archives
+                </label>
+                <label style="display: block; font-weight: normal; margin-bottom: 8px;">
+                    <input type="checkbox" name="trigger_scan" value="true" checked style="margin-right: 6px;">
+                    Scan library after upload
+                </label>
+            </div>
+
+            <div style="margin-bottom: 18px;">
+                <label style="font-weight: bold;">Subfolder:</label>
+                <input type="text" name="subfolder" value="uploads" style="border: 2px solid #000; padding: 5px; width: 130px; font-weight: bold;">
+            </div>
+
+            <input type="submit" value="[ UPLOAD & IMPORT BOOKS ]" style="padding: 9px 24px; font-weight: bold; background: #000; color: #fff; border: 2px solid #000; cursor: pointer;">
+        </form>
+    </div>
+
+    <!-- SECTION 2: E-INK CATALOG POPULATE -->
     {% if populate_status.status == 'running' %}
     <!-- Meta refresh to reload every 5 seconds for e-readers while crawling -->
     <meta http-equiv="refresh" content="5">
     {% endif %}
 
     <div style="background: #ffffff; color: #000000; padding: 15px; border: 2px solid #000000;">
-        <h2 style="font-weight: bold; margin-bottom: 5px;">Populate Library</h2>
+        <h2 style="font-weight: bold; margin-bottom: 5px;">Pre-Populate from Online Catalogs</h2>
         <hr style="border: 1px solid #000000; margin-bottom: 15px;">
 
         <!-- Static Status Badge -->
@@ -148,7 +294,6 @@
                 <input type="number" name="count" min="1" max="100" value="10" style="width: 100px; padding: 5px; border: 2px solid #000000; color: #000; background: #fff;">
             </div>
 
-
             <div style="margin-bottom: 20px;">
                 <label style="font-weight: bold; display: block; margin-bottom: 5px;">Select Languages:</label>
                 {% for lang in languages %}
@@ -184,6 +329,7 @@
 {% if vailib_theme == 'premium' %}
 <script>
     (function() {
+        // --- 1. POPULATE CATALOG POLLING LOGIC ---
         const statePill = document.getElementById('populate-state-pill');
         const progressWrapper = document.getElementById('populate-progress-wrapper');
         const progressText = document.getElementById('populate-progress-text');
@@ -195,61 +341,70 @@
         const populateForm = document.getElementById('populate-form');
 
         function updateUI(status) {
-            // Update Pill styling
+            if (!statePill) return;
             statePill.innerText = status.status;
             
             if (status.status === 'running') {
-                statePill.style.background = '#FF9900'; // Amber running badge
+                statePill.style.background = '#FF9900';
                 statePill.style.color = '#000';
                 progressWrapper.style.display = 'block';
-                submitBtn.setAttribute('disabled', 'true');
-                submitBtn.style.opacity = '0.5';
-                submitBtn.style.cursor = 'not-allowed';
+                if (submitBtn) {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.opacity = '0.5';
+                    submitBtn.style.cursor = 'not-allowed';
+                }
                 
                 const pct = status.total > 0 ? Math.round((status.downloaded / status.total) * 100) : 0;
                 progressPct.innerText = pct + '%';
                 progressBar.style.width = pct + '%';
                 progressText.innerText = 'Downloading [' + status.current_lang.toUpperCase() + '] ' + status.downloaded + ' / ' + status.total;
             } else if (status.status === 'completed') {
-                statePill.style.background = '#00FF66'; // Green success badge
+                statePill.style.background = '#00FF66';
                 statePill.style.color = '#000';
                 progressWrapper.style.display = 'none';
-                submitBtn.removeAttribute('disabled');
-                submitBtn.style.opacity = '1';
-                submitBtn.style.cursor = 'pointer';
+                if (submitBtn) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.opacity = '1';
+                    submitBtn.style.cursor = 'pointer';
+                }
             } else if (status.status === 'error') {
-                statePill.style.background = '#FF0055'; // Red error badge
+                statePill.style.background = '#FF0055';
                 statePill.style.color = '#fff';
                 progressWrapper.style.display = 'none';
-                submitBtn.removeAttribute('disabled');
-                submitBtn.style.opacity = '1';
-                submitBtn.style.cursor = 'pointer';
+                if (submitBtn) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.opacity = '1';
+                    submitBtn.style.cursor = 'pointer';
+                }
             } else {
                 statePill.style.background = 'rgba(255,255,255,0.1)';
                 statePill.style.color = '#fff';
                 progressWrapper.style.display = 'none';
-                submitBtn.removeAttribute('disabled');
-                submitBtn.style.opacity = '1';
-                submitBtn.style.cursor = 'pointer';
+                if (submitBtn) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.opacity = '1';
+                    submitBtn.style.cursor = 'pointer';
+                }
             }
 
-            messageDiv.innerText = status.message;
+            if (messageDiv) messageDiv.innerText = status.message;
 
-            // Update log box
-            logsDiv.innerHTML = '';
-            if (status.logs && status.logs.length > 0) {
-                status.logs.forEach(log => {
-                    const div = document.createElement('div');
-                    if (log.includes('Saved:')) div.style.color = '#00FF66';
-                    else if (log.includes('Failed') || log.includes('error')) div.style.color = '#FF0055';
-                    else if (log.includes('Scanning')) div.style.color = '#00E1FF';
-                    else div.style.color = '#aaa';
-                    div.innerText = log;
-                    logsDiv.appendChild(div);
-                });
-                logsDiv.scrollTop = logsDiv.scrollHeight;
-            } else {
-                logsDiv.innerHTML = '<div style="color: #666;">[SYSTEM] Ready.</div>';
+            if (logsDiv) {
+                logsDiv.innerHTML = '';
+                if (status.logs && status.logs.length > 0) {
+                    status.logs.forEach(log => {
+                        const div = document.createElement('div');
+                        if (log.includes('Saved:')) div.style.color = '#00FF66';
+                        else if (log.includes('Failed') || log.includes('error')) div.style.color = '#FF0055';
+                        else if (log.includes('Scanning')) div.style.color = '#00E1FF';
+                        else div.style.color = '#aaa';
+                        div.innerText = log;
+                        logsDiv.appendChild(div);
+                    });
+                    logsDiv.scrollTop = logsDiv.scrollHeight;
+                } else {
+                    logsDiv.innerHTML = '<div style="color: #666;">[SYSTEM] Ready.</div>';
+                }
             }
         }
 
@@ -263,13 +418,254 @@
                     }
                 })
                 .catch(err => {
-                    console.error('Failed to poll status:', err);
-                    setTimeout(pollStatus, 3000);
+                    setTimeout(pollStatus, 4000);
                 });
         }
-
-        // Initialize status polling
         pollStatus();
+
+        // --- 2. MANUAL BOOK & ZIP UPLOAD CONTROLLER ---
+        const dropzone = document.getElementById('upload-dropzone');
+        const fileInput = document.getElementById('upload-file-input');
+        const queueContainer = document.getElementById('upload-queue-container');
+        const queueList = document.getElementById('upload-queue-list');
+        const queueCountLabel = document.getElementById('queue-count-label');
+        const clearQueueBtn = document.getElementById('btn-clear-queue');
+        const startUploadBtn = document.getElementById('btn-start-upload');
+        const progressContainer = document.getElementById('upload-progress-container');
+        const progressBarEl = document.getElementById('upload-progress-bar');
+        const progressPercentEl = document.getElementById('upload-progress-percent');
+        const progressStatusEl = document.getElementById('upload-progress-status');
+        const statusBox = document.getElementById('upload-status-box');
+
+        const optExtractZips = document.getElementById('opt-extract-zips');
+        const optTriggerScan = document.getElementById('opt-trigger-scan');
+        const optSubfolder = document.getElementById('opt-subfolder');
+
+        let selectedFiles = [];
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function renderQueue() {
+            if (!queueContainer || !queueList) return;
+            
+            if (selectedFiles.length === 0) {
+                queueContainer.style.display = 'none';
+                startUploadBtn.setAttribute('disabled', 'true');
+                startUploadBtn.style.opacity = '0.5';
+                startUploadBtn.style.cursor = 'not-allowed';
+                return;
+            }
+
+            queueContainer.style.display = 'block';
+            startUploadBtn.removeAttribute('disabled');
+            startUploadBtn.style.opacity = '1';
+            startUploadBtn.style.cursor = 'pointer';
+            queueCountLabel.innerText = selectedFiles.length + ' file(s) queued for upload';
+
+            queueList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.style.display = 'flex';
+                item.style.alignItems = 'center';
+                item.style.justifyContent = 'space-between';
+                item.style.padding = '8px 12px';
+                item.style.background = 'rgba(0, 0, 0, 0.3)';
+                item.style.border = '1px solid rgba(255, 255, 255, 0.05)';
+                item.style.borderRadius = '8px';
+
+                const isZip = file.name.toLowerCase().endsWith('.zip');
+                const iconClass = isZip ? 'fi-archive' : 'fi-page';
+                const iconColor = isZip ? '#c471ed' : '#00E1FF';
+
+                item.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <i class="${iconClass}" style="color: ${iconColor}; font-size: 1.1rem;"></i>
+                        <span style="color: #fff; font-size: 0.88rem; font-weight: 600;">${file.name}</span>
+                        <span style="color: var(--text-muted); font-size: 0.78rem;">(${formatBytes(file.size)})</span>
+                    </div>
+                    <button type="button" data-index="${index}" class="btn-remove-file" style="background: none; border: none; color: #8E94B7; cursor: pointer; padding: 2px 6px;">
+                        <i class="fi-x"></i>
+                    </button>
+                `;
+
+                item.querySelector('.btn-remove-file').onclick = (e) => {
+                    const idx = parseInt(e.currentTarget.getAttribute('data-index'), 10);
+                    selectedFiles.splice(idx, 1);
+                    renderQueue();
+                };
+
+                queueList.appendChild(item);
+            });
+        }
+
+        function addFiles(files) {
+            for (let i = 0; i < files.length; i++) {
+                // Avoid adding exact duplicate references
+                const f = files[i];
+                if (!selectedFiles.some(existing => existing.name === f.name && existing.size === f.size)) {
+                    selectedFiles.push(f);
+                }
+            }
+            renderQueue();
+        }
+
+        if (dropzone && fileInput) {
+            dropzone.onclick = () => fileInput.click();
+
+            fileInput.onchange = (e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                    addFiles(e.target.files);
+                    fileInput.value = '';
+                }
+            };
+
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.style.borderColor = '#00E1FF';
+                dropzone.style.background = 'rgba(0, 225, 255, 0.08)';
+            });
+
+            dropzone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.style.borderColor = 'rgba(0, 225, 255, 0.35)';
+                dropzone.style.background = 'rgba(0, 0, 0, 0.2)';
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.style.borderColor = 'rgba(0, 225, 255, 0.35)';
+                dropzone.style.background = 'rgba(0, 0, 0, 0.2)';
+
+                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    addFiles(e.dataTransfer.files);
+                }
+            });
+        }
+
+        if (clearQueueBtn) {
+            clearQueueBtn.onclick = () => {
+                selectedFiles = [];
+                renderQueue();
+            };
+        }
+
+        if (startUploadBtn) {
+            startUploadBtn.onclick = () => {
+                if (selectedFiles.length === 0) return;
+
+                // Disable button and show progress bar
+                startUploadBtn.setAttribute('disabled', 'true');
+                startUploadBtn.style.opacity = '0.5';
+                startUploadBtn.style.cursor = 'not-allowed';
+                progressContainer.style.display = 'block';
+                progressBarEl.style.width = '0%';
+                progressPercentEl.innerText = '0%';
+                progressStatusEl.innerText = `Uploading ${selectedFiles.length} file(s)...`;
+                statusBox.style.display = 'none';
+
+                const formData = new FormData();
+                selectedFiles.forEach(file => {
+                    formData.append('books', file);
+                });
+                formData.append('extract_zips', optExtractZips ? optExtractZips.checked : true);
+                formData.append('trigger_scan', optTriggerScan ? optTriggerScan.checked : true);
+                formData.append('subfolder', optSubfolder ? optSubfolder.value : 'uploads');
+
+                // Get CSRF Token
+                const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+                const csrfToken = csrfInput ? csrfInput.value : '';
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/web/upload/', true);
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                if (csrfToken) {
+                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                }
+
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        const pct = Math.round((e.loaded / e.total) * 100);
+                        progressBarEl.style.width = pct + '%';
+                        progressPercentEl.innerText = pct + '%';
+                        if (pct >= 100) {
+                            progressStatusEl.innerText = 'Extracting and processing books on server...';
+                        } else {
+                            progressStatusEl.innerText = `Uploading ${formatBytes(e.loaded)} / ${formatBytes(e.total)}...`;
+                        }
+                    }
+                };
+
+                xhr.onload = () => {
+                    progressContainer.style.display = 'none';
+                    startUploadBtn.removeAttribute('disabled');
+                    startUploadBtn.style.opacity = '1';
+                    startUploadBtn.style.cursor = 'pointer';
+
+                    try {
+                        const resp = JSON.parse(xhr.responseText);
+                        statusBox.style.display = 'block';
+
+                        if (resp.success) {
+                            statusBox.style.background = 'rgba(0, 255, 102, 0.12)';
+                            statusBox.style.border = '1px solid #00FF66';
+                            statusBox.style.color = '#fff';
+
+                            let html = `<div style="font-weight: 700; color: #00FF66; margin-bottom: 6px;"><i class="fi-check"></i> ${resp.message}</div>`;
+                            if (resp.saved_files && resp.saved_files.length > 0) {
+                                html += `<div style="font-size: 0.85rem; color: #fff; margin-top: 4px;"><strong>Saved Files:</strong> ${resp.saved_files.join(', ')}</div>`;
+                            }
+                            if (resp.extracted_files && resp.extracted_files.length > 0) {
+                                html += `<div style="font-size: 0.85rem; color: #c471ed; margin-top: 4px;"><strong>Extracted from ZIP:</strong> ${resp.extracted_files.join(', ')}</div>`;
+                            }
+                            if (resp.errors && resp.errors.length > 0) {
+                                html += `<div style="font-size: 0.85rem; color: #ff8888; margin-top: 6px;"><strong>Warnings:</strong><br>${resp.errors.join('<br>')}</div>`;
+                            }
+                            statusBox.innerHTML = html;
+
+                            // Clear uploaded queue
+                            selectedFiles = [];
+                            renderQueue();
+                        } else {
+                            statusBox.style.background = 'rgba(255, 0, 85, 0.12)';
+                            statusBox.style.border = '1px solid #FF0055';
+                            statusBox.style.color = '#fff';
+                            statusBox.innerHTML = `<div style="font-weight: 700; color: #FF0055;"><i class="fi-alert"></i> ${resp.error || resp.message || 'Upload failed.'}</div>`;
+                        }
+                    } catch (err) {
+                        statusBox.style.display = 'block';
+                        statusBox.style.background = 'rgba(255, 0, 85, 0.12)';
+                        statusBox.style.border = '1px solid #FF0055';
+                        statusBox.style.color = '#fff';
+                        statusBox.innerHTML = `<div style="font-weight: 700; color: #FF0055;"><i class="fi-alert"></i> Server error processing upload response.</div>`;
+                    }
+                };
+
+                xhr.onerror = () => {
+                    progressContainer.style.display = 'none';
+                    startUploadBtn.removeAttribute('disabled');
+                    startUploadBtn.style.opacity = '1';
+                    startUploadBtn.style.cursor = 'pointer';
+
+                    statusBox.style.display = 'block';
+                    statusBox.style.background = 'rgba(255, 0, 85, 0.12)';
+                    statusBox.style.border = '1px solid #FF0055';
+                    statusBox.style.color = '#fff';
+                    statusBox.innerHTML = `<div style="font-weight: 700; color: #FF0055;"><i class="fi-alert"></i> Network error during upload.</div>`;
+                };
+
+                xhr.send(formData);
+            };
+        }
+
     })();
 </script>
 {% endif %}

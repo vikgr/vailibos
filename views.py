@@ -923,10 +923,13 @@ def PopulateView(request):
         
     with populate_lock:
         args['populate_status'] = populate_status.copy()
+
+    if 'upload_flash' in request.session:
+        args['upload_flash'] = request.session.pop('upload_flash')
         
     args['vailib_breadcrumbs'] = [
         {'name': _('HOME'), 'url': '/web/'},
-        {'name': _('Populate Library'), 'url': None}
+        {'name': _('Populate & Upload'), 'url': None}
     ]
     args.update(sopds_processor(request))
     return render(request, 'sopds_populate.html', args)
@@ -941,6 +944,190 @@ def PopulateStatusView(request):
         status_copy = populate_status.copy()
         
     return JsonResponse(status_copy)
+
+@vary_on_headers("HTTP_ACCEPT_LANGUAGE")
+@sopds_login(url='web:login')
+def UploadView(request):
+    if not request.user.is_superuser:
+        if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest' or 'application/json' in request.META.get('HTTP_ACCEPT', ''):
+            return JsonResponse({"success": False, "error": "Only administrators can upload books."}, status=403)
+        return HttpResponseForbidden("<h1>403 Forbidden</h1><p>Only administrators can access this feature.</p>")
+
+    if request.method != "POST":
+        return redirect("web:populate")
+
+    files = request.FILES.getlist("books")
+    if not files:
+        single = request.FILES.get("book")
+        if single:
+            files = [single]
+
+    if not files:
+        if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest' or 'application/json' in request.META.get('HTTP_ACCEPT', ''):
+            return JsonResponse({"success": False, "error": "No files provided for upload."}, status=400)
+        request.session['upload_flash'] = {"type": "error", "message": "No files selected for upload."}
+        return redirect("web:populate")
+
+    subfolder = request.POST.get("subfolder", "uploads").strip()
+    subfolder = os.path.normpath(subfolder).lstrip('/\\').replace('..', '')
+    if not subfolder:
+        subfolder = "uploads"
+
+    extract_zips = request.POST.get("extract_zips", "true").lower() in ("true", "1", "yes", "on")
+    trigger_scan = request.POST.get("trigger_scan", "true").lower() in ("true", "1", "yes", "on")
+
+    dest_dir = os.path.join(config.SOPDS_ROOT_LIB, subfolder)
+    try:
+        os.makedirs(dest_dir, exist_ok=True)
+        os.chmod(dest_dir, 0o777)
+    except Exception:
+        pass
+
+    ALLOWED_EXTS = {
+        '.epub', '.fb2', '.pdf', '.mobi', '.djvu', '.cbr', '.cbz',
+        '.azw', '.azw3', '.txt', '.doc', '.docx', '.rtf', '.chm', '.zip'
+    }
+    BOOK_EXTS = {
+        '.epub', '.fb2', '.pdf', '.mobi', '.djvu', '.cbr', '.cbz',
+        '.azw', '.azw3', '.txt', '.doc', '.docx', '.rtf', '.chm'
+    }
+
+    import zipfile as py_zipfile
+    saved_files = []
+    extracted_files = []
+    errors = []
+
+    for f in files:
+        orig_name = f.name
+        base_name = os.path.basename(orig_name)
+        _, ext = os.path.splitext(base_name)
+        ext = ext.lower()
+
+        is_fb2_zip = base_name.lower().endswith('.fb2.zip')
+        if ext not in ALLOWED_EXTS and not is_fb2_zip:
+            errors.append(f"Skipped {base_name}: unsupported file type ({ext}).")
+            continue
+
+        if ext == '.zip' and extract_zips and not is_fb2_zip:
+            try:
+                with py_zipfile.ZipFile(f, 'r') as zf:
+                    extracted_from_this_zip = 0
+                    for member in zf.infolist():
+                        if member.is_dir():
+                            continue
+                        member_name = member.filename
+                        try:
+                            if not (member.flag_bits & 0x800):
+                                member_name = member_name.encode('cp437').decode('cp866')
+                        except Exception:
+                            pass
+
+                        m_base = os.path.basename(member_name)
+                        _, m_ext = os.path.splitext(m_base)
+                        m_is_fb2_zip = m_base.lower().endswith('.fb2.zip')
+                        if m_ext.lower() not in BOOK_EXTS and not m_is_fb2_zip:
+                            continue
+
+                        norm_member = os.path.normpath(member_name).lstrip('/\\')
+                        if norm_member.startswith('..'):
+                            continue
+
+                        target_path = os.path.join(dest_dir, norm_member)
+                        # Security: Prevent Zip Slip path traversal
+                        if not os.path.abspath(target_path).startswith(os.path.abspath(dest_dir)):
+                            continue
+
+                        os.makedirs(os.path.dirname(target_path), exist_ok=True)
+                        with zf.open(member) as src, open(target_path, 'wb') as dst:
+                            while True:
+                                chunk = src.read(65536)
+                                if not chunk:
+                                    break
+                                dst.write(chunk)
+                        try:
+                            os.chmod(target_path, 0o666)
+                        except OSError:
+                            pass
+                        extracted_files.append(m_base)
+                        extracted_from_this_zip += 1
+
+                    if extracted_from_this_zip == 0:
+                        # If no recognized book files were inside, save the zip archive as a whole
+                        f.seek(0)
+                        target_path = os.path.join(dest_dir, base_name)
+                        with open(target_path, 'wb') as dst:
+                            for chunk in f.chunks():
+                                dst.write(chunk)
+                        try:
+                            os.chmod(target_path, 0o666)
+                        except OSError:
+                            pass
+                        saved_files.append(base_name)
+            except Exception as e:
+                errors.append(f"Failed extracting {base_name}: {str(e)}")
+        else:
+            target_path = os.path.join(dest_dir, base_name)
+            if os.path.exists(target_path):
+                name_root, name_ext = os.path.splitext(base_name)
+                c = 1
+                while os.path.exists(target_path):
+                    target_path = os.path.join(dest_dir, f"{name_root}_{c}{name_ext}")
+                    c += 1
+            try:
+                with open(target_path, 'wb') as dst:
+                    for chunk in f.chunks():
+                        dst.write(chunk)
+                try:
+                    os.chmod(target_path, 0o666)
+                except OSError:
+                    pass
+                saved_files.append(os.path.basename(target_path))
+            except Exception as e:
+                errors.append(f"Failed saving {base_name}: {str(e)}")
+
+    total_count = len(saved_files) + len(extracted_files)
+    scan_triggered = False
+    if total_count > 0 and trigger_scan:
+        trigger_path = os.path.join(config.SOPDS_ROOT_LIB, ".trigger_scan")
+        try:
+            with open(trigger_path, 'a'):
+                os.utime(trigger_path, None)
+            scan_triggered = True
+        except Exception:
+            pass
+
+    msg_parts = []
+    if saved_files:
+        msg_parts.append(f"Saved {len(saved_files)} file(s)")
+    if extracted_files:
+        msg_parts.append(f"Extracted {len(extracted_files)} book(s) from ZIP archive")
+    if not msg_parts and errors:
+        summary_msg = "; ".join(errors)
+        success = False
+    else:
+        summary_msg = ", ".join(msg_parts) + "."
+        if scan_triggered:
+            summary_msg += " Library scanner triggered."
+        success = True
+
+    if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest' or 'application/json' in request.META.get('HTTP_ACCEPT', ''):
+        return JsonResponse({
+            "success": success,
+            "message": summary_msg,
+            "saved_files": saved_files,
+            "extracted_files": extracted_files,
+            "errors": errors,
+            "total_count": total_count,
+            "scan_triggered": scan_triggered
+        })
+
+    request.session['upload_flash'] = {
+        "type": "success" if success else "error",
+        "message": summary_msg,
+        "errors": errors
+    }
+    return redirect("web:populate")
+
 
 @vary_on_headers("HTTP_ACCEPT_LANGUAGE")
 @sopds_login(url='web:login')

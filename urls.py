@@ -27,5 +27,6 @@ urlpatterns = [
 
     url(r'^populate/$', views.PopulateView, name='populate'),
     url(r'^populate/status/$', views.PopulateStatusView, name='populate_status'),
+    url(r'^upload/$', views.UploadView, name='upload'),
     url(r'^$',views.hello, name='main'),
 ]

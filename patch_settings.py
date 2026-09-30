@@ -79,6 +79,16 @@ if os.path.exists(settings_path):
         content = content.replace(old_fieldsets, new_fieldsets)
         print("OK: Telegram bot settings registered in CONSTANCE_CONFIG_FIELDSETS")
 
+    # Configure upload size limits for books and archives (1GB max request, 25MB in-memory buffer)
+    if "DATA_UPLOAD_MAX_MEMORY_SIZE" not in content:
+        upload_limits = """
+# File upload limits for books and archives
+DATA_UPLOAD_MAX_MEMORY_SIZE = 1073741824  # 1 GB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 26214400   # 25 MB
+"""
+        content += upload_limits
+        print("OK: Upload size limits configured (1GB)")
+
     with open(settings_path, 'w', encoding='utf-8') as f:
         f.write(content)
 else:
