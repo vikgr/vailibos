@@ -42,7 +42,9 @@ services:
         volumes:
             - ${SOPDS_DATA_PATH:-/DATA/AppData/sopds/db}:/var/lib/sopds
             - ${BOOKS_PATH:-/DATA/Downloads/books}:/library
-
+            - ./bot_ssh_key/id_ed25519:/keys/vailib_bot_key:ro
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
         networks:
             - library-net
 
