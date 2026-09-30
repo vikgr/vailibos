@@ -413,8 +413,8 @@
         </div>
 
         <div class="vl-reader-controls" id="reader-controls" style="display: none;">
-            <button class="vl-btn-nav" id="prev-page">← PREV</button>
-            <button class="vl-btn-nav" id="next-page">NEXT →</button>
+            <button class="vl-btn-nav" id="prev-page" title="Previous page (← Left Arrow, Page Up, Shift+Space)">← PREV</button>
+            <button class="vl-btn-nav" id="next-page" title="Next page (→ Right Arrow, Page Down, Space)">NEXT →</button>
         </div>
     </div>
 
@@ -723,6 +723,13 @@
             progressText.innerText = `Reading...`;
         });
 
+        rendition.on("keydown", handleReaderKey);
+        rendition.hooks.content.register((contents) => {
+            if (contents && contents.document) {
+                contents.document.addEventListener("keydown", handleReaderKey);
+            }
+        });
+
         document.getElementById('next-page').onclick = () => rendition.next();
         document.getElementById('prev-page').onclick = () => rendition.prev();
     }
@@ -785,10 +792,63 @@
         window.ViewerInstance.render(djvuArea);
         await window.ViewerInstance.loadDocumentByUrl(BOOK_URL);
         progressText.innerText = "DjVu Mode";
+        controls.style.display = 'flex';
+        document.getElementById('next-page').onclick = () => {
+            if (window.ViewerInstance && typeof window.ViewerInstance.nextPage === 'function') {
+                window.ViewerInstance.nextPage();
+            }
+        };
+        document.getElementById('prev-page').onclick = () => {
+            if (window.ViewerInstance && typeof window.ViewerInstance.prevPage === 'function') {
+                window.ViewerInstance.prevPage();
+            }
+        };
+    }
+
+    // --- KEYBOARD NAVIGATION (Arrows, Space, Page Up/Down) ---
+    function goToNextPage() {
+        const nextBtn = document.getElementById('next-page');
+        if (nextBtn) nextBtn.click();
+    }
+
+    function goToPrevPage() {
+        const prevBtn = document.getElementById('prev-page');
+        if (prevBtn) prevBtn.click();
+    }
+
+    function handleReaderKey(e) {
+        // Do not intercept if interacting with an input or if settings drawer is active
+        const active = document.activeElement;
+        if (active) {
+            const tag = (active.tagName || '').toLowerCase();
+            if (tag === 'input' || tag === 'textarea' || tag === 'select' || active.isContentEditable) {
+                return;
+            }
+        }
+        const drawer = document.getElementById('settings-drawer');
+        if (drawer && drawer.classList.contains('active')) {
+            return;
+        }
+
+        const key = e.key;
+        const code = e.code;
+        const isSpace = (key === ' ' || key === 'Spacebar' || code === 'Space');
+
+        // Next page: Right Arrow, Page Down, Down Arrow, or Space (without Shift)
+        if (key === 'ArrowRight' || key === 'PageDown' || key === 'ArrowDown' || (isSpace && !e.shiftKey)) {
+            e.preventDefault();
+            goToNextPage();
+        }
+        // Previous page: Left Arrow, Page Up, Up Arrow, or Space (with Shift)
+        else if (key === 'ArrowLeft' || key === 'PageUp' || key === 'ArrowUp' || (isSpace && e.shiftKey)) {
+            e.preventDefault();
+            goToPrevPage();
+        }
     }
 
     window.addEventListener('load', () => {
         initSettingsDrawer();
+        document.addEventListener('keydown', handleReaderKey);
         initReader();
     });
 </script>
