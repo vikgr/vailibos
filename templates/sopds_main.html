@@ -3,7 +3,7 @@
 {% load i18n %}
 
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="{{ vailib_theme|default:'premium' }}">
 
 <head>
     <meta charset="UTF-8" />
@@ -17,16 +17,49 @@
     <link rel="stylesheet" type="text/css" href="{% static 'custom/css/modern.css' %}?v=23">
     <script>
         (function () {
-            const ua = navigator.userAgent.toLowerCase();
-            const isEink = /kindle|kobo|nook|pocketbook|ereader|sonyreader|e-ink|eink|boox|tolino|bookeen|onyx/.test(ua);
-            const isOldDevice = /windows nt 5|windows nt 6\.0|windows nt 6\.1|android [2-4]\.|iphone os [3-6]_|msie|trident|opera mini|ucbrowser|symbian|blackberry|nokia/.test(ua);
-            const isLowRes = Math.max(window.screen.width, window.screen.height) <= 850 && (window.devicePixelRatio || 1) <= 1;
-            const isLowHardware = (navigator.deviceMemory && navigator.deviceMemory <= 1) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 1);
-            
-            const shouldUseEink = isEink || isOldDevice || isLowRes || isLowHardware;
-            const defaultTheme = shouldUseEink ? 'eink' : 'premium';
-            const theme = localStorage.getItem('sopds-theme') || defaultTheme;
-            document.documentElement.setAttribute('data-theme', theme);
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+                return null;
+            }
+
+            const existingCookie = getCookie('vailib_theme');
+            const serverTheme = "{{ vailib_theme|default:'premium' }}";
+
+            if (!existingCookie) {
+                const ua = (navigator.userAgent || '').toLowerCase();
+                const isEinkAgent = /kindle|kobo|nook|pocketbook|ereader|sonyreader|e-ink|eink|boox|tolino|bookeen|onyx|remarkable|likebook|boyue|hanvon|dasung|inkpalm|supernote|mobiscribe|cybook|bokeen|inkbook/.test(ua);
+                const isMonochrome = window.matchMedia && (window.matchMedia('(monochrome)').matches || window.matchMedia('(monochrome: 1)').matches);
+                const isLowColor = window.screen && window.screen.colorDepth && window.screen.colorDepth <= 8;
+
+                let detectedTheme = 'premium';
+                if (isEinkAgent || isMonochrome || isLowColor) {
+                    detectedTheme = 'eink';
+                } else {
+                    // Check for high resolution & color screen:
+                    const dpr = window.devicePixelRatio || 1;
+                    const maxDim = Math.max(window.screen.width || 0, window.screen.height || 0);
+                    const effectiveRes = maxDim * dpr;
+                    const isColor = !window.screen.colorDepth || window.screen.colorDepth > 8;
+                    if (isColor && (effectiveRes >= 800 || maxDim >= 768 || dpr >= 1.5)) {
+                        detectedTheme = 'premium';
+                    }
+                }
+
+                document.cookie = 'vailib_theme=' + detectedTheme + '; path=/; max-age=31536000; SameSite=Lax';
+                try { localStorage.setItem('sopds-theme', detectedTheme); } catch (e) {}
+                document.documentElement.setAttribute('data-theme', detectedTheme);
+
+                // If the server rendered a different theme than what was detected, reload once to sync server template
+                if (serverTheme !== detectedTheme) {
+                    window.location.reload();
+                    return;
+                }
+            } else {
+                document.documentElement.setAttribute('data-theme', existingCookie);
+                try { localStorage.setItem('sopds-theme', existingCookie); } catch (e) {}
+            }
         })();
     </script>
 </head>

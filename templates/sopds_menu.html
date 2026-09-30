@@ -53,10 +53,10 @@
     <li class="nav-item theme-switcher-container" style="margin-top: 25px;">
         <div class="theme-label" data-trans="appearance" style="font-size: 0.75rem; color: var(--text-muted); font-weight: 800; margin-bottom: 8px; letter-spacing: 1px;">THEME</div>
         <div class="theme-segment">
-            <a href="?theme=premium" class="theme-opt" data-val="premium" style="text-decoration: none;">
+            <a href="?theme=premium" class="theme-opt {% if vailib_theme == 'premium' %}active{% endif %}" data-val="premium" style="text-decoration: none;">
                 <i class="fi-monitor"></i> <span data-trans="premium">COLOR</span>
             </a>
-            <a href="?theme=eink" class="theme-opt" data-val="eink" style="text-decoration: none;">
+            <a href="?theme=eink" class="theme-opt {% if vailib_theme != 'premium' %}active{% endif %}" data-val="eink" style="text-decoration: none;">
                 <i class="fi-page"></i> <span data-trans="eink">E-INK</span>
             </a>
         </div>

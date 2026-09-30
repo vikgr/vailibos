@@ -10,18 +10,42 @@ from constance import config
 LANGUAGE_SESSION_KEY = '_language'
 
 
+EINK_USER_AGENTS = (
+    'kindle', 'kobo', 'nook', 'pocketbook', 'ereader', 'sonyreader', 
+    'eink', 'e-ink', 'boox', 'tolino', 'bookeen', 'onyx', 'remarkable',
+    'likebook', 'boyue', 'hanvon', 'dasung', 'inkpalm', 'supernote',
+    'mobiscribe', 'cybook', 'bokeen', 'inkbook',
+    'opera mini', 'symbian', 'blackberry', 'netfront', 'openwave'
+)
+
+
 class VailibThemeMiddleware(MiddlewareMixin):
     def process_request(self, request):
         theme_param = request.GET.get('theme')
         if theme_param in ['eink', 'premium']:
             request.vailib_theme = theme_param
+            return
+
+        theme_cookie = request.COOKIES.get('vailib_theme')
+        if theme_cookie in ['eink', 'premium']:
+            request.vailib_theme = theme_cookie
+            return
+
+        # Device detection: check for known e-book readers / e-ink user agents
+        user_agent = request.META.get('HTTP_USER_AGENT', '').lower()
+        if any(keyword in user_agent for keyword in EINK_USER_AGENTS):
+            request.vailib_theme = 'eink'
+        else:
+            # Modern high-resolution / color display by default (desktop, laptop, tablet, smartphone)
+            request.vailib_theme = 'premium'
 
     def process_response(self, request, response):
         theme_param = request.GET.get('theme')
         if theme_param in ['eink', 'premium']:
-            response.set_cookie('vailib_theme', theme_param, max_age=31536000, path='/')
+            response.set_cookie('vailib_theme', theme_param, max_age=31536000, path='/', samesite='Lax')
         elif hasattr(request, 'vailib_theme'):
-            response.set_cookie('vailib_theme', request.vailib_theme, max_age=31536000, path='/')
+            if 'vailib_theme' not in request.COOKIES:
+                response.set_cookie('vailib_theme', request.vailib_theme, max_age=31536000, path='/', samesite='Lax')
         return response
 
 

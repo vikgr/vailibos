@@ -92,8 +92,13 @@ def sopds_processor(request):
         args['vailib_theme'] = theme_cookie
     else:
         # Detect e-ink devices in user agent
-        eink_agents = ['kindle', 'kobo', 'nook', 'pocketbook', 'ereader', 'sonyreader', 
-                       'eink', 'e-ink', 'boox', 'tolino', 'bookeen', 'onyx']
+        eink_agents = (
+            'kindle', 'kobo', 'nook', 'pocketbook', 'ereader', 'sonyreader', 
+            'eink', 'e-ink', 'boox', 'tolino', 'bookeen', 'onyx', 'remarkable',
+            'likebook', 'boyue', 'hanvon', 'dasung', 'inkpalm', 'supernote',
+            'mobiscribe', 'cybook', 'bokeen', 'inkbook',
+            'opera mini', 'symbian', 'blackberry', 'netfront', 'openwave'
+        )
         if any(keyword in user_agent for keyword in eink_agents):
             args['vailib_theme'] = 'eink'
         else:

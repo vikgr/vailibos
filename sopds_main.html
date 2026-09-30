@@ -1,8 +1,9 @@
 {% load staticfiles %}
 {% load cache %}
+{% load i18n %}
 
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="{{ vailib_theme|default:'premium' }}">
 
 <head>
     <meta charset="UTF-8" />
@@ -13,16 +14,59 @@
     <link rel="stylesheet" type="text/css" href="{% static 'foundation-icons/foundation-icons.css' %}">
 
     <!-- Modern & E-Ink Inject -->
-    <link rel="stylesheet" type="text/css" href="{% static 'custom/css/modern.css' %}?v=18">
+    <link rel="stylesheet" type="text/css" href="{% static 'custom/css/modern.css' %}?v=23">
     <script>
         (function () {
-            const theme = localStorage.getItem('sopds-theme') || 'premium';
-            document.documentElement.setAttribute('data-theme', theme);
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+                return null;
+            }
+
+            const existingCookie = getCookie('vailib_theme');
+            const serverTheme = "{{ vailib_theme|default:'premium' }}";
+
+            if (!existingCookie) {
+                const ua = (navigator.userAgent || '').toLowerCase();
+                const isEinkAgent = /kindle|kobo|nook|pocketbook|ereader|sonyreader|e-ink|eink|boox|tolino|bookeen|onyx|remarkable|likebook|boyue|hanvon|dasung|inkpalm|supernote|mobiscribe|cybook|bokeen|inkbook/.test(ua);
+                const isMonochrome = window.matchMedia && (window.matchMedia('(monochrome)').matches || window.matchMedia('(monochrome: 1)').matches);
+                const isLowColor = window.screen && window.screen.colorDepth && window.screen.colorDepth <= 8;
+
+                let detectedTheme = 'premium';
+                if (isEinkAgent || isMonochrome || isLowColor) {
+                    detectedTheme = 'eink';
+                } else {
+                    // Check for high resolution & color screen:
+                    const dpr = window.devicePixelRatio || 1;
+                    const maxDim = Math.max(window.screen.width || 0, window.screen.height || 0);
+                    const effectiveRes = maxDim * dpr;
+                    const isColor = !window.screen.colorDepth || window.screen.colorDepth > 8;
+                    if (isColor && (effectiveRes >= 800 || maxDim >= 768 || dpr >= 1.5)) {
+                        detectedTheme = 'premium';
+                    }
+                }
+
+                document.cookie = 'vailib_theme=' + detectedTheme + '; path=/; max-age=31536000; SameSite=Lax';
+                try { localStorage.setItem('sopds-theme', detectedTheme); } catch (e) {}
+                document.documentElement.setAttribute('data-theme', detectedTheme);
+
+                // If the server rendered a different theme than what was detected, reload once to sync server template
+                if (serverTheme !== detectedTheme) {
+                    window.location.reload();
+                    return;
+                }
+            } else {
+                document.documentElement.setAttribute('data-theme', existingCookie);
+                try { localStorage.setItem('sopds-theme', existingCookie); } catch (e) {}
+            }
         })();
     </script>
 </head>
 
 <body>
+    <!-- Scroll Progress Bar -->
+    <div id="vl-scroll-bar"></div>
     <div class="app-wrapper">
 
         <!-- SIDEBAR FOR PREMIUM / TOP HEADER FOR E-INK -->
@@ -35,15 +79,101 @@
                 </a>
                 <div class="auth-box" style="margin-top: 5px;">
                     {% if user.is_authenticated %}
-                    <a href="/web/logout/"><i class="fi-torso"></i> {{ user.username }}</a>
+                    <a href="/web/logout/"><i class="fi-torso"></i> {{ user.username }} <span data-trans="logout" style="font-size: 0.8rem; margin-left: 5px;">(Выйти)</span></a>
                     {% else %}
-                    <a href="/web/login/"><i class="fi-torso"></i> Войти</a>
+                    <a href="/web/login/"><i class="fi-torso"></i> <span data-trans="login">Войти</span></a>
                     {% endif %}
                 </div>
+
+                
+                {% if vailib_theme == 'premium' %}
+                <div class="lang-selector-container" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; background: transparent; border: none; box-shadow: none; padding: 0; margin: 15px 0 0 0;">
+                    <a href="#" onclick="setVailibLang('ru'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/ru.png" width="15" alt="RU" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">RU</span></a>
+                    <a href="#" onclick="setVailibLang('en'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/gb.png" width="15" alt="EN" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">EN</span></a>
+                    <a href="#" onclick="setVailibLang('de'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/de.png" width="15" alt="DE" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">DE</span></a>
+                    <a href="#" onclick="setVailibLang('es'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/es.png" width="15" alt="ES" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">ES</span></a>
+                    <a href="#" onclick="setVailibLang('fr'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/fr.png" width="15" alt="FR" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">FR</span></a>
+                    <a href="#" onclick="setVailibLang('el'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/gr.png" width="15" alt="GR" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">GR</span></a>
+                    <a href="#" onclick="setVailibLang('ar'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/sa.png" width="15" alt="AR" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">AR</span></a>
+                    <a href="#" onclick="setVailibLang('hi'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/in.png" width="15" alt="HI" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">HI</span></a>
+                    <a href="#" onclick="setVailibLang('pt'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/pt.png" width="15" alt="PT" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">PT</span></a>
+                    <a href="#" onclick="setVailibLang('zh'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/cn.png" width="15" alt="ZH" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">ZH</span></a>
+                    <a href="#" onclick="setVailibLang('bn'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/bd.png" width="15" alt="BN" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">BN</span></a>
+                    <a href="#" onclick="setVailibLang('nl'); return false;" class="color-lang-btn" style="padding: 4px 2px; justify-content: center; gap: 3px; display: inline-block; text-align: center;"><img src="https://flagcdn.com/w20/nl.png" width="15" alt="NL" style="border-radius:2px;"> <span class="lang-code" style="font-size:0.75rem; font-weight:800;">NL</span></a>
+                </div>
+
+                {% else %}
+                <div class="lang-selector-container vl-lang-grid">
+                    <a href="#" onclick="setVailibLang('ru'); return false;" class="eink-lang-btn" data-lang="ru" title="Русский">
+                        <span class="lang-code">RU</span>
+                        <span class="lang-native">РУ</span>
+                    </a>
+                    <a href="#" onclick="setVailibLang('en'); return false;" class="eink-lang-btn" data-lang="en" title="English">
+                        <span class="lang-code">EN</span>
+                        <span class="lang-native">En.</span>
+                    </a>
+                    <a href="#" onclick="setVailibLang('de'); return false;" class="eink-lang-btn" data-lang="de" title="Deutsch">
+                        <span class="lang-code">DE</span>
+                        <span class="lang-native">Dt.</span>
+                    </a>
+                    <a href="#" onclick="setVailibLang('es'); return false;" class="eink-lang-btn" data-lang="es" title="Español">
+                        <span class="lang-code">ES</span>
+                        <span class="lang-native">Es.</span>
+                    </a>
+                    <a href="#" onclick="setVailibLang('fr'); return false;" class="eink-lang-btn" data-lang="fr" title="Français">
+                        <span class="lang-code">FR</span>
+                        <span class="lang-native">Fr.</span>
+                    </a>
+                    <a href="#" onclick="setVailibLang('el'); return false;" class="eink-lang-btn" data-lang="el" title="Ελληνικά">
+                        <span class="lang-code">GR</span>
+                        <span class="lang-native">ΕΛ</span>
+                    </a>
+                    <a href="#" onclick="setVailibLang('ar'); return false;" class="eink-lang-btn" data-lang="ar" title="العربية">
+                        <span class="lang-code">AR</span>
+                        <span class="lang-native">عر</span>
+                    </a>
+                    <a href="#" onclick="setVailibLang('hi'); return false;" class="eink-lang-btn" data-lang="hi" title="हिन्दी">
+                        <span class="lang-code">HI</span>
+                        <span class="lang-native">हि</span>
+                    </a>
+                    <a href="#" onclick="setVailibLang('pt'); return false;" class="eink-lang-btn" data-lang="pt" title="Português">
+                        <span class="lang-code">PT</span>
+                        <span class="lang-native">Pt.</span>
+                    </a>
+                    <a href="#" onclick="setVailibLang('zh'); return false;" class="eink-lang-btn" data-lang="zh" title="中文">
+                        <span class="lang-code">ZH</span>
+                        <span class="lang-native">中文</span>
+                    </a>
+                    <a href="#" onclick="setVailibLang('bn'); return false;" class="eink-lang-btn" data-lang="bn" title="বাংলা">
+                        <span class="lang-code">BN</span>
+                        <span class="lang-native">বাংলা</span>
+                    </a>
+                    <a href="#" onclick="setVailibLang('nl'); return false;" class="eink-lang-btn" data-lang="nl" title="Nederlands">
+                        <span class="lang-code">NL</span>
+                        <span class="lang-native">Nl.</span>
+                    </a>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Navigation System -->
             {% include "sopds_menu.html" %}
+
+            <!-- Statistics -->
+            <div class="sidebar-stats" style="margin-top: auto; padding-top: 15px;">
+                <h5 data-trans="stat" style="font-size: 0.8rem; text-transform: uppercase;">{% trans "STATISTICS" %}</h5>
+                <p style="font-size: 0.8rem; line-height: 1.3;">
+                    <b data-trans="cat_con">{% trans "This сatalog contains:" %}</b><br>
+                    {{ stats.allbooks }} <span data-trans="bk_c">{% trans "books," %}</span><br>
+                    {{ stats.allauthors }} <span data-trans="aut_c">{% trans "authors," %}</span><br>
+                    {{ stats.allgenres }} <span data-trans="gen_c">{% trans "genres and" %}</span><br>
+                    {{ stats.allseries }} <span data-trans="t_ser">{% trans "series." %}</span>
+                </p>
+                <p style="font-size: 0.75rem; margin-top: 10px;">
+                    <b data-trans="l_scan">{% trans "Last collection scan:" %}</b><br>
+                    {{ stats.lastscan_date|date:"Y-m-d H:i"|default:"Never" }}
+                </p>
+            </div>
 
         </aside>
 
@@ -75,23 +205,344 @@
 
     </div>
 
+    {% if vailib_theme == 'premium' %}
     <script src="{% static 'js/vendor/jquery.js' %}"></script>
     <script src="{% static 'js/vendor/foundation.min.js' %}"></script>
+    {% endif %}
     <script src="{% static 'custom/js/theme_switcher.js' %}"></script>
 
     <script>
+        // Detects SOPDS 'no cover' image and shows the themed placeholder instead.
+        function checkEinkCover(img) {
+            function process() {
+                // Determine if this is a placeholder image in any way (dimensions, aspect ratio, or specific fallback URL)
+                const isPlaceholder = 
+                    (img.naturalWidth === 83 && img.naturalHeight === 100) || 
+                    (Math.abs(img.naturalWidth / img.naturalHeight - 0.83) < 0.05 && img.naturalWidth < 150) ||
+                    (img.src.indexOf('covertmpl.jpg') !== -1);
+
+                if (isPlaceholder) {
+                    img.style.display = 'none';
+                    var next = img.nextElementSibling;
+                    if (next && (next.classList.contains('eink-placeholder') || next.classList.contains('modern-placeholder'))) {
+                        next.style.display = 'flex';
+                    }
+                }
+            }
+            if (img.complete) {
+                process();
+            } else {
+                img.onload = process;
+            }
+        }
+
+        const vailibDict = {
+            'ru': {
+                cat: 'Каталоги', book: 'Книги', auth: 'Авторы', gen: 'Жанры', ser: 'Серии', set: 'Настройки', lang_menu_title: 'Языки', pop_lib: 'Заполнить библиотеку',
+                login: 'Войти', logout: '(Выйти)', new_e: 'Новинки', new_c: 'Новые Поступления',
+                un_auth: 'Неизвестный автор', empty: 'Библиотека пуста', scan: 'Выполните сканирование директории.',
+                welc: 'Добро пожаловать в VAILIB', welc_sub: 'Ваша персональная цифровая библиотека. Войдите, чтобы получить доступ к коллекции книг.',
+                welc_btn: 'Войти в библиотеку →', s_book: 'Поиск по названию', s_auth: 'Поиск по автору', s_ser: 'Поиск по серии', s_gen: 'Поиск по жанру', eink_theme: '🖤 E-INK THEME', color_theme: 'ЦВЕТНАЯ ТЕМА',
+                stat: 'СТАТИСТИКА', cat_con: 'Этот каталог содержит:', bk_c: 'книг,', aut_c: 'авторов,', gen_c: 'жанров и', t_tot: 'Всего:', t_aut: 'авторов.', t_bk: 'книг.', t_ser: 'серий.', l_scan: 'Последнее сканирование:',
+                read: 'Читать', prev: 'Назад', next: 'Вперед', bk_l: 'Книг:', home: 'НАЧАЛО', s_p: 'Поиск...', s_b: 'Найти',
+                root: 'ROOT', search: 'Поиск', select: 'Выбор', bshelf: 'Книжная полка', show_all: 'ПОКАЗАТЬ ВСЕ', doubles: 'Дубликаты книги',
+                appearance: 'ТЕМА', premium: 'ЦВЕТ', eink: 'E-INK', t_ser: 'серий.',
+                view_book: 'Открыть книгу', browse_lib: 'Обзор библиотеки', browse_cat: 'Обзор каталогов', cover_alt: 'Обложка',
+                user_login: 'Вход в систему', username: 'Имя пользователя', enter_user: 'Введите имя пользователя', password: 'Пароль', enter_pass: 'Введите пароль', login_btn: 'Войти'
+            },
+            'en': {
+                cat: 'Catalogs', book: 'Books', auth: 'Authors', gen: 'Genres', ser: 'Series', set: 'Settings', lang_menu_title: 'Languages', pop_lib: 'Populate Library',
+                login: 'Login', logout: '(Logout)', new_e: 'Recent Additions', new_c: 'New Arrivals',
+                un_auth: 'Unknown Author', empty: 'Library is empty', scan: 'Run a directory scan.',
+                welc: 'Welcome to VAILIB', welc_sub: 'Your personal digital library. Login to access the book collection.',
+                welc_btn: 'Enter Library →', s_book: 'Search by title', s_auth: 'Search by author', s_ser: 'Search by series', s_gen: 'Search by genre', eink_theme: '🖤 E-INK THEME', color_theme: 'COLOR THEME',
+                stat: 'STATISTICS', cat_con: 'This catalog contains:', bk_c: 'books,', aut_c: 'authors,', gen_c: 'genres and', t_tot: 'Total:', t_aut: 'authors.', t_bk: 'books.', t_ser: 'series.', l_scan: 'Last collection scan:',
+                read: 'Read', prev: 'Previous', next: 'Next', bk_l: 'Books:', home: 'HOME', s_p: 'Search...', s_b: 'Find',
+                root: 'ROOT', search: 'Search', select: 'Select', bshelf: 'Bookshelf', show_all: 'SHOW ALL', doubles: 'Doubles for book',
+                appearance: 'THEME', premium: 'COLOR', eink: 'E-INK', t_ser: 'series.',
+                view_book: 'View Book', browse_lib: 'Browse Library', browse_cat: 'Browse Catalogs', cover_alt: 'Cover',
+                user_login: 'User Login', username: 'Username', enter_user: 'Enter Username', password: 'Password', enter_pass: 'Enter Password', login_btn: 'Log in'
+            },
+            'de': {
+                cat: 'Katalog', book: 'Bücher', auth: 'Autoren', gen: 'Genres', ser: 'Serien', set: 'Einstellungen', lang_menu_title: 'Sprachen',
+                login: 'Anmelden', logout: '(Abmelden)', new_e: 'Neue Einträge', new_c: 'Neue Ankünfte',
+                un_auth: 'Unbekannter Autor', empty: 'Bibliothek ist leer', scan: 'Verzeichnis scannen.',
+                welc: 'Willkommen bei VAILIB', welc_sub: 'Ihre digitale Bibliothek. Melden Sie sich an.',
+                welc_btn: 'Bibliothek betreten →', s_book: 'Nach Titel suchen', s_auth: 'Nach Autor suchen', s_ser: 'Nach Serie suchen', s_gen: 'Nach Genre suchen', eink_theme: '🖤 E-INK THEME', color_theme: 'FARBDESIGN',
+                stat: 'STATISTIK', cat_con: 'Dieser Katalog enthält:', bk_c: 'Bücher,', aut_c: 'Autoren,', gen_c: 'Genres und', t_tot: 'Gesamt:', t_aut: 'Autoren.', t_bk: 'Bücher.', t_ser: 'Serien.', l_scan: 'Letzter Scan:',
+                read: 'Lesen', prev: 'Zurück', next: 'Weiter', bk_l: 'Bücher:', home: 'START', s_p: 'Suchen...', s_b: 'Finden',
+                root: 'ROOT', search: 'Suchen', select: 'Auswählen', bshelf: 'Regal', show_all: 'ALLE ANZEIGEN', doubles: 'Dublikate für Buch',
+                appearance: 'DESIGN', premium: 'FARBE', eink: 'E-INK', t_ser: 'Serien.',
+                view_book: 'Buch anzeigen', browse_lib: 'Bibliothek durchsuchen', browse_cat: 'Kataloge durchsuchen', cover_alt: 'Abdeckung',
+                user_login: 'Benutzeranmeldung', username: 'Benutzername', enter_user: 'Benutzername eingeben', password: 'Passwort', enter_pass: 'Passwort eingeben', login_btn: 'Einloggen'
+            },
+            'el': {
+                cat: 'Κατάλογοι', book: 'Βιβλία', auth: 'Συγγραφείς', gen: 'Είδη', ser: 'Σειρές', set: 'Ρυθμίσεις', lang_menu_title: 'Γλώσσες',
+                login: 'Είσοδος', logout: '(Έξοδος)', new_e: 'Νέες προσθήκες', new_c: 'Νέες αφίξεις',
+                un_auth: 'Άγνωστος συγγραφέας', empty: 'Η βιβλιοθήκη είναι άδεια', scan: 'Εκτελέστε σάρωση.',
+                welc: 'Καλώς ήρθατε στο VAILIB', welc_sub: 'Η ψηφιακή σας βιβλιοθήκη. Συνδεθείτε για πρόσβαση.',
+                welc_btn: 'Είσοδος στη βιβλιοθήκη →', s_book: 'Αναζήτηση (τίτλος)', s_auth: 'Αναζήτηση (συγγραφέας)', s_ser: 'Αναζήτηση (σειρά)', s_gen: 'Αναζήτηση (είδος)', eink_theme: '🖤 E-INK THEME', color_theme: 'ΧΡΩΜΑΤΙΚΟ ΘΕΜΑ',
+                stat: 'ΣΤΑΤΙΣΤΙΚΑ', cat_con: 'Αυτός ο κατάλογος περιέχει:', bk_c: 'βιβλία,', aut_c: 'συγγραφείς,', gen_c: 'είδη και', t_tot: 'Σύνολο:', t_aut: 'συγγραφείς.', t_bk: 'βιβλία.', t_ser: 'σειρές.', l_scan: 'Τελευταία σάρωση:',
+                read: 'Διαβάστε', prev: 'Προηγούμενο', next: 'Επόμενο', bk_l: 'Βιβλία:', home: 'ΑΡΧΙΚΗ', s_p: 'Αναζήτηση...', s_b: 'Εύρεση',
+                root: 'ROOT', search: 'Αναζήτηση', select: 'Επιλογή', bshelf: 'Βιβλιοθήκη', show_all: 'ΠΡΟΒΟΛΗ ΟΛΩΝ', doubles: 'Διπλότυπα',
+                appearance: 'ΘΕΜΑ', premium: 'ΧΡΩΜΑ', eink: 'E-INK', t_ser: 'σειρές.',
+                view_book: 'Δείτε το βιβλίο', browse_lib: 'Περιήγηση στη βιβλιοθήκη', browse_cat: 'Περιήγηση στους καταλόγους', cover_alt: 'Εξώφυλλο',
+                user_login: 'Είσοδος Χρήστη', username: 'Όνομα χρήστη', enter_user: 'Εισάγετε όνομα χρήστη', password: 'Κωδικός πρόσβασης', enter_pass: 'Εισάγετε κωδικό πρόσβασης', login_btn: 'Σύνδεση'
+            },
+            'es': {
+                cat: 'Catálogos', book: 'Libros', auth: 'Autores', gen: 'Géneros', ser: 'Series', set: 'Ajustes', lang_menu_title: 'Idiomas',
+                login: 'Entrar', logout: '(Salir)', new_e: 'Novedades', new_c: 'Recientes',
+                un_auth: 'Autor desconocido', empty: 'Biblioteca vacía', scan: 'Escanear directorio.',
+                welc: 'Bienvenido a VAILIB', welc_sub: 'Tu biblioteca digital. Inicia sesión para acceder.',
+                welc_btn: 'Entrar a la biblioteca →', s_book: 'Buscar título', s_auth: 'Buscar autor', s_ser: 'Buscar serie', s_gen: 'Buscar género', eink_theme: '🖤 E-INK THEME', color_theme: 'TEMA DE COLOR',
+                stat: 'ESTADÍSTICAS', cat_con: 'Este catálogo contiene:', bk_c: 'libros,', aut_c: 'autores,', gen_c: 'géneros y', t_tot: 'Total:', t_aut: 'autores.', t_bk: 'libros.', t_ser: 'series.', l_scan: 'Último escaneo:',
+                read: 'Leer', prev: 'Anterior', next: 'Siguiente', bk_l: 'Libros:', home: 'INICIO', s_p: 'Buscar...', s_b: 'Buscar',
+                root: 'ROOT', search: 'Buscar', select: 'Seleccionar', bshelf: 'Estantería', show_all: 'MOSTRAR TODO', doubles: 'Dobles',
+                appearance: 'TEMA', premium: 'COLOR', eink: 'E-INK', t_ser: 'series.',
+                view_book: 'Ver libro', browse_lib: 'Explorar biblioteca', browse_cat: 'Explorar catálogos', cover_alt: 'Portada',
+                user_login: 'Acceso de usuario', username: 'Nombre de usuario', enter_user: 'Ingrese nombre de usuario', password: 'Contraseña', enter_pass: 'Ingrese contraseña', login_btn: 'Iniciar sesión'
+            },
+            'fr': {
+                cat: 'Catalogues', book: 'Livres', auth: 'Auteurs', gen: 'Genres', ser: 'Séries', set: 'Paramètres', lang_menu_title: 'Langues',
+                login: 'Connexion', logout: '(Déconnexion)', new_e: 'Nouveautés', new_c: 'Nouveautés',
+                un_auth: 'Auteur inconnu', empty: 'Bibliothèque vide', scan: 'Scanner le répertoire.',
+                welc: 'Bienvenue sur VAILIB', welc_sub: 'Votre bibliothèque numérique. Connectez-vous.',
+                welc_btn: 'Entrer dans la bibliothèque →', s_book: 'Rechercher un titre', s_auth: 'Rechercher un auteur', s_ser: 'Rechercher une série', s_gen: 'Rechercher un genre', eink_theme: '🖤 E-INK THEME', color_theme: 'THÈME COULEUR',
+                stat: 'STATISTIQUES', cat_con: 'Ce catalogue contient:', bk_c: 'livres,', aut_c: 'auteurs,', gen_c: 'genres et', t_tot: 'Total:', t_aut: 'auteurs.', t_bk: 'livres.', t_ser: 'séries.', l_scan: 'Dernier scan:',
+                read: 'Lire', prev: 'Précédent', next: 'Suivant', bk_l: 'Livres:', home: 'ACCUEIL', s_p: 'Rechercher...', s_b: 'Trouver',
+                root: 'ROOT', search: 'Recherche', select: 'Sélectionner', bshelf: 'Étagère', show_all: 'TOUT AFFICHER', doubles: 'Doublons',
+                appearance: 'THÈME', premium: 'COULEUR', eink: 'E-INK', t_ser: 'séries.',
+                view_book: 'Voir le livre', browse_lib: 'Parcourir la bibliothèque', browse_cat: 'Parcourir les catalogues', cover_alt: 'Couverture',
+                user_login: 'Connexion utilisateur', username: 'Nom d\'utilisateur', enter_user: 'Entrez le nom d\'utilisateur', password: 'Mot de passe', enter_pass: 'Entrez le mot de passe', login_btn: 'Se connecter'
+            },
+            'ar': {
+                cat: 'كتالوجات', book: 'كتب', auth: 'مؤلفون', gen: 'أنواع', ser: 'سلاسل', set: 'إعدادات', lang_menu_title: 'اللغات',
+                login: 'دخول', logout: '(خروج)', new_e: 'إضافات حديثة', new_c: 'الوافدون الجدد',
+                un_auth: 'مؤلف مجهول', empty: 'المكتبة فارغة', scan: 'فحص الدليل.',
+                welc: 'مرحبا بك в VAILIB', welc_sub: 'مكتبتك الرقمية. سجل الدخول للوصول.',
+                welc_btn: 'دخول المكتبة →', s_book: 'البحث بالعنوان', s_auth: 'البحث بالمؤلف', s_ser: 'البحث بالسلسلة', s_gen: 'البحث بالنوع', eink_theme: '🖤 E-INK THEME', color_theme: 'السمة الملونة',
+                stat: 'إحصائيات', cat_con: 'يحتوي هذا الكتالوج على:', bk_c: 'كتب,', aut_c: 'مؤلفين,', gen_c: 'أنواع و', t_tot: 'المجموع:', t_aut: 'مؤلفين.', t_bk: 'كتب.', t_ser: 'سلاسل.', l_scan: 'آخر مسح:',
+                read: 'اقرأ', prev: 'السابق', next: 'التالي', bk_l: 'كتب:', home: 'الرئيسية', s_p: 'بحث...', s_b: 'بحث',
+                root: 'ROOT', search: 'بحث', select: 'تحديد', bshelf: 'رف الكتب', show_all: 'عرض الكل', doubles: 'النسخ المكررة',
+                appearance: 'السمة', premium: 'ملون', eink: 'إي-إنك', t_ser: 'سلاسل.',
+                view_book: 'عرض الكتاب', browse_lib: 'تصفح المكتبة', browse_cat: 'تصفح الكتالوجات', cover_alt: 'غلاف',
+                user_login: 'تسجيل دخول المستخدم', username: 'اسم المستخدم', enter_user: 'أدخل اسم المستخدم', password: 'كلمة المرور', enter_pass: 'أدخل كلمة المرور', login_btn: 'تسجيل الدخول'
+            },
+            'hi': {
+                cat: 'कैटलॉग', book: 'किताबें', auth: 'लेखक', gen: 'शैलियाँ', ser: 'श्रृंखला', set: 'सेटिंग्स', lang_menu_title: 'भाषाएँ',
+                login: 'लॉगिन', logout: '(लॉगआउट)', new_e: 'हाल के जोड़', new_c: 'नए आगमन',
+                un_auth: 'अज्ञान लेखक', empty: 'लाइब्रेरी खाली है', scan: 'डायरेक्टरी स्कैन करें.',
+                welc: 'VAILIB में आपका स्वागत है', welc_sub: 'आपकी डिजिटल लाइब्रेरी। लॉगिन करें।',
+                welc_btn: 'लाइब्रेरी में प्रवेश करें →', s_book: 'शीर्षक से खोजें', s_auth: 'लेखक से खोजें', s_ser: 'श्रृंखला से खोजें', s_gen: 'शैली से खोजें', eink_theme: '🖤 E-INK THEME', color_theme: 'रंगीन थीम',
+                stat: 'आँकड़े', cat_con: 'इस कैटलॉग में है:', bk_c: 'किताबें,', aut_c: 'लेखक,', gen_c: 'शैलियाँ और', t_tot: 'कुल:', t_aut: 'लेखक.', t_bk: 'किताबें.', t_ser: 'श्रृंखला.', l_scan: 'अंतिम स्कैन:',
+                read: 'पढ़ें', prev: 'पिछला', next: 'अगला', bk_l: 'किताबें:', home: 'शुरू', s_p: 'खोजें...', s_b: 'खोजें',
+                root: 'ROOT', search: 'खोजें', select: 'चुनें', bshelf: 'बुकशेल्फ़', show_all: 'सभी दिखाएं', doubles: 'दोहरी किताबें',
+                appearance: 'थीम', premium: 'रंगीन', eink: 'ई-इंक', t_ser: 'श्रृंखला.',
+                view_book: 'पुस्तक देखें', browse_lib: 'लाइब्रेरी ब्राउज़ करें', browse_cat: 'कैटलॉग ब्राउज़ करें', cover_alt: 'कवर',
+                user_login: 'यूज़र लॉगिन', username: 'यूज़रनेम', enter_user: 'यूज़रनेम दर्ज करें', password: 'पासवर्ड', enter_pass: 'पासवर्ड दर्ज करें', login_btn: 'लॉग इन करें'
+            },
+            'pt': {
+                cat: 'Catálogos', book: 'Livros', auth: 'Autores', gen: 'Gêneros', ser: 'Séries', set: 'Configurações', lang_menu_title: 'Idiomas',
+                login: 'Entrar', logout: '(Sair)', new_e: 'Novidades', new_c: 'Recém Chegados',
+                un_auth: 'Autor desconhecido', empty: 'A biblioteca está vazia', scan: 'Verificar diretório.',
+                welc: 'Bem-vindo ao VAILIB', welc_sub: 'Sua biblioteca digital. Faça o login.',
+                welc_btn: 'Entrar na biblioteca →', s_book: 'Pesquisar título', s_auth: 'Pesquisar autor', s_ser: 'Pesquisar série', s_gen: 'Pesquisar gênero', eink_theme: '🖤 E-INK THEME', color_theme: 'TEMA DE COR',
+                stat: 'ESTATÍSTICAS', cat_con: 'Este catálogo contém:', bk_c: 'livros,', aut_c: 'autores,', gen_c: 'gêneros e', t_tot: 'Total:', t_aut: 'autores.', t_bk: 'livros.', t_ser: 'séries.', l_scan: 'Último scan:',
+                read: 'Ler', prev: 'Anterior', next: 'Próximo', bk_l: 'Livros:', home: 'INÍCIO', s_p: 'Pesquisar...', s_b: 'Buscar',
+                root: 'ROOT', search: 'Pesquisar', select: 'Selecionar', bshelf: 'Estante', show_all: 'MOSTRAR TUDO', doubles: 'Dobras',
+                appearance: 'TEMA', premium: 'COR', eink: 'E-INK', t_ser: 'séries.',
+                view_book: 'Ver livro', browse_lib: 'Navegar na biblioteca', browse_cat: 'Navegar nos catálogos', cover_alt: 'Capa',
+                user_login: 'Login do usuário', username: 'Nome de usuário', enter_user: 'Insira o nome de usuário', password: 'Senha', enter_pass: 'Insira a senha', login_btn: 'Entrar'
+            },
+            'zh': {
+                cat: '目录', book: '图书', auth: '作者', gen: '流派', ser: '系列', set: '设置', lang_menu_title: '语言',
+                login: '登录', logout: '(退出)', new_e: '最近添加', new_c: '新书上架',
+                un_auth: '未知作者', empty: '图书馆为空', scan: '扫描目录.',
+                welc: '欢迎来到VAILIB', welc_sub: '您的数字图书馆。请登录访问。',
+                welc_btn: '进入图书馆 →', s_book: '按书名搜索', s_auth: '按作者搜索', s_ser: '按系列搜索', s_gen: '按流派搜索', eink_theme: '🖤 E-INK THEME', color_theme: '彩色主题',
+                stat: '统计信息', cat_con: '此目录包含:', bk_c: '图书,', aut_c: '作者,', gen_c: '流派和', t_tot: '总计:', t_aut: '作者.', t_bk: '图书.', t_ser: '系列.', l_scan: '最后扫描:',
+                read: '阅读', prev: '上一页', next: '下一页', bk_l: '图书:', home: '首页', s_p: '搜索...', s_b: '查找',
+                root: 'ROOT', search: '搜索', select: '选择', bshelf: '书架', show_all: '全部显示', doubles: '重复书籍',
+                appearance: '主题', premium: '彩色', eink: 'E-INK', t_ser: '系列.',
+                view_book: '查看书籍', browse_lib: '浏览图书馆', browse_cat: '浏览目录', cover_alt: '封面',
+                user_login: '用户登录', username: '用户名', enter_user: '输入用户名', password: '密码', enter_pass: '输入密码', login_btn: '登录'
+            },
+            'bn': {
+                cat: 'ক্যাটালগসমূহ', book: 'বইপত্র', auth: 'লেখকবৃন্দ', gen: 'ধরণসমূহ', ser: 'ধারাবাহিকসমূহ', set: 'সেটিংস', lang_menu_title: 'भाषा সমূহ',
+                login: 'লগইন', logout: '(লগআউট)', new_e: 'সাম্প্রতিক সংযোজন', new_c: 'নতুন আগমন',
+                un_auth: 'অজানা লেখক', empty: 'লাইব্রেরি খালি', scan: 'ডিরেক্টরি স্ক্যান করুন।',
+                welc: 'VAILIB-এ আপনাকে স্বাগতম', welc_sub: 'আপনার ব্যক্তিগত ডিজিটাল লাইব্রেরি। সংগ্রহের জন্য লগইন করুন।',
+                welc_btn: 'লাইব্রেরিতে প্রবেশ করুন →', s_book: 'শিরোনাম দিয়ে খুঁজুন', s_auth: 'লেখক দিয়ে খুঁজুন', s_ser: 'ধারাবাহিক দিয়ে খুঁজুন', s_gen: 'ধরণ দিয়ে খুঁজুন', eink_theme: '🖤 E-INK থিম', color_theme: 'রঙিন থিম',
+                stat: 'পরিসংখ্যান', cat_con: 'এই ক্যাটালগে রয়েছে:', bk_c: 'বই,', aut_c: 'লেখক,', gen_c: 'ধরণ এবং', t_tot: 'মোট:', t_aut: 'লেখক।', t_bk: 'বই।', t_ser: 'ধারাবাহিক।', l_scan: 'সর্বশেষ স্ক্যান:',
+                read: 'পড়ুন', prev: 'পূর্ববর্তী', next: 'পরবর্তী', bk_l: 'বই:', home: 'মূলপাতা', s_p: 'খুঁজুন...', s_b: 'অনুসন্ধান',
+                root: 'মূল', search: 'অনুসন্ধান', select: 'নির্বাচন করুন', bshelf: 'বইয়ের তাক', show_all: 'সব দেখান', doubles: 'অনুরূপ বইপত্র',
+                appearance: 'থিম', premium: 'রঙিন', eink: 'ই-ইঙ্ক', t_ser: 'ধারাবাহিক।',
+                view_book: 'বইটি দেখুন', browse_lib: 'লাইব্রেরি ব্রাউজ করুন', browse_cat: 'ক্যাটালগ ব্রাউজ করুন', cover_alt: 'প্রচ্ছদ',
+                user_login: 'ব্যবহারকারী লগইন', username: 'ব্যবহারকারীর নাম', enter_user: 'ব্যবহারকারীর নাম লিখুন', password: 'পাসওয়ার্ড', enter_pass: 'পাসওয়ার্ড লিখুন', login_btn: 'লগ ইন করুন'
+            },
+            'nl': {
+                cat: 'Catalogi', book: 'Boeken', auth: 'Auteurs', gen: 'Genres', ser: 'Series', set: 'Instellingen', lang_menu_title: 'Talen', pop_lib: 'Bibliotheek Vullen',
+                login: 'Inloggen', logout: '(Uitloggen)', new_e: 'Recente toevoegingen', new_c: 'Nieuwe aankomsten',
+                un_auth: 'Onbekende auteur', empty: 'Bibliotheek is leeg', scan: 'Voer een directoryscan uit.',
+                welc: 'Welkom bij VAILIB', welc_sub: 'Uw persoonlijke digitale bibliotheek. Log in om toegang te krijgen tot de boekencollectie.',
+                welc_btn: 'Bibliotheek openen →', s_book: 'Zoeken op titel', s_auth: 'Zoeken op auteur', s_ser: 'Zoeken op serie', s_gen: 'Zoeken op genre', eink_theme: '🖤 E-INK THEMA', color_theme: 'KLEURENTHEMA',
+                stat: 'STATISTIEKEN', cat_con: 'Deze catalogus bevat:', bk_c: 'boeken,', aut_c: 'auteurs,', gen_c: 'genres en', t_tot: 'Totaal:', t_aut: 'auteurs.', t_bk: 'boeken.', t_ser: 'series.', l_scan: 'Laatste collectiescan:',
+                read: 'Lezen', prev: 'Vorige', next: 'Volgende', bk_l: 'Boeken:', home: 'START', s_p: 'Zoeken...', s_b: 'Vinden',
+                root: 'ROOT', search: 'Zoeken', select: 'Selecteer', bshelf: 'Boekenplank', show_all: 'TOON ALLES', doubles: 'Dubbelingen voor boek',
+                appearance: 'THEMA', premium: 'KLEUR', eink: 'E-INK',
+                view_book: 'Bekijk Boek', browse_lib: 'Blader door Bibliotheek', browse_cat: 'Blader door Catalogi', cover_alt: 'Cover',
+                user_login: 'Gebruikersinlog', username: 'Gebruikersnaam', enter_user: 'Voer gebruikersnaam in', password: 'Wachtwoord', enter_pass: 'Voer wachtwoord in', login_btn: 'Inloggen'
+            }
+        };
+
+
+        function setVailibLang(lang) {
+            localStorage.setItem('vailib_lang', lang);
+            document.cookie = 'django_language=' + lang + '; path=/; max-age=31536000; SameSite=Lax';
+            window.location.reload();
+        }
+
+        function applyVailibLang() {
+            let lang = localStorage.getItem('vailib_lang');
+            
+            // Auto-detect browser language if user hasn't chosen one
+            if (!lang) {
+                const navLang = navigator.language || navigator.userLanguage || 'en';
+                const shortLang = navLang.substring(0, 2).toLowerCase();
+                lang = vailibDict[shortLang] ? shortLang : 'en'; // Fallback to English
+                
+                localStorage.setItem('vailib_lang', lang);
+                document.cookie = 'django_language=' + lang + '; path=/; max-age=31536000';
+            }
+
+            document.documentElement.lang = lang;
+
+            const dict = vailibDict[lang] || vailibDict['en'];
+            
+            document.querySelectorAll('[data-trans]').forEach(el => {
+                const key = el.getAttribute('data-trans');
+                if (dict[key]) {
+                    let txt = dict[key];
+                    // Strip the 'tonos' (accents) from Greek text to completely eliminate uppercase font-clipping bugs
+                    if (lang === 'el') {
+                        txt = txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    }
+                    if (el.tagName === 'INPUT') el.placeholder = txt;
+                    else el.innerText = txt;
+                }
+            });
+
+            // Dynamic Image Alt Translations
+            document.querySelectorAll('[data-trans-alt]').forEach(el => {
+                const key = el.getAttribute('data-trans-alt');
+                if (dict[key]) {
+                    el.setAttribute('alt', dict[key]);
+                }
+            });
+
+            // Handle breadcrumbs dynamically translated
+            document.querySelectorAll('.crumb a, .crumb span').forEach(el => {
+                const text = el.innerText.trim().toUpperCase();
+                
+                // Extra fallbacks for hardcoded Django strings
+                const fallbacks = {
+                    'ГЛАВНАЯ': 'home', 'НАЙТИ': 'search', 'ВЫБОР': 'select', 
+                    'HOME': 'home', 'START': 'home', 'ΑΡΧΙΚΗ': 'home'
+                };
+                
+                let matchedKey = fallbacks[text] || null;
+                
+                if (!matchedKey) {
+                    const checkKeys = ['home', 'cat', 'book', 'auth', 'gen', 'ser', 'stat', 'root', 'search', 'select', 'bshelf', 'show_all', 's_book', 's_auth', 's_ser', 's_gen', 'doubles'];
+                    for (let langKey in vailibDict) {
+                        for (let k of checkKeys) {
+                            if (vailibDict[langKey][k] && vailibDict[langKey][k].toUpperCase() === text) {
+                                matchedKey = k;
+                                break;
+                            }
+                        }
+                        if (matchedKey) break;
+                    }
+                }
+                
+                if (matchedKey && dict[matchedKey]) {
+                    el.innerText = dict[matchedKey];
+                }
+            });
+
+            // Highlight active lang btn
+            document.querySelectorAll('.color-lang-btn, .eink-lang-btn').forEach(btn => {
+                btn.style.opacity = '0.35';
+                if(btn.getAttribute('onclick').includes("'" + lang + "'")) btn.style.opacity = '1';
+                btn.style.transition = "opacity 0.2s";
+            });
+        }
+        document.addEventListener("DOMContentLoaded", applyVailibLang);
+
+        {% if vailib_theme == 'premium' %}
         $(document).foundation();
         if (typeof SetSearch === 'function') SetSearch();
 
-        window.onload = function () {
-            // initialization
-        };
+        $(document).foundation();
+        if (typeof SetSearch === 'function') SetSearch();
 
         Foundation.Abide.defaults.validators['check_search'] = function ($el, required, parent) {
             const box = document.getElementById('main_searchbox');
             if (box && box.value.length < 3) return false;
             return true;
         };
+
+        // --- Scroll Progress Bar ---
+        (function() {
+            var bar = document.getElementById('vl-scroll-bar');
+            if (!bar) return;
+            function updateBar() {
+                var scrollTop = window.scrollY || document.documentElement.scrollTop;
+                var docH = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                var pct = docH > 0 ? (scrollTop / docH * 100) : 0;
+                bar.style.width = pct + '%';
+            }
+            window.addEventListener('scroll', updateBar, { passive: true });
+            updateBar();
+        })();
+
+        // --- Search Clear Button ---
+        (function() {
+            var box = document.getElementById('main_searchbox');
+            if (!box) return;
+            var wrap = box.closest('form') || box.parentElement;
+            if (!wrap) return;
+            wrap.style.position = 'relative';
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'vl-search-clear';
+            btn.innerHTML = '&times;';
+            btn.setAttribute('aria-label', 'Clear search');
+            wrap.appendChild(btn);
+            box.addEventListener('input', function() {
+                btn.classList.toggle('visible', this.value.length > 0);
+            });
+            btn.addEventListener('click', function() {
+                box.value = '';
+                btn.classList.remove('visible');
+                box.focus();
+            });
+        })();
+
+        // --- Auto-detect active nav link ---
+        (function() {
+            var path = window.location.pathname;
+            document.querySelectorAll('.sidebar-container nav a, .sidebar-container .menu a').forEach(function(a) {
+                if (a.href && a.href !== window.location.origin + '/') {
+                    var url = new URL(a.href);
+                    if (path.startsWith(url.pathname) && url.pathname !== '/') {
+                        a.classList.add('active');
+                    }
+                }
+            });
+        })();
+        {% endif %}
+
     </script>
     {% block block-js %}{% endblock %}
 </body>
