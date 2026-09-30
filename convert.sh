@@ -7,10 +7,34 @@ BOT_TOKEN="${BOT_TOKEN:-YOUR_TELEGRAM_BOT_TOKEN}"
 CHAT_ID="${CHAT_ID:-YOUR_TELEGRAM_CHAT_ID}"
 STATUS_FILE="/tmp/convert_status.txt"
 
+check_convert_config() {
+    local out
+    out=$(python3 -c "
+import sys, os
+sys.path.insert(0, '/sopds')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sopds.settings')
+import django
+django.setup()
+from constance import config
+t = getattr(config, 'SOPDS_TELEBOT_API_TOKEN', '')
+c = getattr(config, 'SOPDS_TELEBOT_CHAT_ID', '')
+print(f'{t}|{c}')
+" 2>/dev/null | tail -n 1 | tr -d '\r\n')
+
+    if [ -n "$out" ] && [[ "$out" == *"|"* ]]; then
+        IFS='|' read -r DB_TOKEN DB_CHAT <<< "$out"
+        [ -n "$DB_TOKEN" ] && [ "$DB_TOKEN" != "None" ] && [ "$DB_TOKEN" != "YOUR_TELEGRAM_BOT_TOKEN" ] && BOT_TOKEN="$DB_TOKEN"
+        [ -n "$DB_CHAT" ] && [ "$DB_CHAT" != "None" ] && CHAT_ID="$DB_CHAT"
+    fi
+}
+
+check_convert_config
+
 send_tg() {
     curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
         -d chat_id="${CHAT_ID}" \
-        -d text="$1" > /dev/null
+        -d parse_mode="HTML" \
+        --data-urlencode "text=$1" > /dev/null
 }
 
 set_status() {

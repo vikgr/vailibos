@@ -17,27 +17,34 @@ DB_USER="${DB_USER:-sopds}"
 DB_NAME="${DB_NAME:-sopds}"
 export PGPASSWORD="${DB_PASS:-${DB_PASSWORD:-changeme}}"
 
-get_db_config() {
-    local key="$1"
-    echo "from constance import config; print(config.${key})" > /tmp/get_config.py
-    python3 /sopds/manage.py shell < /tmp/get_config.py 2>/dev/null | tail -n 1 | tr -d '\r\n '
-}
+export PGCLIENTENCODING="UTF8"
 
 check_bot_config() {
-    local DB_TOKEN; DB_TOKEN=$(get_db_config "SOPDS_TELEBOT_API_TOKEN" 2>/dev/null)
-    local DB_CHAT; DB_CHAT=$(get_db_config "SOPDS_TELEBOT_CHAT_ID" 2>/dev/null)
-    local DB_ENABLED; DB_ENABLED=$(get_db_config "SOPDS_TELEBOT_ENABLED" 2>/dev/null)
+    local out
+    out=$(python3 -c "
+import sys, os
+sys.path.insert(0, '/sopds')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sopds.settings')
+import django
+django.setup()
+from constance import config
+t = getattr(config, 'SOPDS_TELEBOT_API_TOKEN', '')
+c = getattr(config, 'SOPDS_TELEBOT_CHAT_ID', '')
+e = getattr(config, 'SOPDS_TELEBOT_ENABLED', True)
+print(f'{t}|{c}|{e}')
+" 2>/dev/null | tail -n 1 | tr -d '\r\n')
 
-    if [ -n "$DB_TOKEN" ] && [ "$DB_TOKEN" != "None" ] && [ "$DB_TOKEN" != "YOUR_TELEGRAM_BOT_TOKEN" ] && [[ "$DB_TOKEN" != *"AttributeError"* ]]; then
-        BOT_TOKEN="$DB_TOKEN"
-    fi
-    if [ -n "$DB_CHAT" ] && [ "$DB_CHAT" != "None" ] && [[ "$DB_CHAT" != *"AttributeError"* ]]; then
-        ALLOWED_CHAT="$DB_CHAT"
-    fi
-    if [ -n "$DB_ENABLED" ] && [[ "$DB_ENABLED" != *"AttributeError"* ]]; then
-        BOT_ENABLED="$DB_ENABLED"
-    else
-        BOT_ENABLED="True"
+    if [ -n "$out" ] && [[ "$out" == *"|"* ]]; then
+        IFS='|' read -r DB_TOKEN DB_CHAT DB_ENABLED <<< "$out"
+        if [ -n "$DB_TOKEN" ] && [ "$DB_TOKEN" != "None" ] && [ "$DB_TOKEN" != "YOUR_TELEGRAM_BOT_TOKEN" ]; then
+            BOT_TOKEN="$DB_TOKEN"
+        fi
+        if [ -n "$DB_CHAT" ] && [ "$DB_CHAT" != "None" ]; then
+            ALLOWED_CHAT="$DB_CHAT"
+        fi
+        if [ -n "$DB_ENABLED" ]; then
+            BOT_ENABLED="$DB_ENABLED"
+        fi
     fi
 }
 
@@ -315,7 +322,7 @@ while true; do
     
     # If the response contains an error (e.g. 401 Unauthorized), the token might have changed. Re-check configs immediately!
     if echo "$response" | grep -q '"ok":false'; then
-        echo "API request failed. Re-checking bot config from DB..." >> "$LOG_FILE"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - API error: $response. Re-checking bot config..." >> "$LOG_FILE"
         check_bot_config
         sleep 5
         continue
