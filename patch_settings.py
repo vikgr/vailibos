@@ -12,8 +12,11 @@ if os.path.exists(settings_path):
     with open(settings_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    old_choices = "'choices': ((\"ru-RU\", \"Russian\"), (\"en-US\", \"English\"))"
-    new_choices = """'choices': (
+    # Clean robust replacement for CONSTANCE_ADDITIONAL_FIELDS
+    clean_additional_fields = """CONSTANCE_ADDITIONAL_FIELDS = {
+    'language_select': ['django.forms.fields.ChoiceField', {
+        'widget': 'django.forms.Select',
+        'choices': (
             ("en-us",   "English"),
             ("ru",      "Russian"),
             ("de",      "German"),
@@ -26,20 +29,11 @@ if os.path.exists(settings_path):
             ("zh-hans", "Chinese"),
             ("bn",      "Bengali"),
             ("nl",      "Dutch"),
-        )"""
-
-    if old_choices in content:
-        content = content.replace(old_choices, new_choices)
-        print("OK: choices expanded to 12 languages")
-    else:
-        # Fallback to regex replacing choices block if already modified (e.g. 11 languages list)
-        pattern = r"'choices':\s*\([\s\S]*?\)"
-        match = re.search(pattern, content)
-        if match:
-            content = content.replace(match.group(0), new_choices, 1)
-            print("OK: choices updated to 12 languages robustly via regex")
-        else:
-            print("WARNING: choices pattern block not found")
+        )
+    }],
+}"""
+    content = re.sub(r'CONSTANCE_ADDITIONAL_FIELDS\s*=\s*\{[\s\S]*?\n\}\s*\n', clean_additional_fields + '\n\n', content)
+    print("OK: CONSTANCE_ADDITIONAL_FIELDS updated to 12 languages")
 
     # Register Setup Middleware in settings.py MIDDLEWARE list
     setup_middleware = "'opds_catalog.middleware.SOPDSSetupMiddleware'"
@@ -89,8 +83,11 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 26214400   # 25 MB
         content += upload_limits
         print("OK: Upload size limits configured (1GB)")
 
+    import py_compile
     with open(settings_path, 'w', encoding='utf-8') as f:
         f.write(content)
+    py_compile.compile(settings_path, doraise=True)
+    print("OK: settings.py compiled cleanly with no syntax errors")
 else:
     print(f"WARNING: settings.py not found at {settings_path}")
 
