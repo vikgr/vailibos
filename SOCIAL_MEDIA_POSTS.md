@@ -1,224 +1,274 @@
 # 📢 Vailib v5.0 (vailibos) — Long-Form Articles & Social Media Releases
 
-Comprehensive, rich articles (~5-minute read) with illustrations, storytelling, and technical breakdowns for **LinkedIn, Habr, VC.ru, Medium, Substack, Reddit, and Telegram**.
+> **Reading Time**: 6–7 minutes (~1,500 words)  
+> **Target Platforms**: LinkedIn Articles, Habr (Хабр), VC.ru, VKontakte (Статьи), Medium, Substack, Reddit (`r/selfhosted`, `r/homelab`, `r/programming`), Dev.to.  
+> **Repository Link**: [https://github.com/vikgr/vailibos](https://github.com/vikgr/vailibos) *(100% Free & Open Source, GPL-3.0)*
 
 ---
 
-## 🇷🇺 Статья на русском языке (LinkedIn / Хабр / VC.ru / Telegram-лонгрид)
+## 📊 Исследование: Оптимальная длина статей для соцсетей
+
+| Платформа | Рекомендуемый объём | Время чтения | Формат & Особенности |
+| :--- | :--- | :--- | :--- |
+| **LinkedIn Articles** | 1,200 – 1,800 слов | 5–7 минут | Сильный лид-абзац, визуальные паузы каждые 200–300 слов, списки буллетов, фокус на инновациях и технологиях. |
+| **Хабр (Habr.com)** | 1,500 – 2,500 слов | 7–10 минут | Высокая техническая глубина, схемы архитектуры, реальные скриншоты интерфейса, примеры команд терминала и решения проблем. |
+| **VK.com (Статьи)** | 1,000 – 1,600 слов | 5–6 минут | Вёрстка в редакторе статей VK, крупные скриншоты, динамичный живой язык, эмодзи-акценты. |
+| **Medium / Substack** | 1,400 – 2,000 слов | 6–8 минут | Сторителлинг, инженерный контекст («почему мы это сделали»), чистая типографика. |
+| **Reddit (`r/selfhosted`)** | 800 – 1,400 слов | 4–6 минут | Без лишней воды: фичи, стек, скриншоты, Docker Compose, открытый исходный код и ссылка на GitHub. |
+
+---
+
+## 🇷🇺 Полная статья на русском языке (Хабр / VC.ru / LinkedIn / VK Статьи / Telegram)
 
 ### Заголовок:
 # Как мы создали идеальный цифровой книжный сервер: История разработки Vailib v5.0 в паре с Google Deepmind Antigravity 📚⚡
 
-![Vailib v5.0 Hero Banner](https://raw.githubusercontent.com/vikgr/vailib/main/docs/images/vailib_showcase.jpg)
+![Vailib v5.0 Hero Banner](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_showcase.jpg)
 
-### Введение: Почему современным библиотекам нужна революция?
-Каждый, кто пробовал организовать домашнюю или серверную коллекцию электронных книг, рано или поздно сталкивался с дилеммой. С одной стороны — монструозные решения, перегруженные интерфейсами из 2000-х годов, которые с трудом открываются на смартфонах и намертво вешают браузер на читалках Kindle или Onyx Boox. С другой стороны — закрытые облачные экосистемы, привязывающие пользователя к проприетарным форматам и подпискам.
+### Введение: Почему домашним библиотекам нужна революция?
+Каждый, кто пробовал собрать собственную коллекцию книг и развернуть домашний сервер (self-hosted library), сталкивался с парадоксом. 
 
-Классический протокол OPDS (Open Publication Distribution System) — это прекрасный и надежный фундамент. Но мир изменился: нам больше не хочется просто скачивать файл по ссылке. Мы хотим открывать любую книгу прямо в браузере, читать её на любом экране (от 4K OLED монитора до энергоэффективного E-Ink ридера), загружать сотни книг одним перетаскиванием архива и конвертировать сканы документов через Telegram на лету.
+С одной стороны — проверенные временем серверы OPDS и каталогизаторы, чей интерфейс застрял в середине 2000-х. Они перегружены таблицами, с трудом открываются со смартфона и намертво вешают встроенные браузеры электронных книг (Kindle, Kobo, Onyx Boox). С другой стороны — закрытые облачные сервисы, где ваши книги привязаны к подписке и проприетарным приложениям.
 
-Так родился проект **Vailib v5.0 (vailibos)**. Это не просто обновление — это полная перезагрузка концепции self-hosted цифровой библиотеки, созданная в глубоком инженерном симбиозе с **Google Deepmind Antigravity** (автономным AI-ассистентом нового поколения).
+Мы задали себе вопрос: **какой должна быть идеальная домашняя библиотека в 2026 году?**
+- Она должна мгновенно открывать любую книгу (EPUB, FB2, PDF, DjVu) **прямо в браузере**, без сторонних приложений.
+- Интерфейс обязан быть **адаптивным к железу**: на мониторах и смартфонах радовать глубоким темным OLED-дизайном, а на читалках с электронными чернилами переключаться в сверхчеткий монохромный режим.
+- Добавление книг не должно требовать работы в терминале: перетащил архив `.zip` с десятками книг — сервер сам всё распаковал, рассортировал и добавил на полку.
+- А если вы в дороге и нашли скан редкой статьи — просто отправляете PDF или DjVu в Telegram, а умный бот на сервере распознает текст через OCR и соберет аккуратный EPUB.
 
----
-
-### 🎨 1. Dual-Identity UI: Два лица одной библиотеки
-Одна из главных инженерных проблем веб-интерфейсов для книг — фундаментальная разница между цветными дисплеями высокой плотности и экранами на электронных чернилах (E-Ink).
-
-![OLED Dark Mode vs E-Ink Mode](https://raw.githubusercontent.com/vikgr/vailib/main/docs/images/vailib_real_catalog_dark.png)
-
-В Vailib мы отказались от компромиссов и внедрили архитектуру **Dual-Identity**:
-1. **OLED Dark Glassmorphism (для ПК, ноутбуков, iPad и смартфонов)**: Глубокая обсидиановая палитра, эффект матового стекла (glassmorphism), неоновые акценты, поддержка плавных анимаций и адаптивная плиточная сетка.
-2. **Pure 1-Bit E-INK Mode (для Kindle, Kobo, PocketBook, Nook, Onyx Boox)**: Радикально упрощенный режим. Никаких анимаций, тяжелых скриптов и полупрозрачностей. Высококонтрастная монохромная верстка, четкие контуры и мгновенная перерисовка страниц без гостинга (ghosting).
-
-![E-Ink Mode Preview](https://raw.githubusercontent.com/vikgr/vailib/main/docs/images/vailib_real_eink_catalog.png)
-
-*Интерфейс автоматически распознает класс подключенного устройства по User-Agent и параметрам рендеринга, мгновенно отдавая нужную тему, а также сохраняет ручной переключатель в один клик.*
+Так появился **Vailib v5.0 (vailibos)** — полнофункциональный open-source экосистемный проект, созданный в тесном инженерном тандеме с **Google Deepmind Antigravity** (автономным AI-ассистентом нового поколения).
 
 ---
 
-### 📖 2. Универсальная читалка прямо в браузере
-Забудьте о необходимости устанавливать сторонние читалки для каждого формата. В Vailib v5.0 встроен всеядный ридер с аппаратным ускорением и поддержкой 4 ключевых форматов:
-- **EPUB** — с плавной разбивкой на страницы, сохранением стилей и рендерингом через виртуальный поток.
-- **FB2** — мгновенный нативный парсер XML-структуры с главами, сносками и цитатами.
-- **PDF** — векторная отрисовка через высокопроизводительное полотно PDF.js.
-- **DjVu** — клиентский рендеринг через оптимизированное ядро DjVu.js.
+### 🎨 1. Dual-Identity UI: Радикальное разделение OLED и E-Ink
+Попытка сделать один универсальный дизайн для цветного смартфона и черно-белой читалки всегда приводит к провалу. Анимации и тени, которые великолепно смотрятся на iPad, превращают экран читалки в размытое мерцающее месиво (ghosting).
 
-![In-Browser Reader](https://raw.githubusercontent.com/vikgr/vailib/main/docs/images/vailib_real_reader_epub.png)
+![OLED Dark Mode Catalog](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_real_catalog_dark.png)
 
-#### Удобство чтения:
-- **Управление с клавиатуры**: Листайте страницы привычными клавишами: `Стрелка вправо` (`→`), `Пробел`, `Page Down` — вперед; `Стрелка влево` (`←`), `Shift + Пробел`, `Page Up` — назад.
-- **Персонализация типографики**: Тонкая настройка размера шрифта, межстрочного интервала, гарнитур (Serif, Sans, Dyslexic, Monospace) и палитр (Тёмная, Светлая, Сепия, E-Ink).
+В Vailib v5.0 реализована концепция **Dual-Identity**:
 
----
+1. **OLED Dark Obsidian (Desktop, Ноутбуки, Смартфоны)**:
+   - Глубокий черный фон для экономии батареи на OLED/AMOLED матрицах.
+   - Эффект матового стекла (*glassmorphism*), неоновые акценты и плавная анимация карточек.
+   - Информативные виджеты со статистикой (число книг, авторов, жанров и серий) и каруселью новинок.
+2. **Pure 1-Bit E-INK Mode (Kindle, Kobo, PocketBook, Onyx Boox, Remarkable)**:
+   - Полное отключение CSS-переходов, размытий и тяжелого JavaScript.
+   - 100% контрастный монохромный рендеринг, четкие границы кнопок и шрифты высокой резкости.
+   - Страницы обновляются мгновенно без артефактов электронных чернил.
 
-### 📤 3. Drag & Drop загрузка и автоматическая распаковка ZIP
-Как обычно выглядит добавление новых книг на сервер? Зайти по SSH, скопировать файлы, распаковать, выставить права доступа и вручную запустить сканер.
+![E-Ink Mode Preview](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_real_eink_catalog.png)
 
-В Vailib v5.0 этот процесс сокращен до одного жеста:
-
-![Upload and ZIP Unpacker](https://raw.githubusercontent.com/vikgr/vailib/main/docs/images/vailib_real_upload_view.png)
-
-1. Открываете страницу **Populate & Upload** в браузере.
-2. Перетаскиваете мышью один файл или целую пачку книг (поддерживаются EPUB, PDF, FB2, MOBI, DJVU, CBR, CBZ, AZW3, TXT, DOCX).
-3. **Загружаете ZIP-архивы**: Сервер на лету безопасно распаковывает вложенные структуры каталогов, извлекает все книги с защитой от атак типа Zip Slip и автоматически сохраняет нужные метаданные.
-4. **Мгновенный автоскан**: Фоновый файловый демон перехватывает событие загрузки и индексирует новые книги в базу данных PostgreSQL в течение нескольких секунд.
-5. Поддерживаются файлы и архивы размером **до 1 ГБ**!
+> **Аппаратное авто-определение:** Сервер на лету анализирует User-Agent и параметры дисплея. Если вы заходите с читалки Kindle или Onyx — вы сразу попадаете в оптимизированный E-Ink интерфейс. Для пользователей также доступен переключатель тем в один клик.
 
 ---
 
-### 🤖 4. Умный Telegram-бот с авто-OCR и конвертацией
-Одна из самых удобных возможностей Vailib — персональный Telegram-бот:
-- Нашли PDF-статью, старый скан книги или файл FB2 в пути? Просто отправьте документ в диалог со своим ботом.
-- Бот самостоятельно запустит цепочку обработки: проведет оптическое распознавание текста (**OCR** через Tesseract), сконвертирует документ в чистый **EPUB** с помощью Calibre и аккуратно добавит его в вашу домашнюю библиотеку.
+### 📖 2. Универсальная читалка прямо в браузере с управлением с клавиатуры
+Вам больше не нужно скачивать файл на устройство и искать подходящее приложение. Читайте прямо в браузере на любом устройстве:
+
+![In-Browser Book Reader](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_real_reader_epub.png)
+
+- **EPUB**: Полноценный поток на базе ePub.js с разбивкой на страницы, сохранением стилей и моментальным переходом по главам.
+- **FB2**: Высокоскоростной нативный парсер XML-структуры с поддержкой сносок, эпиграфов и форматирования стихов.
+- **PDF**: Четкий векторный рендеринг через движок PDF.js.
+- **DjVu**: Встроенный клиентский декодер DjVu.js.
+
+#### ⌨️ Управление чтением с клавиатуры:
+- **Следующая страница**: `Стрелка вправо` (`→`), `Пробел`, `Page Down` (`PgDn`), `Стрелка вниз` (`↓`)
+- **Предыдущая страница**: `Стрелка влево` (`←`), `Page Up` (`PgUp`), `Shift + Пробел`, `Стрелка вверх` (`↑`)
+
+В боковом меню ридера можно на лету менять размер шрифта (от 12px до 28px), выбирать гарнитуры (*Serif, Sans-Serif, OpenDyslexic, Monospace*) и переключать палитры чтения (*OLED Тёмная, Сепия, Бумага, E-Ink*).
 
 ---
 
-### 🔍 5. Поиск, фильтры и интеграции
-Полнотекстовый поиск по авторам, сериям, жанрам и языкам (с поддержкой 12 языковых матриц: от латиницы и кириллицы до арабского, греческого, деванагари и китайских иероглифов).
+### 📤 3. Drag-and-Drop загрузка и автоматическая распаковка ZIP-архивов
+Раньше для пополнения библиотеки требовалось подключение по SSH, ручное копирование в директории и вызов консольных команд сканера.
 
-![Search Results & Actions](https://raw.githubusercontent.com/vikgr/vailib/main/docs/images/vailib_real_search_results.png)
+В Vailib v5.0 загрузка превратилась в удовольствие:
 
-Каждая книга снабжена удобными карточками: чтение в один клик, прямое скачивание нужного формата или отправка на устройства через OPDS-каталог (KyBook, Moon+ Reader, FBReader, Aldiko).
+![Drag & Drop Upload & ZIP Extractor](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_real_upload_view.png)
+
+1. Откройте раздел **Populate & Upload** (`/web/populate/`).
+2. Перетащите в окно браузера один файл или пачку книг любого формата (`.epub`, `.pdf`, `.fb2`, `.mobi`, `.djvu`, `.cbr`, `.cbz`, `.azw3`, `.txt`, `.docx`).
+3. **Загрузка архивов `.zip`**: Если вы загружаете ZIP-архив с десятками книг, встроенный распаковщик безопасно извлечет все книги (с защитой от уязвимостей *Zip Slip*) и сохранит их в каталог.
+4. **Мгновенный автоскан**: Сервер автоматически зарегистрирует событие появления новых файлов и за 5 секунд добавит их в базу данных.
+5. Максимальный размер загрузки расширен **до 1 ГБ** на операцию.
 
 ---
 
-### ⚙️ 6. Развертывание за 60 секунд: Docker и Open Source
-Проект полностью упакован в переносимый Docker-контейнер и опубликован под свободной лицензией **GPL-3.0**.
+### 🔍 4. Поиск, категоризация и 12 языковых матриц
+Быстрый поиск по названию, автору, серии или жанру выдает интерактивные карточки с обложками, метаданными и кнопками мгновенного чтения или скачивания:
 
-![Settings Dashboard](https://raw.githubusercontent.com/vikgr/vailib/main/docs/images/vailib_real_settings.png)
+![Search & Action Cards](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_real_search_results.png)
 
-#### Быстрый запуск на любом Linux-сервере или VPS:
+Vailib поддерживает **12 языков интерфейса и каталога** (Русский, Английский, Немецкий, Испанский, Французский, Греческий, Арабский, Хинди, Португальский, Китайский, Бенгальский, Нидерландский) с корректной группировкой национальных алфавитов и символов Unicode.
+
+---
+
+### 🤖 5. Telegram-бот: Автоматическое распознавание (OCR) и конвертация
+Интегрированный в контейнер Telegram-бот превращает смартфон в портативный сканер книг:
+- Отправьте боту PDF-документ или DjVu-скан.
+- Фоновый демон выполнит распознавание текста через **Tesseract OCR**, конвертирует документ в аккуратный **EPUB** через Calibre и сразу положит готовую книгу в вашу библиотеку.
+
+---
+
+### ⚙️ 6. Развертывание за 60 секунд: Docker и Setup Wizard
+Вся система — веб-сервер, база данных PostgreSQL, фоновый сканер, Telegram-бот и конвертеры — упакована в оптимизированный Docker Compose стек:
+
+![Settings Dashboard](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_real_settings.png)
+
+#### Установка одной командой на любой Linux / VPS / macOS сервер:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/vikgr/vailibos/main/install.sh | bash
 ```
 
-Скрипт автоматически проверит Docker, настроит порты, создаст постоянные тома для книг и базы данных и запустит 6-шаговый веб-мастер первой настройки.
+После запуска вас встретит удобный 6-шаговый **Setup Wizard**:
+1. Проверка прав доступа и окружения.
+2. Интерактивный тест записи на диск (`/library`).
+3. Подключение и миграции базы данных.
+4. Создание администратора.
+5. Настройка Telegram-бота (опционально).
+6. Автоматическая загрузка стартовой библиотеки классических книг из Project Gutenberg.
 
 ---
 
-### 💡 Заключение: Опыт парной разработки с AI
-Разработка Vailib v5.0 стала наглядным примером того, как передовые автономные системы вроде **Google Deepmind Antigravity** трансформируют процесс создания сложного ПО:
-- От глубокого рефакторинга устаревшей кодовой базы до написания чистых CSS/JS модулей.
-- От проектирования контейнерной архитектуры до автоматического тестирования и генерации документации для людей и AI-агентов.
-
-🌟 **Исходный код доступен на GitHub**:
-- 🚀 Публичный релизный репозиторий: [https://github.com/vikgr/vailibos](https://github.com/vikgr/vailibos)
-- 🛠️ Исходный мастер-проект: [https://github.com/vikgr/vailib](https://github.com/vikgr/vailib)
-
-Будем рады вашим звёздам ⭐, фидбеку и Issue на GitHub! Приятного чтения!
+### 💡 Инженерный опыт: Как мы создавали Vailib с Google Deepmind Antigravity
+Проект Vailib v5.0 стал практическим подтверждением колоссального потенциала современных AI-ассистентов в разработке сложного системного ПО:
+- **Глубокий рефакторинг**: Переработка устаревшей архитектуры SOPDS в современный реактивный бэкенд на Django и Python 3.10.
+- **Frontend & UX**: Разработка с нуля glassmorphic OLED-темы и сверхчистого E-Ink слоя.
+- **Docker-контейнеризация**: Сборка мультистейдж-образов с оптимизацией веса слоев, поддержкой OCR-библиотек и демонов синхронизации.
+- **AI-first документация**: Создание не только инструкций для пользователей, но и файла `README_AI_CONTEXT.md` — архитектурного манифеста для других AI-агентов, сопровождающих проект.
 
 ---
 
-## 🇬🇧 Long-Form English Article (LinkedIn / Medium / Substack / Reddit r/selfhosted / Dev.to)
+### 🔗 Ссылки и открытый исходный код
+Проект распространяется под свободной лицензией **GPL-3.0**.
+
+- 🌟 **GitHub репозиторий**: [https://github.com/vikgr/vailibos](https://github.com/vikgr/vailibos)
+- 🚀 **Быстрая установка**: `curl -fsSL https://raw.githubusercontent.com/vikgr/vailibos/main/install.sh | bash`
+
+Ставьте звёзды ⭐ репозиторию, делитесь фидбеком и приятного чтения вашей личной цифровой библиотеки!
+
+---
+
+## 🇬🇧 Full English Article (LinkedIn Articles / Medium / Substack / Dev.to / Reddit)
 
 ### Title:
-# Re-Engineering the Self-Hosted Digital Library: Inside Vailib v5.0 — Built with Google Deepmind Antigravity 📚⚡
+# Re-Engineering the Personal Digital Library: Inside Vailib v5.0 — Built with Google Deepmind Antigravity 📚⚡
 
-![Vailib v5.0 Hero Banner](https://raw.githubusercontent.com/vikgr/vailib/main/docs/images/vailib_showcase.jpg)
+![Vailib v5.0 Hero Banner](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_showcase.jpg)
 
-### Introduction: The Problem with Modern eBook Servers
-For decades, personal digital library software has occupied one of two extremes. On one side are monolithic, legacy OPDS servers with clunky mid-2000s Web 1.0 interfaces that render painfully slow on smartphones and crash e-ink browsers. On the other side are walled-garden cloud platforms that lock your personal library behind recurring subscriptions and proprietary formats.
+### Introduction: Why Self-Hosted eBook Servers Needed a Reboot
+Anyone who has attempted to set up a private digital library server has encountered the same frustrating trade-off.
 
-The OPDS (Open Publication Distribution System) standard is brilliant, but user expectations have evolved. Readers don’t just want an XML feed to download a file; they want:
-- Instant in-browser reading across any screen without installing third-party apps.
-- Hardware-aware interfaces that look breathtaking on 4K OLED displays yet switch to pure 1-bit monochrome on Kindle and Onyx devices.
-- Seamless drag-and-drop book uploads with automatic ZIP extraction.
-- Automated OCR and document conversion via Telegram.
+On one hand, legacy OPDS catalog servers feature interfaces frozen in the mid-2000s. They are difficult to navigate on mobile screens and cause embedded web browsers on E-Ink readers (like Kindle, Kobo, or Onyx Boox) to freeze completely. On the other hand, proprietary cloud reading platforms trap your personal collection behind recurring monthly fees, privacy invasions, and DRM lock-in.
 
-To solve this, we engineered **Vailib v5.0 (vailibos)** — a modern, containerized, open-source personal digital library and OPDS powerhouse, co-developed end-to-end with **Google Deepmind's Antigravity** (Advanced Agentic AI Coding Assistant).
+We asked a straightforward question: **What should the ideal personal digital library look like in 2026?**
+- It must render any book format (EPUB, FB2, PDF, DjVu) **directly inside the web browser** without requiring third-party reader applications.
+- Its interface must be **hardware-aware**: rendering a luxurious obsidian OLED dark theme on monitors and tablets, while instantly serving a razor-sharp 1-bit monochrome layout to E-Ink devices.
+- Adding books should be effortless: drop a `.zip` archive containing dozens of files into your browser, and the server automatically extracts, categorizes, and indexes them in seconds.
+- On-the-go ingestion: forward a PDF scan to a private Telegram bot, and let background OCR and conversion daemons deliver an optimized EPUB to your bookshelf.
+
+This vision led to **Vailib v5.0 (vailibos)** — a modern, containerized, open-source personal digital library and OPDS ecosystem, engineered end-to-end in pair-programming with **Google Deepmind's Antigravity** (Advanced Agentic AI Coding Assistant).
 
 ---
 
 ### 🎨 1. Hardware-Aware Dual-Identity UI Architecture
-Most web applications try to force a single responsive layout across every device. But an iPad with a 120Hz Retina screen and a 6-inch E-Ink Kindle have fundamentally conflicting visual and rendering requirements.
+Building a single responsive UI for both high-resolution color screens and reflective electronic paper displays is fundamentally flawed. Subtle drop-shadows, blurs, and animations that look stunning on an iPad Pro turn an E-Ink reader's display into a slow, flashing blur.
 
-![OLED Dark Mode vs E-Ink Mode](https://raw.githubusercontent.com/vikgr/vailib/main/docs/images/vailib_real_catalog_dark.png)
+![OLED Dark Mode Catalog](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_real_catalog_dark.png)
 
-Vailib resolves this with a dedicated **Dual-Identity Engine**:
-1. **Obsidian OLED Dark Glassmorphism (Desktop / Mobile)**:
-   - Deep indigo/violet palette designed for high contrast and battery savings on OLED panels.
-   - Frosted glass cards (backdrop-filter glassmorphism), subtle neon gradients, and fluid transitions.
-2. **Pure 1-Bit High-Contrast E-INK Mode (Kindle / Kobo / PocketBook / Onyx Boox / Remarkable)**:
-   - Eliminates all CSS transitions, animations, and non-essential JS.
-   - High-contrast 1-bit typography and solid borders preventing e-ink display ghosting.
+Vailib resolves this with a dedicated **Dual-Identity UI Architecture**:
 
-![E-Ink Mode Preview](https://raw.githubusercontent.com/vikgr/vailib/main/docs/images/vailib_real_eink_catalog.png)
+1. **Obsidian OLED Dark Mode (Desktop, Tablets, Mobile)**:
+   - Deep obsidian backgrounds optimized for contrast and OLED battery preservation.
+   - Frosted glassmorphism panels, glowing neon badges, dynamic book statistics, and smooth transitions.
+2. **Pure 1-Bit High-Contrast E-INK Mode (Kindle, Kobo, PocketBook, Onyx Boox, Remarkable)**:
+   - Eliminates CSS transitions, translucency, and non-essential JavaScript.
+   - High-contrast 1-bit typography and solid structural borders to eliminate e-ink ghosting.
+   - Lightning-fast page repaints and minimal memory consumption.
 
-*Hardware auto-detection evaluates User-Agent profiles and screen capabilities on connection, seamlessly serving the optimal theme with zero friction.*
+![E-Ink Mode Preview](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_real_eink_catalog.png)
+
+> **Automatic Hardware Detection:** The server evaluates incoming User-Agent headers and screen rendering metrics upon connection. E-reader devices automatically receive the 1-bit layout, while modern color screens enjoy full glassmorphism. A 1-click manual override switch remains available in the header.
 
 ---
 
-### 📖 2. Universal In-Browser Book Reader
-Reading on Vailib is completely frictionless. With a single click, any book opens in a dedicated reader supporting four major formats:
-- **EPUB**: Rendered via an optimized ePub.js stream with single-column pagination and instant chapter navigation.
+### 📖 2. Universal In-Browser Reader with Full Keyboard Navigation
+Reading on Vailib is frictionless across four primary eBook formats:
+
+![In-Browser Book Reader](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_real_reader_epub.png)
+
+- **EPUB**: Rendered via an optimized ePub.js stream with single-column pagination, chapter jumping, and preserved stylesheets.
 - **FB2**: High-speed native XML DOM parser preserving section hierarchies, notes, and epigraphs.
-- **PDF**: Canvas rendering powered by PDF.js with responsive zoom and page jumping.
+- **PDF**: Crisp canvas rendering powered by PDF.js.
 - **DjVu**: Client-side decoding powered by DjVu.js.
 
-![In-Browser Reader](https://raw.githubusercontent.com/vikgr/vailib/main/docs/images/vailib_real_reader_epub.png)
-
-#### ⌨️ Full Keyboard Navigation
-Navigate large novels effortlessly using standard keyboard shortcuts:
-- **Next Page**: `Right Arrow` (`→`), `Page Down` (`PgDn`), `Space`, `Down Arrow` (`↓`)
+#### ⌨️ Full Keyboard Navigation:
+- **Next Page**: `Right Arrow` (`→`), `Space`, `Page Down` (`PgDn`), `Down Arrow` (`↓`)
 - **Previous Page**: `Left Arrow` (`←`), `Page Up` (`PgUp`), `Shift + Space`, `Up Arrow` (`↑`)
 
-Readers can customize font sizes (12px–28px), switch typography (Serif, Sans, Dyslexic, Monospace), and toggle reading palettes (OLED Dark, Paper Sepia, Light, E-Ink).
+Readers can customize typography on the fly: adjust font size (12px to 28px), select typefaces (*Serif, Sans-Serif, OpenDyslexic, Monospace*), and toggle reading palettes (*OLED Dark, Paper Sepia, Light, E-Ink*).
 
 ---
 
 ### 📤 3. Drag & Drop Upload with Smart Multi-Book ZIP Extraction
-Adding books to a self-hosted library should never require manual SSH commands or complex folder mounting.
+Adding new titles to a self-hosted library no longer requires terminal sessions or complex volume mounts:
 
-![Upload and ZIP Unpacker](https://raw.githubusercontent.com/vikgr/vailib/main/docs/images/vailib_real_upload_view.png)
+![Drag & Drop Upload & ZIP Extractor](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_real_upload_view.png)
 
-Vailib’s **Populate & Upload** suite introduces:
-- **Drag-and-Drop Ingestion**: Drop single files or dozens of books at once (`.epub`, `.pdf`, `.fb2`, `.mobi`, `.djvu`, `.cbr`, `.cbz`, `.azw3`, `.txt`, `.docx`).
-- **Automated ZIP Extraction**: Uploading a `.zip` archive triggers an intelligent unpacker that extracts all contained books recursively into the library while enforcing strict Zip Slip security boundaries.
-- **Instant Background Indexing**: File system events immediately trigger the catalog watcher, updating the PostgreSQL database in under 5 seconds.
-- **High-Capacity Pipeline**: Handles large scanned PDF and DjVu volumes up to **1 GB per upload**.
+1. Open the **Populate & Upload** dashboard (`/web/populate/`).
+2. Drag and drop single files or bulk batches (`.epub`, `.pdf`, `.fb2`, `.mobi`, `.djvu`, `.cbr`, `.cbz`, `.azw3`, `.txt`, `.docx`).
+3. **Smart ZIP Extraction**: Drop a `.zip` archive containing dozens of nested books; Vailib safely unzips them with built-in *Zip Slip* directory traversal security.
+4. **Instant File Watcher**: A background file-system watcher detects new books and completes database indexing in under 5 seconds.
+5. Supports large scanned volumes and archives up to **1 GB per upload**.
 
 ---
 
-### 🤖 4. Autonomous Telegram OCR & Conversion Bot
+### 🔍 4. Search, Categorization & 12-Language Global Matrix
+Search instantly across titles, authors, genres, and series with rich interactive cards:
+
+![Search & Action Cards](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_real_search_results.png)
+
+Vailib includes native support for **12 major languages** with Unicode script grouping (Latin, Cyrillic, Greek, Arabic, Devanagari, Bengali, Hanzi). It also connects seamlessly with mobile OPDS reading apps like KyBook, Moon+ Reader, FBReader, and Aldiko.
+
+---
+
+### 🤖 5. Telegram Document Bot: Automated OCR & Conversion
 Vailib includes an integrated Telegram daemon:
-- Forward any research paper, book scan, or FB2 file to your private Telegram bot.
-- The bot triggers **Tesseract OCR** for image recognition, converts the document to standardized **EPUB** using Calibre, and places the finished book directly into your catalog.
+- Forward research papers, scans, or raw documents to your private Telegram bot.
+- The server automatically triggers **Tesseract OCR** for text recognition, converts the document into standard **EPUB** format via Calibre, and places the book directly onto your shelf.
 
 ---
 
-### 🔍 5. Rich Search, Categorization, & 12-Language Matrix
-Search across titles, authors, and series in milliseconds with instant format tags and one-click action buttons:
+### ⚙️ 6. 60-Second Universal Deployment via Docker
+The entire ecosystem — Django web server, PostgreSQL database, background scanner, Telegram daemon, and conversion tools — runs as a single, highly optimized Docker Compose deployment:
 
-![Search Results & Actions](https://raw.githubusercontent.com/vikgr/vailib/main/docs/images/vailib_real_search_results.png)
+![Settings Dashboard](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_real_settings.png)
 
-Vailib also features a full **12-Language Global Matrix** with native script detection (Latin, Cyrillic, Greek, Arabic, Devanagari, Bengali, Hanzi).
-
----
-
-### ⚙️ 6. 60-Second Universal Deployment
-Vailib runs as an optimized, multi-stage Docker container backed by PostgreSQL:
-
-![Settings Dashboard](https://raw.githubusercontent.com/vikgr/vailib/main/docs/images/vailib_real_settings.png)
-
-#### Run on any Linux, VPS, Raspberry Pi, or macOS host:
+#### Install on any Linux, VPS, Raspberry Pi, or macOS machine:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/vikgr/vailibos/main/install.sh | bash
 ```
 
-The interactive installer verifies Docker prerequisites, maps your storage paths, launches the stack, and guides you through a 6-step web setup wizard.
+Upon startup, a guided 6-step **Web Setup Wizard** verifies storage write permissions, sets up database migrations, configures your administrator credentials, and bootstraps classic literature from Project Gutenberg.
 
 ---
 
-### 🚀 The Power of AI Pair-Programming with Antigravity
-Building Vailib v5.0 was an extraordinary demonstration of modern agentic coding with **Google Deepmind Antigravity**:
-- Rapid refactoring of core Django/SOPDS internals.
-- End-to-end creation of glassmorphic CSS, responsive JavaScript reader modules, and headless browser validation.
-- Automated Docker multi-stage builds and dual-audience documentation (for humans and AI developer subagents).
+### 💡 The Future of Agentic AI Engineering: Built with Antigravity
+Co-developing Vailib v5.0 with **Google Deepmind Antigravity** provided firsthand insight into the future of software engineering:
+- Autonomous refactoring of legacy Django and Python codebases into modular, robust components.
+- Rapid authoring of clean glassmorphic CSS, responsive UI modules, and headless browser validation tests.
+- Generation of human-centric and AI-agent-specific architectural documentation.
 
-🌟 **Open Source & Available Now on GitHub (GPL-3.0)**:
-- 📦 Public Release Repo: [https://github.com/vikgr/vailibos](https://github.com/vikgr/vailibos)
-- 🛠️ Master Development Repo: [https://github.com/vikgr/vailib](https://github.com/vikgr/vailib)
+---
 
-Give it a star ⭐ on GitHub, spin it up on your home lab or VPS, and enjoy your books like never before!
+### 🌟 Open Source & Available Now on GitHub
+Vailib is 100% free and open source under the **GPL-3.0** license.
+
+- 📦 **GitHub Repository**: [https://github.com/vikgr/vailibos](https://github.com/vikgr/vailibos)
+- ⚡ **One-Line Install**: `curl -fsSL https://raw.githubusercontent.com/vikgr/vailibos/main/install.sh | bash`
+
+Star the repository ⭐ on GitHub, spin it up on your server, and enjoy reading your private library anywhere!
 
 ---
 
