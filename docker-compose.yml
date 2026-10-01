@@ -1,0 +1,57 @@
+name: vailibos
+
+services:
+  # ── PostgreSQL Database ─────────────────────────────────
+  db:
+    image: postgres:13-alpine
+    container_name: vailib-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sopds}
+      POSTGRES_USER: ${POSTGRES_USER:-sopds}
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-vailib_secure_password}"
+    volumes:
+      - ${DB_DATA_PATH:-./data/postgres}:/var/lib/postgresql/data
+    networks:
+      - vailib-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sopds} -d ${POSTGRES_DB:-sopds}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Vailib Unified Application (Web, Bot, Scanner, Converter) ──
+  app:
+    image: vailibos:latest
+    build:
+      context: .
+      dockerfile: Dockerfile_vailib
+    container_name: vailib-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_NAME: ${POSTGRES_DB:-sopds}
+      DB_USER: ${POSTGRES_USER:-sopds}
+      DB_PASS: "${DB_PASSWORD:-vailib_secure_password}"
+      DB_PASSWORD: "${DB_PASSWORD:-vailib_secure_password}"
+      DB_PORT: "5432"
+      EXT_DB: "True"
+      MIGRATE: "True"
+      SOPDS_ROOT_LIB: /library
+      TIME_ZONE: ${TIME_ZONE:-Europe/Madrid}
+      BOT_TOKEN: "${BOT_TOKEN:-}"
+      CHAT_ID: "${CHAT_ID:-}"
+    ports:
+      - "${PORT:-8081}:8001"
+    volumes:
+      - ${DATA_PATH:-./data/sopds}:/var/lib/sopds
+      - ${BOOKS_PATH:-./books}:/library
+    networks:
+      - vailib-net
+
+networks:
+  vailib-net:
+    name: vailib_network
