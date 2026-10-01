@@ -1,8 +1,9 @@
 # 📢 Vailib v5.0 (vailibos) — Long-Form Articles & Social Media Releases
 
+> **Author**: Personal First-Person Story (Solo Developer + Google Deepmind Antigravity AI)  
 > **Reading Time**: 6–7 minutes (~1,500 words)  
 > **Target Platforms**: LinkedIn Articles, Habr (Хабр), VC.ru, VKontakte (Статьи), Medium, Substack, Reddit (`r/selfhosted`, `r/homelab`, `r/programming`), Dev.to.  
-> **Repository Link**: [https://github.com/vikgr/vailibos](https://github.com/vikgr/vailibos) *(100% Free & Open Source, GPL-3.0)*
+> **Public GitHub Repository**: [https://github.com/vikgr/vailibos](https://github.com/vikgr/vailibos) *(100% Free & Open Source, GPL-3.0)*
 
 ---
 
@@ -10,45 +11,51 @@
 
 | Платформа | Рекомендуемый объём | Время чтения | Формат & Особенности |
 | :--- | :--- | :--- | :--- |
-| **LinkedIn Articles** | 1,200 – 1,800 слов | 5–7 минут | Сильный лид-абзац, визуальные паузы каждые 200–300 слов, списки буллетов, фокус на инновациях и технологиях. |
+| **LinkedIn Articles** | 1,200 – 1,800 слов | 5–7 минут | Личная история от первого лица, эмоциональный хук, визуальные паузы каждые 200–300 слов, списки буллетов, фокус на технологиях. |
 | **Хабр (Habr.com)** | 1,500 – 2,500 слов | 7–10 минут | Высокая техническая глубина, схемы архитектуры, реальные скриншоты интерфейса, примеры команд терминала и решения проблем. |
-| **VK.com (Статьи)** | 1,000 – 1,600 слов | 5–6 минут | Вёрстка в редакторе статей VK, крупные скриншоты, динамичный живой язык, эмодзи-акценты. |
-| **Medium / Substack** | 1,400 – 2,000 слов | 6–8 минут | Сторителлинг, инженерный контекст («почему мы это сделали»), чистая типографика. |
+| **VK.com (Статьи)** | 1,000 – 1,600 слов | 5–6 минут | Вёрстка в редакторе статей VK, крупные скриншоты, динамичный живой язык от первого лица. |
+| **Medium / Substack** | 1,400 – 2,000 слов | 6–8 минут | Искренний сторителлинг («проект мечты»), инженерный контекст, чистая типографика. |
 | **Reddit (`r/selfhosted`)** | 800 – 1,400 слов | 4–6 минут | Без лишней воды: фичи, стек, скриншоты, Docker Compose, открытый исходный код и ссылка на GitHub. |
 
 ---
 
-## 🇷🇺 Полная статья на русском языке (Хабр / VC.ru / LinkedIn / VK Статьи / Telegram)
+## 🇷🇺 Статья на русском языке (Хабр / VC.ru / LinkedIn / VK Статьи / Telegram)
 
 ### Заголовок:
-# Как мы создали идеальный цифровой книжный сервер: История разработки Vailib v5.0 в паре с Google Deepmind Antigravity 📚⚡
+# Проект моей мечты: Как я создал ультимативный книжный сервер Vailib v5.0 в паре с Google Deepmind Antigravity AI 📚⚡
 
 ![Vailib v5.0 Hero Banner](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_showcase.jpg)
 
-### Введение: Почему домашним библиотекам нужна революция?
-Каждый, кто пробовал собрать собственную коллекцию книг и развернуть домашний сервер (self-hosted library), сталкивался с парадоксом. 
+### Введение: Мечта о свободной домашней библиотеке
+Долгие годы у меня была мечта — создать идеальную домашнюю цифровую библиотеку, которая вернет удовольствие от чтения и даст полный контроль над своей книжной коллекцией. 
 
-С одной стороны — проверенные временем серверы OPDS и каталогизаторы, чей интерфейс застрял в середине 2000-х. Они перегружены таблицами, с трудом открываются со смартфона и намертво вешают встроенные браузеры электронных книг (Kindle, Kobo, Onyx Boox). С другой стороны — закрытые облачные сервисы, где ваши книги привязаны к подписке и проприетарным приложениям.
+Каждый, кто пробовал развернуть свой книжный сервер (self-hosted library), знает эту боль:
+С одной стороны — проверенные временем серверы OPDS и каталогизаторы, чей интерфейс застрял в середине 2000-х. Они перегружены тяжелыми таблицами, с трудом открываются со смартфона и намертво подвешивают встроенные браузеры электронных читалок (Kindle, Kobo, Onyx Boox). С другой стороны — закрытые облачные сервисы, где ваши книги привязаны к подписке, проприетарным форматам и чужим серверам.
 
-Мы задали себе вопрос: **какой должна быть идеальная домашняя библиотека в 2026 году?**
-- Она должна мгновенно открывать любую книгу (EPUB, FB2, PDF, DjVu) **прямо в браузере**, без сторонних приложений.
-- Интерфейс обязан быть **адаптивным к железу**: на мониторах и смартфонах радовать глубоким темным OLED-дизайном, а на читалках с электронными чернилами переключаться в сверхчеткий монохромный режим.
-- Добавление книг не должно требовать работы в терминале: перетащил архив `.zip` с десятками книг — сервер сам всё распаковал, рассортировал и добавил на полку.
-- А если вы в дороге и нашли скан редкой статьи — просто отправляете PDF или DjVu в Telegram, а умный бот на сервере распознает текст через OCR и соберет аккуратный EPUB.
+Я спросил себя: **какой должна быть идеальная цифровая библиотека в 2026 году?**
+- Мгновенно открывать любую книгу (EPUB, FB2, PDF, DjVu) **прямо в браузере**, без установки сторонних программ.
+- Быть **адаптивной к дисплеям**: на мониторах и смартфонах радовать глубоким темным OLED-дизайном, а на читалках с электронными чернилами переключаться в сверхчеткий 1-битный монохромный режим.
+- Добавлять книги без терминала: перетащил архив `.zip` с десятками книг — сервер сам всё безопасно распаковал, рассортировал и добавил на полку.
+- На ходу распознавать текст: нашел PDF или скан редкой статьи — отправил боту в Telegram, а он через OCR сделал чистый EPUB.
 
-Так появился **Vailib v5.0 (vailibos)** — полнофункциональный open-source экосистемный проект, созданный в тесном инженерном тандеме с **Google Deepmind Antigravity** (автономным AI-ассистентом нового поколения).
+### Бессонные вечера и миллионы токенов: Как создавался проект
+Этот проект стоил мне многих бессонных ночей, работы по вечерам после тяжелых рабочих дней и **огромного количества токенов** в общении с передовым AI. 
+
+Я разрабатывал **Vailib v5.0 (vailibos)** в тесном парном программировании с **Google Deepmind Antigravity AI** — автономным агентным искусственным интеллектом. Это был потрясающий опыт: AI выступал в роли соавтора, архитектора, фронтенд-дизайнера и тестировщика, помогая переписать тысячи строк устаревшего кода, спроектировать стек и довести каждую деталь до совершенства.
+
+Сегодня я открываю этот проект для всего мира под свободной лицензией **GPL-3.0**, чтобы люди и будущие AI-агенты могли развивать и делать его еще лучше!
 
 ---
 
 ### 🎨 1. Dual-Identity UI: Радикальное разделение OLED и E-Ink
-Попытка сделать один универсальный дизайн для цветного смартфона и черно-белой читалки всегда приводит к провалу. Анимации и тени, которые великолепно смотрятся на iPad, превращают экран читалки в размытое мерцающее месиво (ghosting).
+Попытка сделать один универсальный интерфейс для цветного смартфона и черно-белой читалки всегда приводит к провалу. Анимации и тени, которые великолепно смотрятся на iPad, превращают экран читалки в размытое мерцающее месиво (ghosting).
 
 ![OLED Dark Mode Catalog](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_real_catalog_dark.png)
 
-В Vailib v5.0 реализована концепция **Dual-Identity**:
+Я реализовал в Vailib архитектуру **Dual-Identity**:
 
 1. **OLED Dark Obsidian (Desktop, Ноутбуки, Смартфоны)**:
-   - Глубокий черный фон для экономии батареи на OLED/AMOLED матрицах.
+   - Глубокий черный фон для максимальной энергоэффективности на OLED/AMOLED матрицах.
    - Эффект матового стекла (*glassmorphism*), неоновые акценты и плавная анимация карточек.
    - Информативные виджеты со статистикой (число книг, авторов, жанров и серий) и каруселью новинок.
 2. **Pure 1-Bit E-INK Mode (Kindle, Kobo, PocketBook, Onyx Boox, Remarkable)**:
@@ -131,44 +138,41 @@ curl -fsSL https://raw.githubusercontent.com/vikgr/vailibos/main/install.sh | ba
 
 ---
 
-### 💡 Инженерный опыт: Как мы создавали Vailib с Google Deepmind Antigravity
-Проект Vailib v5.0 стал практическим подтверждением колоссального потенциала современных AI-ассистентов в разработке сложного системного ПО:
-- **Глубокий рефакторинг**: Переработка устаревшей архитектуры SOPDS в современный реактивный бэкенд на Django и Python 3.10.
-- **Frontend & UX**: Разработка с нуля glassmorphic OLED-темы и сверхчистого E-Ink слоя.
-- **Docker-контейнеризация**: Сборка мультистейдж-образов с оптимизацией веса слоев, поддержкой OCR-библиотек и демонов синхронизации.
-- **AI-first документация**: Создание не только инструкций для пользователей, но и файла `README_AI_CONTEXT.md` — архитектурного манифеста для других AI-агентов, сопровождающих проект.
+### 🌟 Открытый исходный код: Для людей и AI
+Я выложил весь проект в открытый доступ под лицензией **GPL-3.0**. Я верю, что открытое ПО в связке с искусственным интеллектом способно изменить то, как мы работаем со знаниями и книгами.
 
----
+- 📦 **GitHub репозиторий**: [https://github.com/vikgr/vailibos](https://github.com/vikgr/vailibos)
+- ⚡ **Быстрая установка**: `curl -fsSL https://raw.githubusercontent.com/vikgr/vailibos/main/install.sh | bash`
 
-### 🔗 Ссылки и открытый исходный код
-Проект распространяется под свободной лицензией **GPL-3.0**.
-
-- 🌟 **GitHub репозиторий**: [https://github.com/vikgr/vailibos](https://github.com/vikgr/vailibos)
-- 🚀 **Быстрая установка**: `curl -fsSL https://raw.githubusercontent.com/vikgr/vailibos/main/install.sh | bash`
-
-Ставьте звёзды ⭐ репозиторию, делитесь фидбеком и приятного чтения вашей личной цифровой библиотеки!
+Буду искренне благодарен за ваши звёздочки ⭐ на GitHub, фидбек и идеи для развития. Приятного чтения вашей персональной цифровой библиотеки!
 
 ---
 
 ## 🇬🇧 Full English Article (LinkedIn Articles / Medium / Substack / Dev.to / Reddit)
 
 ### Title:
-# Re-Engineering the Personal Digital Library: Inside Vailib v5.0 — Built with Google Deepmind Antigravity 📚⚡
+# My Dream Project: How I Built the Ultimate Digital Library Vailib v5.0 Pairing with Google Deepmind Antigravity AI 📚⚡
 
 ![Vailib v5.0 Hero Banner](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_showcase.jpg)
 
-### Introduction: Why Self-Hosted eBook Servers Needed a Reboot
-Anyone who has attempted to set up a private digital library server has encountered the same frustrating trade-off.
+### Introduction: The Vision for a Free, Beautiful Digital Library
+For years, I had a personal dream: to create the ultimate self-hosted digital library that restores the true joy of reading and gives readers complete ownership of their book collections.
 
-On one hand, legacy OPDS catalog servers feature interfaces frozen in the mid-2000s. They are difficult to navigate on mobile screens and cause embedded web browsers on E-Ink readers (like Kindle, Kobo, or Onyx Boox) to freeze completely. On the other hand, proprietary cloud reading platforms trap your personal collection behind recurring monthly fees, privacy invasions, and DRM lock-in.
+Anyone who has tried setting up a home book server knows the frustration:
+Legacy OPDS servers feature interfaces frozen in the mid-2000s that struggle on mobile screens and crash embedded web browsers on E-Ink readers (like Kindle, Kobo, or Onyx Boox). Meanwhile, closed commercial cloud platforms trap your library behind recurring subscriptions, privacy tracking, and proprietary formats.
 
-We asked a straightforward question: **What should the ideal personal digital library look like in 2026?**
-- It must render any book format (EPUB, FB2, PDF, DjVu) **directly inside the web browser** without requiring third-party reader applications.
+I set out with a clear goal: **What should the ideal personal digital library look like in 2026?**
+- It must open any book format (EPUB, FB2, PDF, DjVu) **instantly inside the web browser** without requiring third-party reader apps.
 - Its interface must be **hardware-aware**: rendering a luxurious obsidian OLED dark theme on monitors and tablets, while instantly serving a razor-sharp 1-bit monochrome layout to E-Ink devices.
-- Adding books should be effortless: drop a `.zip` archive containing dozens of files into your browser, and the server automatically extracts, categorizes, and indexes them in seconds.
+- Adding books should be effortless: drop a `.zip` archive containing dozens of books into your browser, and the server automatically extracts, categorizes, and indexes them in seconds.
 - On-the-go ingestion: forward a PDF scan to a private Telegram bot, and let background OCR and conversion daemons deliver an optimized EPUB to your bookshelf.
 
-This vision led to **Vailib v5.0 (vailibos)** — a modern, containerized, open-source personal digital library and OPDS ecosystem, engineered end-to-end in pair-programming with **Google Deepmind's Antigravity** (Advanced Agentic AI Coding Assistant).
+### Late Nights & Millions of Tokens: Building with Antigravity AI
+Bringing this dream project to life demanded countless late evenings after long workdays and **a massive amount of AI tokens** in deep collaboration with cutting-edge artificial intelligence.
+
+I engineered **Vailib v5.0 (vailibos)** in continuous pair-programming with **Google Deepmind Antigravity AI** — an advanced agentic AI coding system. Working with Antigravity was transformative: the AI acted as a tireless co-architect, refactoring thousands of lines of legacy Django/Python code, styling modern glassmorphic interfaces, generating multi-stage Docker builds, and writing comprehensive test suites.
+
+Today, I am **open-sourcing the entire project** under the **GPL-3.0** license so that both humans and future AI agents can make it even better!
 
 ---
 
@@ -177,7 +181,7 @@ Building a single responsive UI for both high-resolution color screens and refle
 
 ![OLED Dark Mode Catalog](https://raw.githubusercontent.com/vikgr/vailibos/main/docs/images/vailib_real_catalog_dark.png)
 
-Vailib resolves this with a dedicated **Dual-Identity UI Architecture**:
+I engineered a dedicated **Dual-Identity UI Architecture**:
 
 1. **Obsidian OLED Dark Mode (Desktop, Tablets, Mobile)**:
    - Deep obsidian backgrounds optimized for contrast and OLED battery preservation.
@@ -254,16 +258,8 @@ Upon startup, a guided 6-step **Web Setup Wizard** verifies storage write permis
 
 ---
 
-### 💡 The Future of Agentic AI Engineering: Built with Antigravity
-Co-developing Vailib v5.0 with **Google Deepmind Antigravity** provided firsthand insight into the future of software engineering:
-- Autonomous refactoring of legacy Django and Python codebases into modular, robust components.
-- Rapid authoring of clean glassmorphic CSS, responsive UI modules, and headless browser validation tests.
-- Generation of human-centric and AI-agent-specific architectural documentation.
-
----
-
-### 🌟 Open Source & Available Now on GitHub
-Vailib is 100% free and open source under the **GPL-3.0** license.
+### 🌟 Open Source: For Humans and AI to Improve Together
+I believe that open-source software combined with artificial intelligence is the most powerful paradigm for the future of developer tools and knowledge preservation.
 
 - 📦 **GitHub Repository**: [https://github.com/vikgr/vailibos](https://github.com/vikgr/vailibos)
 - ⚡ **One-Line Install**: `curl -fsSL https://raw.githubusercontent.com/vikgr/vailibos/main/install.sh | bash`
