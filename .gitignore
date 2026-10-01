@@ -1,13 +1,45 @@
+# Secrets and credentials
 secrets.txt
+*.key
+*.pem
+*.id_rsa
+*.id_ed25519
+bot_ssh_key/
 .env
+.env.*
+!.env.example
+
+# Database and data storage
+data/
+db/
+postgres/
+*.sqlite3
+/var/lib/sopds/
+
+# Logs and PIDs
+*.log
+*.pid
+log/
+logs/
+tmp/
+temp/
+
+# Python cache and environments
 __pycache__/
 *.pyc
-.DS_Store
-node_modules/
-dist/
-build/
+*.pyo
+*.pyd
 .venv/
 env/
 venv/
+build/
+dist/
+*.egg-info/
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
 .idea/
 .vscode/
+*.swp
+*.swo
