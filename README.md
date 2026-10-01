@@ -7,6 +7,10 @@
 [![Docker](https://img.shields.io/badge/docker-ready%20v5.0-blueviolet.svg)](#-quick-start)
 [![Architecture](https://img.shields.io/badge/architecture-unified%20container-success.svg)](#-unified-container-architecture)
 
+<p align="center">
+  <img src="docs/images/vailib_showcase.jpg" alt="Vailib v5.0 Showcase: OLED Dark Mode and E-Ink Dual Identity Reader" width="100%" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);">
+</p>
+
 **Vailib (vailibos)** is an all-in-one, high-performance digital library and OPDS catalog ecosystem. It unites a **Universal In-Browser eBook Reader** (EPUB, PDF, FB2, DjVu) with keyboard navigation, **Drag-and-Drop Book & ZIP Archive Uploading**, **Hardware-Aware E-Ink Auto-Detection**, an **Interactive 6-Step Web Setup Wizard**, an **Automated Telegram OCR/Conversion Bot**, and a Dark Obsidian **Admin Panel** into a single, effortless Docker deployment.
 
 Built for book collectors, researchers, and self-hosters, Vailib turns any collection of files into a beautifully organized, searchable, and globally accessible private library.
