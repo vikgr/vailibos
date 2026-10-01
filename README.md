@@ -1,6 +1,6 @@
 # 📖 VAILIB: The Ultimate Digital Library & OPDS Ecosystem 🚀
 
-[![GitHub License](https://img.shields.io/github/license/vikgr/vailib)](https://github.com/vikgr/vailib/blob/main/LICENSE)
+[![GitHub License](https://img.shields.io/github/license/vikgr/vailibos)](https://github.com/vikgr/vailibos/blob/main/LICENSE)
 [![Python Version](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/)
 [![Django Version](https://img.shields.io/badge/django-2.1.15-green.svg)](https://www.djangoproject.com/)
 [![Languages](https://img.shields.io/badge/languages-12%20matrix-orange.svg)](#-global-language-matrix-12-languages)
@@ -123,8 +123,8 @@ The Django admin panel (`/admin/constance/config/`) features a high-contrast dar
 ### Option A: Interactive Installer (Recommended)
 On your Linux host or server:
 ```bash
-git clone https://github.com/vikgr/vailib.git
-cd vailib
+git clone https://github.com/vikgr/vailibos.git
+cd vailibos
 chmod +x install.sh
 sudo ./install.sh
 ```
@@ -150,7 +150,7 @@ services:
       - library-net
 
   sopds:
-    image: ghcr.io/vikgr/vailib:latest # Or build locally from Dockerfile_vailib
+    image: ghcr.io/vikgr/vailibos:latest # Or build locally from Dockerfile_vailib
     container_name: vailib
     restart: unless-stopped
     depends_on:
@@ -206,7 +206,7 @@ Visit `http://localhost:8081/web/` to begin the 6-step setup wizard!
 ## 🤝 Contributing
 
 Contributions, feature requests, and bug reports are welcome!
-Feel free to open an issue or submit a pull request on [GitHub](https://github.com/vikgr/vailib).
+Feel free to open an issue or submit a pull request on [GitHub](https://github.com/vikgr/vailibos).
 
 ---
 
