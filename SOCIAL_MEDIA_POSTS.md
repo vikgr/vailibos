@@ -94,7 +94,17 @@ Co-built with Google Deepmind Antigravity 🤖
 
 ---
 
-## 🖼️ Media Assets
-- Showcase Banner Image: `docs/images/vailib_showcase.jpg`
-- Live Open Source Repo: `https://github.com/vikgr/vailibos`
-- Master Repo: `https://github.com/vikgr/vailib`
+## 🖼️ Media Assets & Real Screenshots
+- **Showcase Concept Banner**: `docs/images/vailib_showcase.jpg`
+- **Real Catalog (OLED Dark Mode)**: `docs/images/vailib_real_catalog_dark.png`
+- **Real E-Ink Mode (Kindle / E-Readers)**: `docs/images/vailib_real_eink_catalog.png`
+- **Real In-Browser Book Reader**: `docs/images/vailib_real_reader_epub.png`
+- **Real Drag & Drop Book & ZIP Upload**: `docs/images/vailib_real_upload_view.png`
+- **Real Search & Action Buttons**: `docs/images/vailib_real_search_results.png`
+- **Real Settings & Integrations**: `docs/images/vailib_real_settings.png`
+
+---
+
+## 🔗 Repository Links
+- **Clean Public Open-Source Release**: `https://github.com/vikgr/vailibos`
+- **Master Development Repo**: `https://github.com/vikgr/vailib`

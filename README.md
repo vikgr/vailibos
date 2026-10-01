@@ -11,6 +11,23 @@
   <img src="docs/images/vailib_showcase.jpg" alt="Vailib v5.0 Showcase: OLED Dark Mode and E-Ink Dual Identity Reader" width="100%" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);">
 </p>
 
+## 📸 Real Interface Screenshots
+
+| 🎨 **OLED Dark Mode (Desktop & Mobile)** | 📖 **Pure E-Ink Mode (Kindle / Kobo / Onyx)** |
+| :---: | :---: |
+| <img src="docs/images/vailib_real_catalog_dark.png" width="100%" alt="OLED Dark Mode Catalog"> | <img src="docs/images/vailib_real_eink_catalog.png" width="100%" alt="E-Ink Reader Mode"> |
+| **Main library catalog with statistics & Gutenberg arrivals** | **1-bit high-contrast layout for e-readers** |
+
+| 📖 **Universal In-Browser Book Reader** | 📤 **Drag & Drop Upload + ZIP Unpacker** |
+| :---: | :---: |
+| <img src="docs/images/vailib_real_reader_epub.png" width="100%" alt="In-Browser Book Reader"> | <img src="docs/images/vailib_real_upload_view.png" width="100%" alt="Drag & Drop Upload & ZIP Extractor"> |
+| **Keyboard navigation (→, ←, Space, PgDn) + typography** | **Upload single books or bulk multi-book ZIP archives** |
+
+| 🔍 **Search & Instant Read / Download** | ⚙️ **System Settings & Integrations** |
+| :---: | :---: |
+| <img src="docs/images/vailib_real_search_results.png" width="100%" alt="Search & Read Grid"> | <img src="docs/images/vailib_real_settings.png" width="100%" alt="Settings Dashboard"> |
+| **Direct read online, metadata & format badges** | **5-step system configuration & Telegram bot setup** |
+
 **Vailib (vailibos)** is an all-in-one, high-performance digital library and OPDS catalog ecosystem. It unites a **Universal In-Browser eBook Reader** (EPUB, PDF, FB2, DjVu) with keyboard navigation, **Drag-and-Drop Book & ZIP Archive Uploading**, **Hardware-Aware E-Ink Auto-Detection**, an **Interactive 6-Step Web Setup Wizard**, an **Automated Telegram OCR/Conversion Bot**, and a Dark Obsidian **Admin Panel** into a single, effortless Docker deployment.
 
 Built for book collectors, researchers, and self-hosters, Vailib turns any collection of files into a beautifully organized, searchable, and globally accessible private library.
