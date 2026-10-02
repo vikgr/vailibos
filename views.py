@@ -741,13 +741,15 @@ def LoginView(request):
     args['vailib_breadcrumbs'] = [{'name': _('Login'), 'url': None}]
     args.update(csrf(request))
     args.update(sopds_processor(request))
+    
+    next_url = request.POST.get('next') or request.GET.get('next') or reverse("web:main")
+    args['next_url'] = next_url
+
     try:
         username = request.POST['username']
         password = request.POST['password']
     except KeyError:
         return render(request, 'sopds_login.html', args)
-    
-    next_url = request.GET.get('next',reverse("web:main"))
 
     user = authenticate(username=username, password=password)
     if user is not None:
@@ -755,16 +757,11 @@ def LoginView(request):
             login(request, user)
             return redirect(next_url)
         else:
-            args['system_message']={'text':_('This account is not active!'),'type':'alert'}
-            return handler403(request,args)
-            #return render(request, 'sopds_login.html', args)
+            args['system_message'] = {'text': _('This account is not active!'), 'type': 'alert'}
+            return render(request, 'sopds_login.html', args)
     else:
-        args['system_message']={'text':_('User does not exist or the password is incorrect!'),'type':'alert'}
-        return handler403(request,args)
-        #return render(request, 'sopds_login.html', args)
-
-    return handler403(request,args)
-    #return render(request, 'sopds_login.html', args)
+        args['system_message'] = {'text': _('User does not exist or the password is incorrect!'), 'type': 'alert'}
+        return render(request, 'sopds_login.html', args)
 
 @vary_on_headers("HTTP_ACCEPT_LANGUAGE")
 @sopds_login(url='web:login')
