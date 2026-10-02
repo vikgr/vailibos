@@ -10,6 +10,7 @@ from django.utils.translation import ugettext as _
 from django.contrib.auth import authenticate, login, logout, REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import user_passes_test
 from django.views.decorators.vary import vary_on_headers
+from django.views.decorators.cache import never_cache
 from django.urls import reverse, reverse_lazy
 from django.utils.html import strip_tags
 from django.db.models import Q
@@ -1362,6 +1363,7 @@ def SetupWizardView(request):
     return render(request, 'sopds_setup.html', args)
 
 
+@never_cache
 @sopds_login(url='web:login')
 def SettingsView(request):
     from django.conf import settings
