@@ -502,6 +502,101 @@
         color: #FF3333;
     }
 
+    /* Modal Overlay & Card */
+    .vailib-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        animation: modalFadeIn 0.2s ease-out;
+    }
+
+    .vailib-modal-card {
+        background: #141820;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 16px;
+        padding: 30px;
+        max-width: 440px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 255, 102, 0.1);
+        transform: translateY(0);
+        animation: modalSlideUp 0.25s ease-out;
+    }
+
+    [data-theme="eink"] .vailib-modal-card {
+        background: #ffffff !important;
+        border: 3px solid #000000 !important;
+        box-shadow: none !important;
+        color: #000000 !important;
+    }
+
+    [data-theme="eink"] .vailib-modal-card * {
+        color: #000000 !important;
+    }
+
+    @keyframes modalFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes modalSlideUp {
+        from { transform: translateY(20px) scale(0.95); opacity: 0; }
+        to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    .vailib-modal-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        margin: 0 auto 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 800;
+    }
+
+    .vailib-modal-icon.success {
+        background: rgba(0, 255, 102, 0.15);
+        color: #00FF66;
+        border: 2px solid rgba(0, 255, 102, 0.4);
+    }
+
+    .vailib-modal-icon.error {
+        background: rgba(255, 51, 51, 0.15);
+        color: #FF3333;
+        border: 2px solid rgba(255, 51, 51, 0.4);
+    }
+
+    .vailib-modal-icon.info {
+        background: rgba(42, 195, 255, 0.15);
+        color: var(--accent);
+        border: 2px solid rgba(42, 195, 255, 0.4);
+    }
+
+    .vailib-modal-title {
+        margin: 0 0 10px;
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--text-main);
+    }
+
+    .vailib-modal-message {
+        margin: 0 0 25px;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        color: var(--text-muted);
+    }
+
     /* E-Ink overrides */
     [data-theme="eink"] .wizard-tab-panel {
         background: #ffffff;
@@ -643,6 +738,39 @@
 
 <div class="settings-container">
     
+    <!-- Interactive Modal Popup for Actions & Feedback -->
+    <div id="vailib-modal-overlay" class="vailib-modal-overlay" style="display:none;" onclick="if(event.target===this) closeVailibPopup()">
+        <div class="vailib-modal-card" id="vailib-modal-card">
+            <div class="vailib-modal-icon success" id="vailib-modal-icon">✔</div>
+            <h3 class="vailib-modal-title" id="vailib-modal-title">Success</h3>
+            <p class="vailib-modal-message" id="vailib-modal-message">Your password has been changed successfully.</p>
+            <div class="vailib-modal-actions" id="vailib-modal-actions">
+                <button type="button" class="btn-action btn-next" onclick="closeVailibPopup()" style="min-width: 140px; font-size: 0.9rem; padding: 10px 24px;">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reader Password Reset Modal -->
+    <div id="vailib-reset-modal" class="vailib-modal-overlay" style="display:none;" onclick="if(event.target===this) closeResetModal()">
+        <div class="vailib-modal-card" style="max-width: 440px; text-align: left;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                <i class="fi-key" style="font-size: 1.5rem; color: var(--accent);"></i>
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--text-main);">Reset Reader Password</h3>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
+                Enter a new password for reader <b id="reset-modal-reader-name" style="color: var(--accent);"></b>:
+            </p>
+            <div style="margin-bottom: 20px;">
+                <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; display: block;">New Password</label>
+                <input type="password" id="reset-modal-new-pwd" class="input-field" placeholder="Enter new password (min 4 characters)" style="width: 100%;" onkeydown="if(event.key==='Enter'){event.preventDefault(); submitResetReaderPassword();}">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn-action btn-back" onclick="closeResetModal()" style="font-size: 0.85rem; padding: 8px 16px;">Cancel</button>
+                <button type="button" class="btn-action btn-next" id="btn-submit-reset-pwd" onclick="submitResetReaderPassword()" style="font-size: 0.85rem; padding: 8px 20px;">🔑 Update Password</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Status Alert Banner -->
     <div id="settings-alert" class="settings-alert-banner">
         <span id="settings-alert-text"></span>
@@ -730,7 +858,7 @@
                         </div>
                     </div>
                     <div style="display: flex; justify-content: flex-end;">
-                        <button type="button" class="btn-action btn-next" style="font-size: 0.8rem; padding: 8px 18px;" onclick="changePasswordHandler()">
+                        <button type="button" id="btn-update-password" class="btn-action btn-next" style="font-size: 0.8rem; padding: 8px 18px;" onclick="changePasswordHandler()">
                             🔑 {% trans "Update Password" %}
                         </button>
                     </div>
@@ -792,7 +920,7 @@
                                     <td style="padding: 10px; text-align: right;">
                                         {% if u.username != current_user.username %}
                                         <div style="display: inline-flex; gap: 8px; justify-content: flex-end;">
-                                            <button type="button" class="test-btn" style="background: rgba(42, 195, 255, 0.1); border-color: rgba(42, 195, 255, 0.3); color: var(--accent); padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="resetReaderPasswordHandler('{{ u.username }}')">
+                                            <button type="button" class="test-btn" style="background: rgba(42, 195, 255, 0.1); border-color: rgba(42, 195, 255, 0.3); color: var(--accent); padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="openResetModal('{{ u.username }}')">
                                                 <i class="fi-key"></i> {% trans "Reset Password" %}
                                             </button>
                                             <button type="button" class="test-btn" style="background: rgba(255, 51, 51, 0.1); border-color: rgba(255, 51, 51, 0.3); color: #ff6666; padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="deleteUserHandler('{{ u.username }}')">
@@ -824,7 +952,7 @@
                                 <input type="password" id="new_user_pass" class="input-field" placeholder="{% trans "Enter password" %}" style="width: 100%;" onkeydown="if(event.key==='Enter'){event.preventDefault(); createUserHandler();}">
                             </div>
                             <div>
-                                <button type="button" class="btn-action btn-save" style="font-size: 0.8rem; padding: 10px 18px; margin: 0; white-space: nowrap;" onclick="createUserHandler()">
+                                <button type="button" id="btn-create-reader" class="btn-action btn-save" style="font-size: 0.8rem; padding: 10px 18px; margin: 0; white-space: nowrap;" onclick="createUserHandler()">
                                     ➕ {% trans "Create Reader" %}
                                 </button>
                             </div>
@@ -995,19 +1123,108 @@
         return cookie ? cookie.split('=')[1] : '';
     }
 
-    // Generic Action Request Helper
-    function sendSettingsAction(formData, alertBoxId, onSuccess) {
+    // Interactive Popup Notification Modal
+    function showVailibPopup({ title, message, type = 'success' }) {
+        const overlay = document.getElementById('vailib-modal-overlay');
+        const icon = document.getElementById('vailib-modal-icon');
+        const titleEl = document.getElementById('vailib-modal-title');
+        const msgEl = document.getElementById('vailib-modal-message');
+        
+        if (!overlay || !icon || !titleEl || !msgEl) {
+            alert(`${title}: ${message}`);
+            return;
+        }
+
+        icon.className = 'vailib-modal-icon ' + type;
+        if (type === 'success') {
+            icon.innerHTML = '✔';
+        } else if (type === 'error') {
+            icon.innerHTML = '✘';
+        } else {
+            icon.innerHTML = 'ℹ';
+        }
+
+        titleEl.innerText = title;
+        msgEl.innerText = message;
+        overlay.style.display = 'flex';
+    }
+
+    function closeVailibPopup() {
+        const overlay = document.getElementById('vailib-modal-overlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+
+    // Modal for Resetting Reader Password
+    let currentResetReader = null;
+    function openResetModal(username) {
+        currentResetReader = username;
+        const modal = document.getElementById('vailib-reset-modal');
+        const nameEl = document.getElementById('reset-modal-reader-name');
+        const pwdInput = document.getElementById('reset-modal-new-pwd');
+        if (nameEl) nameEl.innerText = username;
+        if (pwdInput) pwdInput.value = '';
+        if (modal) modal.style.display = 'flex';
+        setTimeout(() => { if (pwdInput) pwdInput.focus(); }, 100);
+    }
+
+    function closeResetModal() {
+        currentResetReader = null;
+        const modal = document.getElementById('vailib-reset-modal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function submitResetReaderPassword() {
+        if (!currentResetReader) return;
+        const pwdInput = document.getElementById('reset-modal-new-pwd');
+        const newPass = pwdInput ? pwdInput.value.trim() : '';
+
+        if (!newPass) {
+            showVailibPopup({ title: 'Validation Error', message: 'Please enter a new password.', type: 'error' });
+            return;
+        }
+        if (newPass.length < 4) {
+            showVailibPopup({ title: 'Validation Error', message: 'Password must be at least 4 characters long.', type: 'error' });
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('action', 'reset_reader_password');
+        formData.append('username', currentResetReader);
+        formData.append('new_password', newPass);
+
+        sendSettingsAction(
+            formData,
+            'reader-mgmt-alert',
+            'btn-submit-reset-pwd',
+            '⏳ Updating...',
+            '🔑 Update Password',
+            { successTitle: 'Password Reset Successful', errorTitle: 'Password Reset Failed' },
+            () => {
+                closeResetModal();
+            }
+        );
+    }
+
+    // Generic Action Request Helper with Visual Feedback and Popup
+    function sendSettingsAction(formData, alertBoxId, btnId, loadingText, defaultText, { successTitle, errorTitle }, onSuccess) {
         const alertBox = document.getElementById(alertBoxId);
+        const btn = btnId ? document.getElementById(btnId) : null;
         const csrfToken = getCsrfToken();
         if (csrfToken && !formData.has('csrfmiddlewaretoken')) {
             formData.append('csrfmiddlewaretoken', csrfToken);
         }
         
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = loadingText;
+            btn.style.opacity = '0.7';
+        }
+
         if (alertBox) {
             alertBox.style.display = 'block';
             alertBox.style.background = 'rgba(255, 255, 255, 0.05)';
             alertBox.style.color = 'var(--text-muted)';
-            alertBox.innerText = 'Processing request...';
+            alertBox.innerText = '⏳ Processing request...';
         }
 
         fetch('{% url "web:settings" %}', {
@@ -1022,32 +1239,61 @@
         .then(async res => {
             const data = await res.json().catch(() => null);
             if (!res.ok || !data) {
-                throw new Error((data && data.message) || `Server error (${res.status})`);
+                throw new Error((data && data.message) || `Server responded with status ${res.status}`);
             }
             return data;
         })
         .then(data => {
-            if (alertBox) {
-                alertBox.style.display = 'block';
-                if (data.status === 'success') {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = defaultText;
+                btn.style.opacity = '1';
+            }
+
+            if (data.status === 'success') {
+                if (alertBox) {
+                    alertBox.style.display = 'block';
                     alertBox.style.background = 'rgba(0, 255, 102, 0.15)';
                     alertBox.style.color = '#00FF66';
                     alertBox.innerText = '✔ ' + data.message;
-                    if (onSuccess) onSuccess(data);
-                } else {
+                }
+                showVailibPopup({
+                    title: successTitle || 'Success',
+                    message: data.message,
+                    type: 'success'
+                });
+                if (onSuccess) onSuccess(data);
+            } else {
+                if (alertBox) {
+                    alertBox.style.display = 'block';
                     alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
                     alertBox.style.color = '#ff6666';
                     alertBox.innerText = '✘ ' + data.message;
                 }
+                showVailibPopup({
+                    title: errorTitle || 'Error',
+                    message: data.message,
+                    type: 'error'
+                });
             }
         })
         .catch(err => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = defaultText;
+                btn.style.opacity = '1';
+            }
             if (alertBox) {
                 alertBox.style.display = 'block';
                 alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
                 alertBox.style.color = '#ff6666';
-                alertBox.innerText = '✘ ' + (err.message || 'Request failed. Please try again.');
+                alertBox.innerText = '✘ ' + (err.message || 'Request failed.');
             }
+            showVailibPopup({
+                title: errorTitle || 'Request Failed',
+                message: err.message || 'Please check network connection and try again.',
+                type: 'error'
+            });
         });
     }
 
@@ -1059,22 +1305,26 @@
         const alertBox = document.getElementById('pwd-change-alert');
 
         if (!currPwd || !newPwd || !confPwd) {
+            const err = 'Please fill in all password fields.';
             if (alertBox) {
                 alertBox.style.display = 'block';
                 alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
                 alertBox.style.color = '#ff6666';
-                alertBox.innerText = 'Please fill in all password fields.';
+                alertBox.innerText = err;
             }
+            showVailibPopup({ title: 'Validation Error', message: err, type: 'error' });
             return;
         }
 
         if (newPwd !== confPwd) {
+            const err = 'New passwords do not match.';
             if (alertBox) {
                 alertBox.style.display = 'block';
                 alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
                 alertBox.style.color = '#ff6666';
-                alertBox.innerText = 'New passwords do not match.';
+                alertBox.innerText = err;
             }
+            showVailibPopup({ title: 'Validation Error', message: err, type: 'error' });
             return;
         }
 
@@ -1084,11 +1334,19 @@
         formData.append('new_password', newPwd);
         formData.append('confirm_password', confPwd);
 
-        sendSettingsAction(formData, 'pwd-change-alert', () => {
-            document.getElementById('user_curr_pwd').value = '';
-            document.getElementById('user_new_pwd').value = '';
-            document.getElementById('user_conf_pwd').value = '';
-        });
+        sendSettingsAction(
+            formData,
+            'pwd-change-alert',
+            'btn-update-password',
+            '⏳ Updating Password...',
+            '🔑 Update Password',
+            { successTitle: 'Password Changed Successfully!', errorTitle: 'Password Change Failed' },
+            () => {
+                document.getElementById('user_curr_pwd').value = '';
+                document.getElementById('user_new_pwd').value = '';
+                document.getElementById('user_conf_pwd').value = '';
+            }
+        );
     }
 
     // Admin Create Reader Handler
@@ -1097,16 +1355,18 @@
         const passwordInput = document.getElementById('new_user_pass');
         const alertBox = document.getElementById('reader-mgmt-alert');
 
-        const username = usernameInput.value.trim();
-        const password = passwordInput.value.trim();
+        const username = usernameInput ? usernameInput.value.trim() : '';
+        const password = passwordInput ? passwordInput.value.trim() : '';
 
         if (!username || !password) {
+            const err = 'Please enter both reader username and password.';
             if (alertBox) {
                 alertBox.style.display = 'block';
                 alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
                 alertBox.style.color = '#ff6666';
-                alertBox.innerText = 'Please enter both reader username and password.';
+                alertBox.innerText = err;
             }
+            showVailibPopup({ title: 'Validation Error', message: err, type: 'error' });
             return;
         }
 
@@ -1115,58 +1375,49 @@
         formData.append('username', username);
         formData.append('password', password);
 
-        sendSettingsAction(formData, 'reader-mgmt-alert', () => {
-            usernameInput.value = '';
-            passwordInput.value = '';
-            
-            // Append new row to table
-            const tbody = document.getElementById('users-table-body');
-            if (tbody) {
-                const tr = document.createElement('tr');
-                tr.id = 'user-row-' + username;
-                tr.style.cssText = 'border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: var(--text-main);';
-                tr.innerHTML = `
-                    <td style="padding: 10px; font-weight: 700;">
-                        <i class="fi-book" style="margin-right: 6px; color: var(--accent);"></i>
-                        ${username}
-                    </td>
-                    <td style="padding: 10px;">
-                        <span class="extension-chip" style="background: rgba(42, 195, 255, 0.15); color: var(--accent); border-color: rgba(42, 195, 255, 0.3);">📖 Reader</span>
-                    </td>
-                    <td style="padding: 10px;">
-                        <span style="color: #00FF66; font-size: 0.8rem; font-weight: 700;">● Active</span>
-                    </td>
-                    <td style="padding: 10px; text-align: right;">
-                        <div style="display: inline-flex; gap: 8px; justify-content: flex-end;">
-                            <button type="button" class="test-btn" style="background: rgba(42, 195, 255, 0.1); border-color: rgba(42, 195, 255, 0.3); color: var(--accent); padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="resetReaderPasswordHandler('${username}')">
-                                <i class="fi-key"></i> Reset Password
-                            </button>
-                            <button type="button" class="test-btn" style="background: rgba(255, 51, 51, 0.1); border-color: rgba(255, 51, 51, 0.3); color: #ff6666; padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="deleteUserHandler('${username}')">
-                                <i class="fi-trash"></i> Delete
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(tr);
+        sendSettingsAction(
+            formData,
+            'reader-mgmt-alert',
+            'btn-create-reader',
+            '⏳ Creating Reader...',
+            '➕ Create Reader',
+            { successTitle: 'Reader Created Successfully!', errorTitle: 'Failed to Add Reader' },
+            () => {
+                if (usernameInput) usernameInput.value = '';
+                if (passwordInput) passwordInput.value = '';
+                
+                // Append new row to table
+                const tbody = document.getElementById('users-table-body');
+                if (tbody) {
+                    const tr = document.createElement('tr');
+                    tr.id = 'user-row-' + username;
+                    tr.style.cssText = 'border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: var(--text-main); animation: fadeIn 0.3s ease;';
+                    tr.innerHTML = `
+                        <td style="padding: 10px; font-weight: 700;">
+                            <i class="fi-book" style="margin-right: 6px; color: var(--accent);"></i>
+                            ${username}
+                        </td>
+                        <td style="padding: 10px;">
+                            <span class="extension-chip" style="background: rgba(42, 195, 255, 0.15); color: var(--accent); border-color: rgba(42, 195, 255, 0.3);">📖 Reader</span>
+                        </td>
+                        <td style="padding: 10px;">
+                            <span style="color: #00FF66; font-size: 0.8rem; font-weight: 700;">● Active</span>
+                        </td>
+                        <td style="padding: 10px; text-align: right;">
+                            <div style="display: inline-flex; gap: 8px; justify-content: flex-end;">
+                                <button type="button" class="test-btn" style="background: rgba(42, 195, 255, 0.1); border-color: rgba(42, 195, 255, 0.3); color: var(--accent); padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="openResetModal('${username}')">
+                                    <i class="fi-key"></i> Reset Password
+                                </button>
+                                <button type="button" class="test-btn" style="background: rgba(255, 51, 51, 0.1); border-color: rgba(255, 51, 51, 0.3); color: #ff6666; padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="deleteUserHandler('${username}')">
+                                    <i class="fi-trash"></i> Delete
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
             }
-        });
-    }
-
-    // Admin Reset Reader Password Handler
-    function resetReaderPasswordHandler(username) {
-        const newPass = prompt(`Enter new password for reader "${username}":`);
-        if (!newPass) return;
-        if (newPass.length < 4) {
-            alert('Password must be at least 4 characters long.');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('action', 'reset_reader_password');
-        formData.append('username', username);
-        formData.append('new_password', newPass);
-
-        sendSettingsAction(formData, 'reader-mgmt-alert');
+        );
     }
 
     // Admin Delete Reader Handler
@@ -1177,10 +1428,18 @@
         formData.append('action', 'delete_user');
         formData.append('username', username);
 
-        sendSettingsAction(formData, 'reader-mgmt-alert', () => {
-            const row = document.getElementById('user-row-' + username);
-            if (row) row.remove();
-        });
+        sendSettingsAction(
+            formData,
+            'reader-mgmt-alert',
+            null,
+            '',
+            '',
+            { successTitle: 'Reader Deleted', errorTitle: 'Failed to Delete Reader' },
+            () => {
+                const row = document.getElementById('user-row-' + username);
+                if (row) row.remove();
+            }
+        );
     }
     let activeStepIdx = 0;
     let activeLogType = 'server';
