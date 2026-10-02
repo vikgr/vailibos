@@ -672,7 +672,7 @@
     </div>
 
     <!-- Forms Block -->
-    <form method="post" id="settings-wizard-form" action="{% url 'web:settings' %}">
+    <form method="post" id="settings-wizard-form" action="{% url 'web:settings' %}" onsubmit="event.preventDefault(); saveActiveStepSettings();">
         {% csrf_token %}
         <input type="hidden" name="step_name" id="step-name-input" value="system">
 
@@ -688,7 +688,7 @@
             </div>
 
             <div class="panel-fields">
-                <!-- 🔐 Section 1: User Profile & Password Change (For Everyone) -->
+                <!-- 🔐 Section 1: Account Profile & Password Change (For Everyone) -->
                 {% if step_id == 'system' %}
                 <div class="user-profile-section" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 20px; margin-bottom: 25px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 12px;">
@@ -700,7 +700,7 @@
                                     {% if is_admin %}
                                         <span class="extension-chip" style="background: rgba(0, 255, 102, 0.15); color: #00FF66; border-color: rgba(0, 255, 102, 0.3);">👑 {% trans "Administrator" %}</span>
                                     {% else %}
-                                        <span class="extension-chip" style="background: rgba(42, 195, 255, 0.15); color: var(--accent); border-color: rgba(42, 195, 255, 0.3);">👤 {% trans "Standard User" %}</span>
+                                        <span class="extension-chip" style="background: rgba(42, 195, 255, 0.15); color: var(--accent); border-color: rgba(42, 195, 255, 0.3);">📖 {% trans "Reader" %}</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -711,20 +711,22 @@
                         🔑 {% trans "Change Password" %}
                     </h5>
                     
-                    <div id="pwd-change-alert" style="display: none; padding: 10px 14px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 15px; font-weight: 600;"></div>
+                    <div id="pwd-change-alert" style="{% if pwd_message %}display: block; background: {% if pwd_message.type == 'success' %}rgba(0, 255, 102, 0.15){% else %}rgba(255, 51, 51, 0.15){% endif %}; color: {% if pwd_message.type == 'success' %}#00FF66{% else %}#ff6666{% endif %};{% else %}display: none;{% endif %} padding: 10px 14px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 15px; font-weight: 600;">
+                        {% if pwd_message %}{{ pwd_message.text }}{% endif %}
+                    </div>
 
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
                         <div>
                             <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 5px; display: block;" data-trans="curr_pwd">{% trans "Current Password" %}</label>
-                            <input type="password" id="user_curr_pwd" class="input-field" placeholder="{% trans "Enter current password" %}" style="width: 100%;">
+                            <input type="password" id="user_curr_pwd" class="input-field" placeholder="{% trans "Enter current password" %}" style="width: 100%;" onkeydown="if(event.key==='Enter'){event.preventDefault(); changePasswordHandler();}">
                         </div>
                         <div>
                             <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 5px; display: block;" data-trans="new_pwd">{% trans "New Password" %}</label>
-                            <input type="password" id="user_new_pwd" class="input-field" placeholder="{% trans "Enter new password" %}" style="width: 100%;">
+                            <input type="password" id="user_new_pwd" class="input-field" placeholder="{% trans "Enter new password" %}" style="width: 100%;" onkeydown="if(event.key==='Enter'){event.preventDefault(); changePasswordHandler();}">
                         </div>
                         <div>
                             <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 5px; display: block;" data-trans="conf_pwd">{% trans "Confirm New Password" %}</label>
-                            <input type="password" id="user_conf_pwd" class="input-field" placeholder="{% trans "Confirm new password" %}" style="width: 100%;">
+                            <input type="password" id="user_conf_pwd" class="input-field" placeholder="{% trans "Confirm new password" %}" style="width: 100%;" onkeydown="if(event.key==='Enter'){event.preventDefault(); changePasswordHandler();}">
                         </div>
                     </div>
                     <div style="display: flex; justify-content: flex-end;">
@@ -734,23 +736,25 @@
                     </div>
                 </div>
 
-                <!-- 👥 Section 2: User Management (Admin Only) -->
+                <!-- 👥 Section 2: Reader Management (Admin Only) -->
                 {% if is_admin %}
                 <div class="user-management-section" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 20px; margin-bottom: 25px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 12px;">
                         <div>
-                            <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;" data-trans="user_mgmt">
-                                <i class="fi-torsos" style="color: #00FF66;"></i> {% trans "User Management" %}
+                            <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px;" data-trans="reader_mgmt">
+                                <i class="fi-torsos" style="color: #00FF66;"></i> {% trans "Reader Management" %}
                             </h4>
-                            <span style="font-size: 0.75rem; color: var(--text-muted);" data-trans="user_mgmt_help">
-                                {% trans "Manage standard user accounts. Standard users have access to search, browse, read, and download books, and can change their own password." %}
+                            <span style="font-size: 0.75rem; color: var(--text-muted);" data-trans="reader_mgmt_help">
+                                {% trans "Manage library readers. Readers can search, browse, read, and download books, and can change their own password." %}
                             </span>
                         </div>
                     </div>
 
-                    <div id="user-mgmt-alert" style="display: none; padding: 10px 14px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 15px; font-weight: 600;"></div>
+                    <div id="reader-mgmt-alert" style="{% if reader_message %}display: block; background: {% if reader_message.type == 'success' %}rgba(0, 255, 102, 0.15){% else %}rgba(255, 51, 51, 0.15){% endif %}; color: {% if reader_message.type == 'success' %}#00FF66{% else %}#ff6666{% endif %};{% else %}display: none;{% endif %} padding: 10px 14px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 15px; font-weight: 600;">
+                        {% if reader_message %}{{ reader_message.text }}{% endif %}
+                    </div>
 
-                    <!-- Users Table -->
+                    <!-- Readers Table -->
                     <div style="overflow-x: auto; margin-bottom: 20px;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;" id="users-table">
                             <thead>
@@ -765,7 +769,7 @@
                                 {% for u in users_list %}
                                 <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: var(--text-main);" id="user-row-{{ u.username }}">
                                     <td style="padding: 10px; font-weight: 700;">
-                                        <i class="fi-torso" style="margin-right: 6px; color: {% if u.is_superuser %}#00FF66{% else %}var(--accent){% endif %};"></i>
+                                        <i class="{% if u.is_superuser %}fi-torso{% else %}fi-book{% endif %}" style="margin-right: 6px; color: {% if u.is_superuser %}#00FF66{% else %}var(--accent){% endif %};"></i>
                                         {{ u.username }}
                                         {% if u.username == current_user.username %}
                                         <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: normal;">({% trans "you" %})</span>
@@ -773,23 +777,28 @@
                                     </td>
                                     <td style="padding: 10px;">
                                         {% if u.is_superuser %}
-                                        <span class="extension-chip" style="background: rgba(0, 255, 102, 0.15); color: #00FF66; border-color: rgba(0, 255, 102, 0.3);">👑 Admin</span>
+                                        <span class="extension-chip" style="background: rgba(0, 255, 102, 0.15); color: #00FF66; border-color: rgba(0, 255, 102, 0.3);">👑 {% trans "Admin" %}</span>
                                         {% else %}
-                                        <span class="extension-chip" style="background: rgba(42, 195, 255, 0.15); color: var(--accent); border-color: rgba(42, 195, 255, 0.3);">👤 Simple User</span>
+                                        <span class="extension-chip" style="background: rgba(42, 195, 255, 0.15); color: var(--accent); border-color: rgba(42, 195, 255, 0.3);">📖 {% trans "Reader" %}</span>
                                         {% endif %}
                                     </td>
                                     <td style="padding: 10px;">
                                         {% if u.is_active %}
-                                        <span style="color: #00FF66; font-size: 0.8rem; font-weight: 700;">● Active</span>
+                                        <span style="color: #00FF66; font-size: 0.8rem; font-weight: 700;">● {% trans "Active" %}</span>
                                         {% else %}
-                                        <span style="color: #FF3333; font-size: 0.8rem; font-weight: 700;">● Inactive</span>
+                                        <span style="color: #FF3333; font-size: 0.8rem; font-weight: 700;">● {% trans "Inactive" %}</span>
                                         {% endif %}
                                     </td>
                                     <td style="padding: 10px; text-align: right;">
                                         {% if u.username != current_user.username %}
-                                        <button type="button" class="test-btn" style="background: rgba(255, 51, 51, 0.1); border-color: rgba(255, 51, 51, 0.3); color: #ff6666; padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="deleteUserHandler('{{ u.username }}')">
-                                            <i class="fi-trash"></i> {% trans "Delete" %}
-                                        </button>
+                                        <div style="display: inline-flex; gap: 8px; justify-content: flex-end;">
+                                            <button type="button" class="test-btn" style="background: rgba(42, 195, 255, 0.1); border-color: rgba(42, 195, 255, 0.3); color: var(--accent); padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="resetReaderPasswordHandler('{{ u.username }}')">
+                                                <i class="fi-key"></i> {% trans "Reset Password" %}
+                                            </button>
+                                            <button type="button" class="test-btn" style="background: rgba(255, 51, 51, 0.1); border-color: rgba(255, 51, 51, 0.3); color: #ff6666; padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="deleteUserHandler('{{ u.username }}')">
+                                                <i class="fi-trash"></i> {% trans "Delete" %}
+                                            </button>
+                                        </div>
                                         {% else %}
                                         <span style="font-size: 0.75rem; color: var(--text-muted);">-</span>
                                         {% endif %}
@@ -800,23 +809,23 @@
                         </table>
                     </div>
 
-                    <!-- Add New User Subform -->
+                    <!-- Add New Reader Subform -->
                     <div style="background: rgba(0, 0, 0, 0.2); border: 1px dashed rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 15px;">
                         <h5 style="margin: 0 0 10px; font-size: 0.85rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
-                            <i class="fi-plus" style="color: var(--accent);"></i> {% trans "Add New Simple User" %}
+                            <i class="fi-plus" style="color: var(--accent);"></i> {% trans "Add New Reader" %}
                         </h5>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) auto; gap: 12px; align-items: flex-end;">
                             <div>
-                                <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: block;" data-trans="new_user_uname">{% trans "Username" %}</label>
-                                <input type="text" id="new_user_uname" class="input-field" placeholder="{% trans "e.g. reader1" %}" style="width: 100%;">
+                                <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: block;" data-trans="new_user_uname">{% trans "Reader Username" %}</label>
+                                <input type="text" id="new_user_uname" class="input-field" placeholder="{% trans "e.g. reader1" %}" style="width: 100%;" onkeydown="if(event.key==='Enter'){event.preventDefault(); createUserHandler();}">
                             </div>
                             <div>
                                 <label style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: block;" data-trans="new_user_pass">{% trans "Password" %}</label>
-                                <input type="password" id="new_user_pass" class="input-field" placeholder="{% trans "Enter password" %}" style="width: 100%;">
+                                <input type="password" id="new_user_pass" class="input-field" placeholder="{% trans "Enter password" %}" style="width: 100%;" onkeydown="if(event.key==='Enter'){event.preventDefault(); createUserHandler();}">
                             </div>
                             <div>
                                 <button type="button" class="btn-action btn-save" style="font-size: 0.8rem; padding: 10px 18px; margin: 0; white-space: nowrap;" onclick="createUserHandler()">
-                                    ➕ {% trans "Create User" %}
+                                    ➕ {% trans "Create Reader" %}
                                 </button>
                             </div>
                         </div>
@@ -978,27 +987,94 @@
     let activeLogType = 'server';
     let logIntervalId = null;
 
-    // User Password Change Handler
+    // CSRF Token Helper
+    function getCsrfToken() {
+        const input = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (input && input.value) return input.value;
+        const cookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+        return cookie ? cookie.split('=')[1] : '';
+    }
+
+    // Generic Action Request Helper
+    function sendSettingsAction(formData, alertBoxId, onSuccess) {
+        const alertBox = document.getElementById(alertBoxId);
+        const csrfToken = getCsrfToken();
+        if (csrfToken && !formData.has('csrfmiddlewaretoken')) {
+            formData.append('csrfmiddlewaretoken', csrfToken);
+        }
+        
+        if (alertBox) {
+            alertBox.style.display = 'block';
+            alertBox.style.background = 'rgba(255, 255, 255, 0.05)';
+            alertBox.style.color = 'var(--text-muted)';
+            alertBox.innerText = 'Processing request...';
+        }
+
+        fetch('{% url "web:settings" %}', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(async res => {
+            const data = await res.json().catch(() => null);
+            if (!res.ok || !data) {
+                throw new Error((data && data.message) || `Server error (${res.status})`);
+            }
+            return data;
+        })
+        .then(data => {
+            if (alertBox) {
+                alertBox.style.display = 'block';
+                if (data.status === 'success') {
+                    alertBox.style.background = 'rgba(0, 255, 102, 0.15)';
+                    alertBox.style.color = '#00FF66';
+                    alertBox.innerText = '✔ ' + data.message;
+                    if (onSuccess) onSuccess(data);
+                } else {
+                    alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
+                    alertBox.style.color = '#ff6666';
+                    alertBox.innerText = '✘ ' + data.message;
+                }
+            }
+        })
+        .catch(err => {
+            if (alertBox) {
+                alertBox.style.display = 'block';
+                alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
+                alertBox.style.color = '#ff6666';
+                alertBox.innerText = '✘ ' + (err.message || 'Request failed. Please try again.');
+            }
+        });
+    }
+
+    // User/Reader Password Change Handler
     function changePasswordHandler() {
         const currPwd = document.getElementById('user_curr_pwd').value;
         const newPwd = document.getElementById('user_new_pwd').value;
         const confPwd = document.getElementById('user_conf_pwd').value;
         const alertBox = document.getElementById('pwd-change-alert');
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
         if (!currPwd || !newPwd || !confPwd) {
-            alertBox.style.display = 'block';
-            alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
-            alertBox.style.color = '#ff6666';
-            alertBox.innerText = 'Please fill in all password fields.';
+            if (alertBox) {
+                alertBox.style.display = 'block';
+                alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
+                alertBox.style.color = '#ff6666';
+                alertBox.innerText = 'Please fill in all password fields.';
+            }
             return;
         }
 
         if (newPwd !== confPwd) {
-            alertBox.style.display = 'block';
-            alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
-            alertBox.style.color = '#ff6666';
-            alertBox.innerText = 'New passwords do not match.';
+            if (alertBox) {
+                alertBox.style.display = 'block';
+                alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
+                alertBox.style.color = '#ff6666';
+                alertBox.innerText = 'New passwords do not match.';
+            }
             return;
         }
 
@@ -1007,52 +1083,30 @@
         formData.append('current_password', currPwd);
         formData.append('new_password', newPwd);
         formData.append('confirm_password', confPwd);
-        formData.append('csrfmiddlewaretoken', csrfToken);
 
-        fetch('{% url "web:settings" %}', {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(res => res.json())
-        .then(data => {
-            alertBox.style.display = 'block';
-            if (data.status === 'success') {
-                alertBox.style.background = 'rgba(0, 255, 102, 0.15)';
-                alertBox.style.color = '#00FF66';
-                alertBox.innerText = '✔ ' + data.message;
-                document.getElementById('user_curr_pwd').value = '';
-                document.getElementById('user_new_pwd').value = '';
-                document.getElementById('user_conf_pwd').value = '';
-            } else {
-                alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
-                alertBox.style.color = '#ff6666';
-                alertBox.innerText = '✘ ' + data.message;
-            }
-        })
-        .catch(err => {
-            alertBox.style.display = 'block';
-            alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
-            alertBox.style.color = '#ff6666';
-            alertBox.innerText = '✘ Request failed. Please try again.';
+        sendSettingsAction(formData, 'pwd-change-alert', () => {
+            document.getElementById('user_curr_pwd').value = '';
+            document.getElementById('user_new_pwd').value = '';
+            document.getElementById('user_conf_pwd').value = '';
         });
     }
 
-    // Admin Create User Handler
+    // Admin Create Reader Handler
     function createUserHandler() {
         const usernameInput = document.getElementById('new_user_uname');
         const passwordInput = document.getElementById('new_user_pass');
-        const alertBox = document.getElementById('user-mgmt-alert');
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const alertBox = document.getElementById('reader-mgmt-alert');
 
         const username = usernameInput.value.trim();
         const password = passwordInput.value.trim();
 
         if (!username || !password) {
-            alertBox.style.display = 'block';
-            alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
-            alertBox.style.color = '#ff6666';
-            alertBox.innerText = 'Please enter both username and password.';
+            if (alertBox) {
+                alertBox.style.display = 'block';
+                alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
+                alertBox.style.color = '#ff6666';
+                alertBox.innerText = 'Please enter both reader username and password.';
+            }
             return;
         }
 
@@ -1060,99 +1114,72 @@
         formData.append('action', 'create_user');
         formData.append('username', username);
         formData.append('password', password);
-        formData.append('csrfmiddlewaretoken', csrfToken);
 
-        fetch('{% url "web:settings" %}', {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(res => res.json())
-        .then(data => {
-            alertBox.style.display = 'block';
-            if (data.status === 'success') {
-                alertBox.style.background = 'rgba(0, 255, 102, 0.15)';
-                alertBox.style.color = '#00FF66';
-                alertBox.innerText = '✔ ' + data.message;
-                usernameInput.value = '';
-                passwordInput.value = '';
-                
-                // Append new row to table
-                const tbody = document.getElementById('users-table-body');
-                if (tbody) {
-                    const tr = document.createElement('tr');
-                    tr.id = 'user-row-' + username;
-                    tr.style.cssText = 'border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: var(--text-main);';
-                    tr.innerHTML = `
-                        <td style="padding: 10px; font-weight: 700;">
-                            <i class="fi-torso" style="margin-right: 6px; color: var(--accent);"></i>
-                            ${username}
-                        </td>
-                        <td style="padding: 10px;">
-                            <span class="extension-chip" style="background: rgba(42, 195, 255, 0.15); color: var(--accent); border-color: rgba(42, 195, 255, 0.3);">👤 Simple User</span>
-                        </td>
-                        <td style="padding: 10px;">
-                            <span style="color: #00FF66; font-size: 0.8rem; font-weight: 700;">● Active</span>
-                        </td>
-                        <td style="padding: 10px; text-align: right;">
+        sendSettingsAction(formData, 'reader-mgmt-alert', () => {
+            usernameInput.value = '';
+            passwordInput.value = '';
+            
+            // Append new row to table
+            const tbody = document.getElementById('users-table-body');
+            if (tbody) {
+                const tr = document.createElement('tr');
+                tr.id = 'user-row-' + username;
+                tr.style.cssText = 'border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: var(--text-main);';
+                tr.innerHTML = `
+                    <td style="padding: 10px; font-weight: 700;">
+                        <i class="fi-book" style="margin-right: 6px; color: var(--accent);"></i>
+                        ${username}
+                    </td>
+                    <td style="padding: 10px;">
+                        <span class="extension-chip" style="background: rgba(42, 195, 255, 0.15); color: var(--accent); border-color: rgba(42, 195, 255, 0.3);">📖 Reader</span>
+                    </td>
+                    <td style="padding: 10px;">
+                        <span style="color: #00FF66; font-size: 0.8rem; font-weight: 700;">● Active</span>
+                    </td>
+                    <td style="padding: 10px; text-align: right;">
+                        <div style="display: inline-flex; gap: 8px; justify-content: flex-end;">
+                            <button type="button" class="test-btn" style="background: rgba(42, 195, 255, 0.1); border-color: rgba(42, 195, 255, 0.3); color: var(--accent); padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="resetReaderPasswordHandler('${username}')">
+                                <i class="fi-key"></i> Reset Password
+                            </button>
                             <button type="button" class="test-btn" style="background: rgba(255, 51, 51, 0.1); border-color: rgba(255, 51, 51, 0.3); color: #ff6666; padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="deleteUserHandler('${username}')">
                                 <i class="fi-trash"></i> Delete
                             </button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                }
-            } else {
-                alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
-                alertBox.style.color = '#ff6666';
-                alertBox.innerText = '✘ ' + data.message;
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
             }
-        })
-        .catch(err => {
-            alertBox.style.display = 'block';
-            alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
-            alertBox.style.color = '#ff6666';
-            alertBox.innerText = '✘ Failed to create user.';
         });
     }
 
-    // Admin Delete User Handler
-    function deleteUserHandler(username) {
-        if (!confirm(`Are you sure you want to delete user "${username}"?`)) return;
+    // Admin Reset Reader Password Handler
+    function resetReaderPasswordHandler(username) {
+        const newPass = prompt(`Enter new password for reader "${username}":`);
+        if (!newPass) return;
+        if (newPass.length < 4) {
+            alert('Password must be at least 4 characters long.');
+            return;
+        }
 
-        const alertBox = document.getElementById('user-mgmt-alert');
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const formData = new FormData();
+        formData.append('action', 'reset_reader_password');
+        formData.append('username', username);
+        formData.append('new_password', newPass);
+
+        sendSettingsAction(formData, 'reader-mgmt-alert');
+    }
+
+    // Admin Delete Reader Handler
+    function deleteUserHandler(username) {
+        if (!confirm(`Are you sure you want to delete reader "${username}"?`)) return;
 
         const formData = new FormData();
         formData.append('action', 'delete_user');
         formData.append('username', username);
-        formData.append('csrfmiddlewaretoken', csrfToken);
 
-        fetch('{% url "web:settings" %}', {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(res => res.json())
-        .then(data => {
-            alertBox.style.display = 'block';
-            if (data.status === 'success') {
-                alertBox.style.background = 'rgba(0, 255, 102, 0.15)';
-                alertBox.style.color = '#00FF66';
-                alertBox.innerText = '✔ ' + data.message;
-                const row = document.getElementById('user-row-' + username);
-                if (row) row.remove();
-            } else {
-                alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
-                alertBox.style.color = '#ff6666';
-                alertBox.innerText = '✘ ' + data.message;
-            }
-        })
-        .catch(err => {
-            alertBox.style.display = 'block';
-            alertBox.style.background = 'rgba(255, 51, 51, 0.15)';
-            alertBox.style.color = '#ff6666';
-            alertBox.innerText = '✘ Failed to delete user.';
+        sendSettingsAction(formData, 'reader-mgmt-alert', () => {
+            const row = document.getElementById('user-row-' + username);
+            if (row) row.remove();
         });
     }
     let activeStepIdx = 0;

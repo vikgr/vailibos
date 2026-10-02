@@ -1402,68 +1402,141 @@ def SettingsView(request):
         })
     ])
 
-    # Handle All POST Actions (User Management & Settings Wizard)
+    # Handle All POST Actions (Reader Management & Settings Wizard)
     if request.method == 'POST':
         action = request.POST.get('action')
+        is_ajax_req = request.is_ajax() or request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.META.get('HTTP_ACCEPT', '')
         
-        # 1. Change own password (for any authenticated user)
+        # 1. Change own password (for any authenticated user / reader)
         if action == 'change_password':
             curr_pwd = request.POST.get('current_password', '')
             new_pwd = request.POST.get('new_password', '')
             conf_pwd = request.POST.get('confirm_password', '')
             
             if not request.user.check_password(curr_pwd):
-                return JsonResponse({"status": "error", "message": _("Current password is incorrect.")})
-            if new_pwd != conf_pwd:
-                return JsonResponse({"status": "error", "message": _("New passwords do not match.")})
-            if len(new_pwd) < 4:
-                return JsonResponse({"status": "error", "message": _("Password must be at least 4 characters long.")})
-                
-            request.user.set_password(new_pwd)
-            request.user.save()
-            update_session_auth_hash(request, request.user)
-            return JsonResponse({"status": "success", "message": _("Your password has been changed successfully.")})
+                msg = _("Current password is incorrect. Please check and try again.")
+                if is_ajax_req:
+                    return JsonResponse({"status": "error", "message": msg})
+                args['pwd_message'] = {'text': msg, 'type': 'error'}
+            elif new_pwd != conf_pwd:
+                msg = _("New passwords do not match.")
+                if is_ajax_req:
+                    return JsonResponse({"status": "error", "message": msg})
+                args['pwd_message'] = {'text': msg, 'type': 'error'}
+            elif len(new_pwd) < 4:
+                msg = _("Password must be at least 4 characters long.")
+                if is_ajax_req:
+                    return JsonResponse({"status": "error", "message": msg})
+                args['pwd_message'] = {'text': msg, 'type': 'error'}
+            else:
+                request.user.set_password(new_pwd)
+                request.user.save()
+                update_session_auth_hash(request, request.user)
+                msg = _("Your password has been changed successfully.")
+                if is_ajax_req:
+                    return JsonResponse({"status": "success", "message": msg})
+                args['pwd_message'] = {'text': msg, 'type': 'success'}
             
-        # 2. Add New Simple User (Admins only)
+        # 2. Add New Reader (Admins only)
         elif action == 'create_user':
             if not request.user.is_superuser:
-                return JsonResponse({"status": "error", "message": _("Administrator rights required to create users.")})
-            new_uname = request.POST.get('username', '').strip()
-            new_pwd = request.POST.get('password', '').strip()
-            
-            if len(new_uname) < 2:
-                return JsonResponse({"status": "error", "message": _("Username must be at least 2 characters long.")})
-            if len(new_pwd) < 4:
-                return JsonResponse({"status": "error", "message": _("Password must be at least 4 characters long.")})
-            if User.objects.filter(username__iexact=new_uname).exists():
-                return JsonResponse({"status": "error", "message": _("A user with this username already exists.")})
+                msg = _("Administrator rights required to create readers.")
+                if is_ajax_req:
+                    return JsonResponse({"status": "error", "message": msg})
+                args['reader_message'] = {'text': msg, 'type': 'error'}
+            else:
+                new_uname = request.POST.get('username', '').strip()
+                new_pwd = request.POST.get('password', '').strip()
                 
-            u = User.objects.create_user(username=new_uname, password=new_pwd, is_superuser=False, is_staff=False, is_active=True)
-            return JsonResponse({
-                "status": "success", 
-                "message": _(f"User '{new_uname}' created successfully."),
-                "user": {
-                    "username": u.username,
-                    "is_superuser": u.is_superuser,
-                    "is_active": u.is_active
-                }
-            })
-            
-        # 3. Delete User (Admins only)
+                if len(new_uname) < 2:
+                    msg = _("Reader username must be at least 2 characters long.")
+                    if is_ajax_req:
+                        return JsonResponse({"status": "error", "message": msg})
+                    args['reader_message'] = {'text': msg, 'type': 'error'}
+                elif len(new_pwd) < 4:
+                    msg = _("Password must be at least 4 characters long.")
+                    if is_ajax_req:
+                        return JsonResponse({"status": "error", "message": msg})
+                    args['reader_message'] = {'text': msg, 'type': 'error'}
+                elif User.objects.filter(username__iexact=new_uname).exists():
+                    msg = _("A reader with this username already exists.")
+                    if is_ajax_req:
+                        return JsonResponse({"status": "error", "message": msg})
+                    args['reader_message'] = {'text': msg, 'type': 'error'}
+                else:
+                    u = User.objects.create_user(username=new_uname, password=new_pwd, is_superuser=False, is_staff=False, is_active=True)
+                    msg = _(f"Reader '{new_uname}' created successfully.")
+                    if is_ajax_req:
+                        return JsonResponse({
+                            "status": "success", 
+                            "message": msg,
+                            "user": {
+                                "username": u.username,
+                                "is_superuser": u.is_superuser,
+                                "is_active": u.is_active
+                            }
+                        })
+                    args['reader_message'] = {'text': msg, 'type': 'success'}
+                
+        # 3. Admin Reset Reader Password (Admins only)
+        elif action == 'reset_reader_password':
+            if not request.user.is_superuser:
+                msg = _("Administrator rights required to reset passwords.")
+                if is_ajax_req:
+                    return JsonResponse({"status": "error", "message": msg})
+                args['reader_message'] = {'text': msg, 'type': 'error'}
+            else:
+                target_uname = request.POST.get('username', '').strip()
+                reset_pwd = request.POST.get('new_password', '').strip()
+                if len(reset_pwd) < 4:
+                    msg = _("New password must be at least 4 characters long.")
+                    if is_ajax_req:
+                        return JsonResponse({"status": "error", "message": msg})
+                    args['reader_message'] = {'text': msg, 'type': 'error'}
+                else:
+                    target_user = User.objects.filter(username=target_uname).first()
+                    if not target_user:
+                        msg = _("Reader not found.")
+                        if is_ajax_req:
+                            return JsonResponse({"status": "error", "message": msg})
+                        args['reader_message'] = {'text': msg, 'type': 'error'}
+                    else:
+                        target_user.set_password(reset_pwd)
+                        target_user.save()
+                        msg = _(f"Password for reader '{target_uname}' has been updated successfully.")
+                        if is_ajax_req:
+                            return JsonResponse({"status": "success", "message": msg})
+                        args['reader_message'] = {'text': msg, 'type': 'success'}
+
+        # 4. Delete Reader (Admins only)
         elif action == 'delete_user':
             if not request.user.is_superuser:
-                return JsonResponse({"status": "error", "message": _("Administrator rights required to delete users.")})
-            del_uname = request.POST.get('username', '').strip()
-            if del_uname.lower() == request.user.username.lower():
-                return JsonResponse({"status": "error", "message": _("You cannot delete your own account.")})
-                
-            u = User.objects.filter(username=del_uname).first()
-            if not u:
-                return JsonResponse({"status": "error", "message": _("User not found.")})
-            u.delete()
-            return JsonResponse({"status": "success", "message": _(f"User '{del_uname}' deleted successfully.")})
+                msg = _("Administrator rights required to delete readers.")
+                if is_ajax_req:
+                    return JsonResponse({"status": "error", "message": msg})
+                args['reader_message'] = {'text': msg, 'type': 'error'}
+            else:
+                del_uname = request.POST.get('username', '').strip()
+                if del_uname.lower() == request.user.username.lower():
+                    msg = _("You cannot delete your own administrator account.")
+                    if is_ajax_req:
+                        return JsonResponse({"status": "error", "message": msg})
+                    args['reader_message'] = {'text': msg, 'type': 'error'}
+                else:
+                    u = User.objects.filter(username=del_uname).first()
+                    if not u:
+                        msg = _("Reader not found.")
+                        if is_ajax_req:
+                            return JsonResponse({"status": "error", "message": msg})
+                        args['reader_message'] = {'text': msg, 'type': 'error'}
+                    else:
+                        u.delete()
+                        msg = _(f"Reader '{del_uname}' deleted successfully.")
+                        if is_ajax_req:
+                            return JsonResponse({"status": "success", "message": msg})
+                        args['reader_message'] = {'text': msg, 'type': 'success'}
 
-        # 4. Handle Step Form Submission (Admins only for system/storage/etc)
+        # 5. Handle Step Form Submission (Admins only for system/storage/etc)
         step_name = request.POST.get('step_name')
         if step_name in steps_schema:
             if not request.user.is_superuser:
