@@ -1364,12 +1364,11 @@ def SetupWizardView(request):
 
 @sopds_login(url='web:login')
 def SettingsView(request):
-    if not request.user.is_superuser:
-        return HttpResponseForbidden("<h1>403 Forbidden</h1>")
-        
     from django.conf import settings
     from constance import config
     from collections import OrderedDict
+    from django.contrib.auth.models import User
+    from django.contrib.auth import update_session_auth_hash
     import pytz
     
     args = {}
@@ -1402,11 +1401,74 @@ def SettingsView(request):
             'fields': ['SOPDS_SERVER_LOG', 'SOPDS_SCANNER_LOG', 'SOPDS_TELEBOT_LOG', 'SOPDS_SERVER_PID', 'SOPDS_SCANNER_PID', 'SOPDS_TELEBOT_PID', 'SOPDS_FB2TOEPUB', 'SOPDS_FB2TOMOBI', 'SOPDS_TEMP_DIR']
         })
     ])
-    
-    # Handle Form Submission (Step-by-step or full POST)
+
+    # Handle All POST Actions (User Management & Settings Wizard)
     if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        # 1. Change own password (for any authenticated user)
+        if action == 'change_password':
+            curr_pwd = request.POST.get('current_password', '')
+            new_pwd = request.POST.get('new_password', '')
+            conf_pwd = request.POST.get('confirm_password', '')
+            
+            if not request.user.check_password(curr_pwd):
+                return JsonResponse({"status": "error", "message": _("Current password is incorrect.")})
+            if new_pwd != conf_pwd:
+                return JsonResponse({"status": "error", "message": _("New passwords do not match.")})
+            if len(new_pwd) < 4:
+                return JsonResponse({"status": "error", "message": _("Password must be at least 4 characters long.")})
+                
+            request.user.set_password(new_pwd)
+            request.user.save()
+            update_session_auth_hash(request, request.user)
+            return JsonResponse({"status": "success", "message": _("Your password has been changed successfully.")})
+            
+        # 2. Add New Simple User (Admins only)
+        elif action == 'create_user':
+            if not request.user.is_superuser:
+                return JsonResponse({"status": "error", "message": _("Administrator rights required to create users.")})
+            new_uname = request.POST.get('username', '').strip()
+            new_pwd = request.POST.get('password', '').strip()
+            
+            if len(new_uname) < 2:
+                return JsonResponse({"status": "error", "message": _("Username must be at least 2 characters long.")})
+            if len(new_pwd) < 4:
+                return JsonResponse({"status": "error", "message": _("Password must be at least 4 characters long.")})
+            if User.objects.filter(username__iexact=new_uname).exists():
+                return JsonResponse({"status": "error", "message": _("A user with this username already exists.")})
+                
+            u = User.objects.create_user(username=new_uname, password=new_pwd, is_superuser=False, is_staff=False, is_active=True)
+            return JsonResponse({
+                "status": "success", 
+                "message": _(f"User '{new_uname}' created successfully."),
+                "user": {
+                    "username": u.username,
+                    "is_superuser": u.is_superuser,
+                    "is_active": u.is_active
+                }
+            })
+            
+        # 3. Delete User (Admins only)
+        elif action == 'delete_user':
+            if not request.user.is_superuser:
+                return JsonResponse({"status": "error", "message": _("Administrator rights required to delete users.")})
+            del_uname = request.POST.get('username', '').strip()
+            if del_uname.lower() == request.user.username.lower():
+                return JsonResponse({"status": "error", "message": _("You cannot delete your own account.")})
+                
+            u = User.objects.filter(username=del_uname).first()
+            if not u:
+                return JsonResponse({"status": "error", "message": _("User not found.")})
+            u.delete()
+            return JsonResponse({"status": "success", "message": _(f"User '{del_uname}' deleted successfully.")})
+
+        # 4. Handle Step Form Submission (Admins only for system/storage/etc)
         step_name = request.POST.get('step_name')
         if step_name in steps_schema:
+            if not request.user.is_superuser:
+                return JsonResponse({"status": "error", "message": _("Administrator rights required to modify system settings.")})
+                
             fields_to_update = steps_schema[step_name]['fields']
             for field in fields_to_update:
                 default_val = settings.CONSTANCE_CONFIG[field][0]
@@ -1478,6 +1540,12 @@ def SettingsView(request):
     args['timezones'] = pytz.common_timezones
     args['current_timezone'] = getattr(settings, 'TIME_ZONE', 'Europe/Madrid')
     args['current'] = 'settings'
+    args['is_admin'] = request.user.is_superuser
+    args['current_user'] = request.user
+    if request.user.is_superuser:
+        args['users_list'] = User.objects.all().order_by('id')
+    else:
+        args['users_list'] = []
     args['vailib_breadcrumbs'] = [
         {'name': _('Books'), 'url': '/web/book/?lang=0'},
         {'name': _('Settings'), 'url': None}

@@ -41,10 +41,10 @@
     </li>
     {% endif %}
 
-    {% if user.is_superuser %}
+    {% if user.is_authenticated %}
     <li class="nav-item settings-item" style="margin-top: 15px;">
         <a href="/web/settings/" class="nav-btn admin-btn {% if current == 'settings' %}active{% endif %}">
-            <i class="fi-widget"></i> <span class="nav-text" data-trans="set">Настройки</span>
+            <i class="fi-widget"></i> <span class="nav-text" data-trans="set">{% trans "Settings" %}</span>
         </a>
     </li>
     {% endif %}
