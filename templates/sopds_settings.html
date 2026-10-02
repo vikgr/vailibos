@@ -811,6 +811,21 @@
         </div>
     </div>
 
+    <!-- Reader Delete Confirmation Modal -->
+    <div id="vailib-delete-modal" class="vailib-modal-overlay" style="display:none;" onclick="if(event.target===this) closeDeleteModal()">
+        <div class="vailib-modal-card" style="max-width: 420px; text-align: center;">
+            <div class="vailib-modal-icon error" style="margin-bottom: 12px;">🗑</div>
+            <h3 class="vailib-modal-title" style="margin-bottom: 8px;">Delete Reader</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 24px;">
+                Are you sure you want to delete reader <b id="delete-modal-reader-name" style="color: #ff6666;"></b>?<br>This action cannot be undone.
+            </p>
+            <div style="display: flex; justify-content: center; gap: 12px;">
+                <button type="button" class="btn-action btn-back" onclick="closeDeleteModal()" style="font-size: 0.85rem; padding: 8px 18px;">Cancel</button>
+                <button type="button" class="btn-action" id="btn-confirm-delete" onclick="confirmDeleteUser()" style="background: #FF3333; color: #fff !important; border: none; font-size: 0.85rem; padding: 8px 20px; box-shadow: 0 0 15px rgba(255, 51, 51, 0.4);">🗑 Delete</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Status Alert Banner -->
     <div id="settings-alert" class="settings-alert-banner">
         <span id="settings-alert-text"></span>
@@ -963,7 +978,7 @@
                                             <button type="button" class="test-btn" style="background: rgba(42, 195, 255, 0.1); border-color: rgba(42, 195, 255, 0.3); color: var(--accent); padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="openResetModal('{{ u.username }}')">
                                                 <i class="fi-key"></i> {% trans "Reset Password" %}
                                             </button>
-                                            <button type="button" class="test-btn" style="background: rgba(255, 51, 51, 0.1); border-color: rgba(255, 51, 51, 0.3); color: #ff6666; padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="deleteUserHandler('{{ u.username }}')">
+                                            <button type="button" class="test-btn" style="background: rgba(255, 51, 51, 0.1); border-color: rgba(255, 51, 51, 0.3); color: #ff6666; padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="openDeleteModal('{{ u.username }}')">
                                                 <i class="fi-trash"></i> {% trans "Delete" %}
                                             </button>
                                         </div>
@@ -1470,7 +1485,7 @@
                                 <button type="button" class="test-btn" style="background: rgba(42, 195, 255, 0.1); border-color: rgba(42, 195, 255, 0.3); color: var(--accent); padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="openResetModal('${username}')">
                                     <i class="fi-key"></i> Reset Password
                                 </button>
-                                <button type="button" class="test-btn" style="background: rgba(255, 51, 51, 0.1); border-color: rgba(255, 51, 51, 0.3); color: #ff6666; padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="deleteUserHandler('${username}')">
+                                <button type="button" class="test-btn" style="background: rgba(255, 51, 51, 0.1); border-color: rgba(255, 51, 51, 0.3); color: #ff6666; padding: 4px 10px; font-size: 0.75rem; margin: 0;" onclick="openDeleteModal('${username}')">
                                     <i class="fi-trash"></i> Delete
                                 </button>
                             </div>
@@ -1482,10 +1497,28 @@
         );
     }
 
-    // Admin Delete Reader Handler
-    function deleteUserHandler(username) {
-        if (!confirm(`Are you sure you want to delete reader "${username}"?`)) return;
+    // Modal for Deleting Reader (Portal to body)
+    let currentDeleteReader = null;
+    function openDeleteModal(username) {
+        currentDeleteReader = username;
+        const modal = document.getElementById('vailib-delete-modal');
+        if (modal && modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+        const nameEl = document.getElementById('delete-modal-reader-name');
+        if (nameEl) nameEl.innerText = username;
+        if (modal) modal.style.display = 'flex';
+    }
 
+    function closeDeleteModal() {
+        currentDeleteReader = null;
+        const modal = document.getElementById('vailib-delete-modal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function confirmDeleteUser() {
+        if (!currentDeleteReader) return;
+        const username = currentDeleteReader;
         const formData = new FormData();
         formData.append('action', 'delete_user');
         formData.append('username', username);
@@ -1493,19 +1526,17 @@
         sendSettingsAction(
             formData,
             'reader-mgmt-alert',
-            null,
-            '',
-            '',
+            'btn-confirm-delete',
+            '⏳ Deleting...',
+            '🗑 Delete',
             { successTitle: 'Reader Deleted', errorTitle: 'Failed to Delete Reader' },
             () => {
+                closeDeleteModal();
                 const row = document.getElementById('user-row-' + username);
                 if (row) row.remove();
             }
         );
     }
-    let activeStepIdx = 0;
-    let activeLogType = 'server';
-    let logIntervalId = null;
 
     // Switch tabs dynamically
     function switchTab(stepId) {

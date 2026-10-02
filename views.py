@@ -1416,7 +1416,7 @@ def SettingsView(request):
             conf_pwd = request.POST.get('confirm_password', '')
             
             if not request.user.check_password(curr_pwd):
-                msg = _("Current password is incorrect. Please check and try again.")
+                msg = _("Current password is incorrect. (Note: Default password is 'admin')")
                 if is_ajax_req:
                     return JsonResponse({"status": "error", "message": msg})
                 args['pwd_message'] = {'text': msg, 'type': 'error'}
@@ -1496,7 +1496,7 @@ def SettingsView(request):
                         return JsonResponse({"status": "error", "message": msg})
                     args['reader_message'] = {'text': msg, 'type': 'error'}
                 else:
-                    target_user = User.objects.filter(username=target_uname).first()
+                    target_user = User.objects.filter(username__iexact=target_uname).first()
                     if not target_user:
                         msg = _("Reader not found.")
                         if is_ajax_req:
@@ -1525,7 +1525,7 @@ def SettingsView(request):
                         return JsonResponse({"status": "error", "message": msg})
                     args['reader_message'] = {'text': msg, 'type': 'error'}
                 else:
-                    u = User.objects.filter(username=del_uname).first()
+                    u = User.objects.filter(username__iexact=del_uname).first()
                     if not u:
                         msg = _("Reader not found.")
                         if is_ajax_req:
