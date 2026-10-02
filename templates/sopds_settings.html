@@ -120,6 +120,10 @@
         animation: fadeIn 0.3s ease-in-out;
     }
 
+    .wizard-tab-panel.active {
+        display: block !important;
+    }
+
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(5px); }
         to { opacity: 1; transform: translateY(0); }
@@ -674,7 +678,7 @@
 
         {% for step_id, step_info in config_data.items %}
         {% if is_admin or step_id == 'system' %}
-        <div class="wizard-tab-panel" id="panel-{{ step_id }}" {% if not forloop.first %}style="display:none;"{% endif %}>
+        <div class="wizard-tab-panel {% if forloop.first %}active{% endif %}" id="panel-{{ step_id }}" {% if forloop.first %}style="display:block;"{% else %}style="display:none;"{% endif %}>
             
             <div class="panel-header">
                 <h3>
@@ -1184,7 +1188,13 @@
         stepsList.forEach(step => {
             const panel = document.getElementById('panel-' + step);
             if (panel) {
-                panel.style.display = (step === activeStep) ? 'block' : 'none';
+                if (step === activeStep) {
+                    panel.style.display = 'block';
+                    panel.classList.add('active');
+                } else {
+                    panel.style.display = 'none';
+                    panel.classList.remove('active');
+                }
             }
             
             const tabBtn = document.getElementById('step-tab-' + step);
@@ -1424,10 +1434,16 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            updateWizardUI();
+            renderExtensionChips();
+            configureEinkNuances();
+        });
+    } else {
         updateWizardUI();
         renderExtensionChips();
         configureEinkNuances();
-    });
+    }
 </script>
 {% endblock %}
