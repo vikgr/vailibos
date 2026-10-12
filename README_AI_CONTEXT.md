@@ -191,7 +191,20 @@ Supported language codes and mappings in `views.py`:
 
 ---
 
-## 9. AI Agent Coding Guidelines & Safety Rules
+---
+
+## 9. Interactive CLI Installer Wizard (`install.sh`)
+
+Redesigned in the style of KIAUH (Klipper Installation And Update Helper):
+- **Modes**:
+  - `[1] Express Setup`: Safe defaults, 1-click startup under 60 seconds.
+  - `[2] Custom Setup`: Step-by-step interactive questionnaire (Web Port, Books Directory, Timezone, DB Password, optional Telegram Bot Token & Chat ID).
+  - `[3] Restart/Update`: Rebuilds and relaunches container stack without modifying settings.
+- **TUI Features**: Color-coded steps (`[STEP 1/5]` to `[5/5]`), ASCII logo, descriptive hints (`💡 Подсказка`), summary confirmation box before launch, and post-installation command cheat sheet.
+
+---
+
+## 10. AI Agent Coding Guidelines & Safety Rules
 
 When extending or modifying the Vailib codebase, you must adhere to these rules:
 
