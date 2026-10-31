@@ -185,9 +185,14 @@ Located at `/web/upload/` (controller in `views.py`):
 
 ## 8. Internationalization & 12-Language Matrix
 
-Supported language codes and mappings in `views.py`:
-- `en` (English), `ru` (Russian), `de` (German), `el` (Greek), `es` (Spanish), `fr` (French), `ar` (Arabic), `hi` (Hindi), `pt` (Portuguese), `zh-hans` (Chinese Simplified), `bn` (Bengali), `nl` (Dutch).
+Supported language codes and mappings across templates and `views.py`:
+- `en` (English), `ru` (Russian), `de` (German), `el` (Greek), `es` (Spanish), `fr` (French), `ar` (Arabic), `hi` (Hindi), `pt` (Portuguese), `zh` (Chinese Simplified), `bn` (Bengali), `nl` (Dutch).
 - Flag CDN format: `https://flagcdn.com/w20/<flag_code>.png`.
+- **Client-Side Translation Engine**:
+  - Global dictionary `vailibDict` defined in `sopds_main.html` providing translations across all 12 languages.
+  - `applyVailibLang()` dynamically iterates over `[data-trans]` and `[data-trans-alt]` elements.
+  - Dynamic JavaScript strings (upload counters, live progress statuses, server extraction notifications) are queried via `window.getVailibString(key, fallback)`.
+  - Language preference is stored in `localStorage.getItem('vailib_lang')` and synchronized to the `django_language` cookie for server-side persistence.
 
 ---
 

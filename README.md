@@ -36,12 +36,15 @@ Built for book collectors, researchers, and self-hosters, Vailib turns any colle
 
 ## ⚡ Quick Start in 60 Seconds
 
-### Method 1: Universal 1-Line Installer (Recommended)
-Works on any Linux server, VPS, Raspberry Pi, or macOS with Docker:
+### Method 1: Universal Interactive CLI Wizard (Recommended)
+Works on any Linux server, VPS, Raspberry Pi, or macOS with Docker. Features an interactive, beginner-friendly wizard styled after KIAUH with an ASCII dashboard:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/vikgr/vailibos/main/install.sh | bash
 ```
-The wizard checks dependencies, configures your preferred port and book paths, sets up storage, and boots the entire stack automatically.
+The wizard offers:
+- **Express Setup**: 1-click startup using sensible defaults in under 60 seconds.
+- **Custom Setup**: Interactive step-by-step questionnaire with hints (`💡`) to customize ports, book directories, timezone, database passwords, and optional Telegram bot tokens.
+- **Maintenance/Update**: Fast restart or container image rebuild without losing configuration.
 
 ---
 
@@ -145,8 +148,8 @@ Vailib runs all required services inside a single container:
 
 ---
 
-### 🌎 7. 12-Language Global Matrix
-The entire library catalog and user interface are internationalized:
+### 🌎 7. 12-Language Global Matrix & Dynamic Client-Side Localization
+The entire library catalog, user interface, manual upload queue, and catalog pre-populator are internationalized with instantaneous client-side switching:
 - 🇬🇧 **English** (`en`)
 - 🇷🇺 **Russian** (`ru`)
 - 🇩🇪 **German** (`de`)
@@ -156,11 +159,12 @@ The entire library catalog and user interface are internationalized:
 - 🇸🇦 **Arabic** (`ar`)
 - 🇮🇳 **Hindi** (`hi`)
 - 🇵🇹 **Portuguese** (`pt`)
-- 🇨🇳 **Chinese Simplified** (`zh-hans`)
+- 🇨🇳 **Chinese Simplified** (`zh`)
 - 🇧🇩 **Bengali** (`bn`)
 - 🇳🇱 **Dutch** (`nl`)
 
-Includes Unicode script group classification and country flag badges from `flagcdn.com`.
+- **Instant Zero-Reload Dynamic Switching**: Built on `data-trans` DOM attributes and dynamic script translation hooks (`window.getVailibString`), switching languages translates the entire interface on the fly—including drag-and-drop zones, live upload progress bars, file queues, online catalog pre-populators, and reader quick actions—without dropping form or queue state.
+- **Display Optimization**: Includes Unicode script group classification, country flag badges from `flagcdn.com`, and Greek accent tone normalization to eliminate uppercase font-clipping bugs.
 
 ---
 
