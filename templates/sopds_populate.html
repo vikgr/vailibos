@@ -32,9 +32,9 @@
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-bottom: 8px;">
             <div>
                 <h2 style="color: #00E1FF; font-weight: 800; font-family: 'Inter', sans-serif; letter-spacing: -0.5px; margin: 0 0 6px 0; display: flex; align-items: center; gap: 10px;">
-                    <i class="fi-upload"></i> <span>{% trans "Manual Book & Archive Upload" %}</span>
+                    <i class="fi-upload"></i> <span data-trans="upload_title">{% trans "Manual Book & Archive Upload" %}</span>
                 </h2>
-                <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin: 0;">
+                <p data-trans="upload_desc" style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin: 0;">
                     {% trans "Manually upload books and ZIP archives from your device directly into the library catalog." %}
                 </p>
             </div>
@@ -54,10 +54,10 @@
             <div style="font-size: 2.8rem; color: #00E1FF; margin-bottom: 10px;">
                 <i class="fi-upload"></i>
             </div>
-            <div style="color: #fff; font-size: 1.1rem; font-weight: 700; margin-bottom: 6px;">
+            <div data-trans="upload_drop" style="color: #fff; font-size: 1.1rem; font-weight: 700; margin-bottom: 6px;">
                 {% trans "Drop books or ZIP archives here, or click to browse" %}
             </div>
-            <div style="color: var(--text-muted); font-size: 0.85rem;">
+            <div data-trans="upload_drop_hint" style="color: var(--text-muted); font-size: 0.85rem;">
                 {% trans "Select one or multiple files. ZIP archives can be automatically unpacked into individual books." %}
             </div>
         </div>
@@ -67,7 +67,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <span style="color: #fff; font-weight: 700; font-size: 0.9rem;" id="queue-count-label">0 files selected</span>
                 <button type="button" id="btn-clear-queue" style="background: none; border: none; color: #FF0055; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
-                    <i class="fi-x"></i> {% trans "Clear All" %}
+                    <i class="fi-x"></i> <span data-trans="clear_all">{% trans "Clear All" %}</span>
                 </button>
             </div>
             <div id="upload-queue-list" style="max-height: 170px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 5px;"></div>
@@ -79,27 +79,27 @@
             <div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: center;">
                 <label style="display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.88rem; font-weight: 600; cursor: pointer; margin: 0;">
                     <input type="checkbox" id="opt-extract-zips" checked style="width: 17px; height: 17px; accent-color: #00E1FF; margin: 0;">
-                    <span>{% trans "Auto-extract books from ZIP archives" %}</span>
+                    <span data-trans="opt_extract">{% trans "Auto-extract books from ZIP archives" %}</span>
                 </label>
                 <label style="display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.88rem; font-weight: 600; cursor: pointer; margin: 0;">
                     <input type="checkbox" id="opt-trigger-scan" checked style="width: 17px; height: 17px; accent-color: #00E1FF; margin: 0;">
-                    <span>{% trans "Scan library after upload" %}</span>
+                    <span data-trans="opt_scan">{% trans "Scan library after upload" %}</span>
                 </label>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">Folder:</span>
+                    <span data-trans="folder_label" style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">Folder:</span>
                     <input type="text" id="opt-subfolder" value="uploads" placeholder="uploads" style="width: 120px; height: 34px; padding: 4px 10px; margin: 0; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 6px; font-size: 0.85rem;">
                 </div>
             </div>
 
             <button type="button" id="btn-start-upload" class="button" disabled style="background: linear-gradient(135deg, #00E1FF, #7000FF); border: none; font-weight: 800; border-radius: 8px; padding: 12px 28px; box-shadow: 0 4px 15px rgba(0, 225, 255, 0.3); cursor: not-allowed; opacity: 0.5; transition: all 0.2s; margin: 0;">
-                <i class="fi-upload"></i> <span>{% trans "Upload & Import" %}</span>
+                <i class="fi-upload"></i> <span data-trans="btn_upload">{% trans "Upload & Import" %}</span>
             </button>
         </div>
 
         <!-- Live Upload Progress Bar -->
         <div id="upload-progress-container" style="display: none; margin-top: 20px;">
             <div style="display: flex; justify-content: space-between; color: #fff; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px;">
-                <span id="upload-progress-status">Uploading files...</span>
+                <span id="upload-progress-status" data-trans="uploading_files">Uploading files...</span>
                 <span id="upload-progress-percent">0%</span>
             </div>
             <div style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; overflow: hidden;">
@@ -116,16 +116,16 @@
     <div class="vl-card glassmorphic-panel" style="padding: 30px; border-radius: 16px; background: rgba(20, 20, 45, 0.45); backdrop-filter: blur(12px); border: 1px solid rgba(0, 225, 255, 0.15); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);">
         
         <h2 style="color: #00E1FF; font-weight: 800; font-family: 'Inter', sans-serif; letter-spacing: -0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
-            <i class="fi-download"></i> <span data-trans="pop_lib">{% trans "Pre-Populate from Online Catalogs" %}</span>
+            <i class="fi-download"></i> <span data-trans="pop_online_title">{% trans "Pre-Populate from Online Catalogs" %}</span>
         </h2>
-        <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 25px;">
+        <p data-trans="pop_online_desc" style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 25px;">
             {% trans "Directly fetch popular public-domain eBooks from Project Gutenberg or Standard Ebooks to expand your library catalog." %}
         </p>
 
         <!-- Status Dashboard -->
         <div id="populate-status-card" class="status-badge-container" style="margin-bottom: 30px; padding: 20px; border-radius: 12px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.05);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <span style="font-weight: 800; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px;">Status</span>
+                <span data-trans="pop_status_lbl" style="font-weight: 800; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px;">Status</span>
                 <span id="populate-state-pill" class="badge" style="font-weight: 800; border-radius: 20px; padding: 6px 12px; text-transform: uppercase;">Idle</span>
             </div>
             
@@ -151,7 +151,7 @@
             <div class="row" style="display: flex; gap: 20px;">
                 <!-- Source selection -->
                 <div style="flex: 1; margin-bottom: 25px;">
-                    <label style="color: #fff; font-weight: 700; font-size: 0.9rem; margin-bottom: 10px;">
+                    <label data-trans="pop_src_lbl" style="color: #fff; font-weight: 700; font-size: 0.9rem; margin-bottom: 10px;">
                         {% trans "Source Library Catalog:" %}
                     </label>
                     <select name="source" style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 8px; padding: 10px 14px; margin: 0; width: 100%; height: 42px;">
@@ -161,7 +161,7 @@
                 </div>
                 <!-- Count selection -->
                 <div style="flex: 1; margin-bottom: 25px;">
-                    <label style="color: #fff; font-weight: 700; font-size: 0.9rem; margin-bottom: 10px;">
+                    <label data-trans="pop_count_lbl" style="color: #fff; font-weight: 700; font-size: 0.9rem; margin-bottom: 10px;">
                         {% trans "Books per Language:" %}
                     </label>
                     <div style="display: flex; align-items: center; gap: 15px; height: 42px;">
@@ -173,7 +173,7 @@
 
             <!-- Language select grid -->
             <div style="margin-bottom: 30px;">
-                <label style="color: #fff; font-weight: 700; font-size: 0.9rem; margin-bottom: 15px; display: block;">
+                <label data-trans="pop_langs_lbl" style="color: #fff; font-weight: 700; font-size: 0.9rem; margin-bottom: 15px; display: block;">
                     {% trans "Select Languages to Populate:" %}
                 </label>
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px;">
@@ -188,13 +188,13 @@
             </div>
 
             <button type="submit" id="btn-submit" class="button" style="background: linear-gradient(135deg, #00E1FF, #7000FF); border: none; font-weight: 800; border-radius: 8px; padding: 12px 30px; box-shadow: 0 4px 15px rgba(0, 225, 255, 0.3); transition: all 0.2s;">
-                <i class="fi-download"></i> <span data-trans="pop_lib">{% trans "Populate Library" %}</span>
+                <i class="fi-download"></i> <span data-trans="pop_btn">{% trans "Populate Library" %}</span>
             </button>
         </form>
 
         <!-- Live Terminal logs -->
         <div style="margin-top: 35px;">
-            <h5 style="color: var(--text-muted); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Live Execution Logs</h5>
+            <h5 data-trans="pop_logs_title" style="color: var(--text-muted); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Live Execution Logs</h5>
             <div id="populate-logs" style="font-family: 'Courier New', monospace; font-size: 0.8rem; padding: 15px; background: #080810; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.05); color: #00FF66; height: 200px; overflow-y: auto; line-height: 1.4;">
                 <div style="color: #888;">[SYSTEM] Ready.</div>
             </div>
@@ -466,7 +466,8 @@
             startUploadBtn.removeAttribute('disabled');
             startUploadBtn.style.opacity = '1';
             startUploadBtn.style.cursor = 'pointer';
-            queueCountLabel.innerText = selectedFiles.length + ' file(s) queued for upload';
+            const queuedSuffix = window.getVailibString ? window.getVailibString('files_queued', 'file(s) queued for upload') : 'file(s) queued for upload';
+            queueCountLabel.innerText = selectedFiles.length + ' ' + queuedSuffix;
 
             queueList.innerHTML = '';
             selectedFiles.forEach((file, index) => {
@@ -569,7 +570,8 @@
                 progressContainer.style.display = 'block';
                 progressBarEl.style.width = '0%';
                 progressPercentEl.innerText = '0%';
-                progressStatusEl.innerText = `Uploading ${selectedFiles.length} file(s)...`;
+                const uploadingPrefix = window.getVailibString ? window.getVailibString('uploading_files', 'Uploading files...') : 'Uploading files...';
+                progressStatusEl.innerText = `${uploadingPrefix} (${selectedFiles.length})`;
                 statusBox.style.display = 'none';
 
                 const formData = new FormData();
@@ -597,7 +599,7 @@
                         progressBarEl.style.width = pct + '%';
                         progressPercentEl.innerText = pct + '%';
                         if (pct >= 100) {
-                            progressStatusEl.innerText = 'Extracting and processing books on server...';
+                            progressStatusEl.innerText = window.getVailibString ? window.getVailibString('extracting_server', 'Extracting and processing books on server...') : 'Extracting and processing books on server...';
                         } else {
                             progressStatusEl.innerText = `Uploading ${formatBytes(e.loaded)} / ${formatBytes(e.total)}...`;
                         }

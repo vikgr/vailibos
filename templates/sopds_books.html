@@ -82,10 +82,10 @@
             {% if b.annotation and b.annotation != 'NotYet' %}
             <p class="vl-detail-desc">{{ b.annotation|truncatechars:280 }}</p>
             {% endif %}
-            <div class="vl-detail-actions-label">Download:</div>
+            <div class="vl-detail-actions-label" data-trans="download_lbl">Download:</div>
             <div class="vl-detail-actions" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
                 {% if b.format|lower in 'pdf,epub,fb2,djvu' %}
-                <a href="{% url 'web:read' b.id %}" class="vl-download-btn" style="background: var(--reader-accent, #8b5cf6); border-color: var(--reader-accent, #8b5cf6); color: #fff;">
+                <a href="{% url 'web:read' b.id %}" class="vl-download-btn" data-trans="read_online" style="background: var(--reader-accent, #8b5cf6); border-color: var(--reader-accent, #8b5cf6); color: #fff;">
                     📖 READ ONLINE
                 </a>
                 {% endif %}
@@ -118,7 +118,7 @@
 {# --- BOOK GRID --- #}
 {# Format filter chips — only show when there are multiple formats #}
 <div class="filter-chips-bar" id="vl-filter-bar">
-  <span class="filter-chip active" data-fmt="all" id="chip-all">ALL</span>
+  <span class="filter-chip active" data-fmt="all" id="chip-all" data-trans="chip_all">ALL</span>
   <span class="filter-chip" data-fmt="djvu" id="chip-djvu">📘 DJVU</span>
   <span class="filter-chip" data-fmt="pdf" id="chip-pdf">📋 PDF</span>
   <span class="filter-chip" data-fmt="epub" id="chip-epub">📗 EPUB</span>
@@ -157,7 +157,7 @@
       </p>
       {% if b.format|lower in 'pdf,epub,fb2,djvu' %}
       <div class="vl-card-quick-actions" style="margin-top: 10px;">
-          <a href="{% url 'web:read' b.id %}" class="vl-mini-btn" style="font-size: 0.7rem; background: rgba(139, 92, 246, 0.2); color: #c084fc; padding: 4px 8px; border-radius: 4px; text-decoration: none; border: 1px solid rgba(139, 92, 246, 0.3);">📖 READ</a>
+          <a href="{% url 'web:read' b.id %}" class="vl-mini-btn" data-trans="read" style="font-size: 0.7rem; background: rgba(139, 92, 246, 0.2); color: #c084fc; padding: 4px 8px; border-radius: 4px; text-decoration: none; border: 1px solid rgba(139, 92, 246, 0.3);">📖 READ</a>
       </div>
       {% endif %}
     </div>
